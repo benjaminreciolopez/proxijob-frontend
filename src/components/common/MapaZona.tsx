@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Circle,
-  useMapEvents,
-  useMap,
-} from "react-leaflet";
+import { MapContainer, TileLayer, Circle, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface Props {
@@ -23,28 +17,29 @@ const MapaZona: React.FC<Props> = ({
     lat: number;
     lng: number;
   } | null>(zonaActiva ? { lat: zonaActiva.lat, lng: zonaActiva.lng } : null);
-  const [ubicacionInicial, setUbicacionInicial] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(zonaActiva ? { lat: zonaActiva.lat, lng: zonaActiva.lng } : null);
 
   const [radioKm, setRadioKm] = useState(zonaActiva?.radioKm || 10);
 
+  // Volver a ubicación del navegador
+  const volverAMiUbicacion = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setUbicacion(coords);
+        onChange({ ...coords, radioKm });
+      },
+      (err) => {
+        console.error("Ubicación denegada:", err.message);
+      }
+    );
+  };
+
   useEffect(() => {
     if (!zonaActiva) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const coords = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          };
-          setUbicacion(coords);
-          setUbicacionInicial(coords);
-        },
-        (err) => {
-          console.error("Ubicación denegada:", err.message);
-        }
-      );
+      volverAMiUbicacion();
     }
   }, []);
 
@@ -52,7 +47,7 @@ const MapaZona: React.FC<Props> = ({
     if (ubicacion) {
       onChange({ ...ubicacion, radioKm });
     }
-  }, [ubicacion, radioKm]);
+  }, [radioKm]);
 
   const ClickHandler = () => {
     useMapEvents({
@@ -60,45 +55,20 @@ const MapaZona: React.FC<Props> = ({
         if (!editable) return;
         const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
         setUbicacion(coords);
+        onChange({ ...coords, radioKm });
       },
     });
     return null;
   };
 
-  const BotonVolver = ({
-    coords,
-  }: {
-    coords: { lat: number; lng: number };
-  }) => {
-    const map = useMap();
-    return (
-      <button
-        onClick={() => map.setView([coords.lat, coords.lng], 12)}
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 10,
-          zIndex: 1000,
-          backgroundColor: "#fff",
-          border: "1px solid #ccc",
-          borderRadius: "6px",
-          padding: "5px 10px",
-          cursor: "pointer",
-        }}
-      >
-        Volver a mi ubicación
-      </button>
-    );
-  };
-
-  const centro = ubicacion
-    ? [ubicacion.lat, ubicacion.lng]
-    : zonaActiva
+  const centro = zonaActiva
     ? [zonaActiva.lat, zonaActiva.lng]
+    : ubicacion
+    ? [ubicacion.lat, ubicacion.lng]
     : [0, 0];
 
   return (
-    <div style={{ marginTop: "1rem" }}>
+    <div style={{ marginTop: "1rem", position: "relative" }}>
       <label>
         Radio de búsqueda: {radioKm} km
         <input
@@ -110,6 +80,24 @@ const MapaZona: React.FC<Props> = ({
           disabled={!editable}
         />
       </label>
+
+      {/* Botón fuera del mapa, pero superpuesto */}
+      <button
+        onClick={volverAMiUbicacion}
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          zIndex: 1000,
+          background: "white",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+          padding: "4px 8px",
+          cursor: "pointer",
+        }}
+      >
+        Volver a mi ubicación
+      </button>
 
       {ubicacion && (
         <MapContainer
@@ -125,7 +113,6 @@ const MapaZona: React.FC<Props> = ({
             radius={radioKm * 1000}
             pathOptions={{ color: "blue" }}
           />
-          {ubicacionInicial && <BotonVolver coords={ubicacionInicial} />}
           <ClickHandler />
         </MapContainer>
       )}
