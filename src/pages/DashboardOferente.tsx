@@ -221,25 +221,30 @@ const DashboardOferente: React.FC = () => {
       if (!zonasData) return;
 
       // 2. Obtener solicitudes compatibles por categoría
+      // 1. Obtener IDs de categorías del oferente
+      const { data: categorias } = await supabase
+        .from("categorias_oferente")
+        .select("categoria_id")
+        .eq("oferente_id", usuario.id);
+
+      if (!categorias || categorias.length === 0) {
+        toast.error("No tienes categorías asociadas.");
+        return;
+      }
+
+      const idsCategoria = categorias.map((c) => c.categoria_id);
+
+      // 2. Obtener solicitudes que tengan esas categorías
       const { data: solicitudesCompatibles, error: errorSolicitudes } =
         await supabase
           .from("solicitudes")
           .select(
-            `
-        *,
-        cliente:cliente_id(nombre),
-        categorias_solicitud!inner(categoria_id),
-        categorias_oferente!inner(
-          categoria_id,
-          oferente_id
-        )
-      `
+            "*, cliente:cliente_id(nombre), categoria_id, ubicacion, radio_km, descripcion"
           )
-          .eq("categorias_oferente.oferente_id", usuario.id);
+          .in("categoria_id", idsCategoria);
 
       if (errorSolicitudes) {
-        toast.error("⚠️ No se han obtenido las solicitudes.");
-
+        toast.error("⚠️ No se han podido cargar las solicitudes.");
         return;
       }
 
