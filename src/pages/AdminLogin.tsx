@@ -11,6 +11,7 @@ const AdminLogin: React.FC = () => {
   const handleLogin = () => {
     const ok = login(clave);
     if (ok) {
+      localStorage.setItem("usuario_admin", import.meta.env.VITE_ADMIN_EMAIL); // 👈 lo guardas tú
       toast.success("Acceso administrador concedido");
       navigate("/");
     } else {
