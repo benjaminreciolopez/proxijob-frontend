@@ -44,7 +44,11 @@ const DashboardOferente: React.FC = () => {
         .select()
         .single();
 
-      if (errorInsert || !nueva) return;
+      if (errorInsert || !nueva) {
+        toast.error("❌ No se ha podido registrar la nueva categoría.");
+        return;
+      }
+
       categoriaId = nueva.id;
     }
 
@@ -74,7 +78,7 @@ const DashboardOferente: React.FC = () => {
       } = await supabase.auth.getUser();
 
       if (error || !user) {
-        console.error("No estás autenticado.");
+        toast.error("No estás autenticado.");
         setUsuario(null);
         return;
       }
@@ -87,10 +91,8 @@ const DashboardOferente: React.FC = () => {
         .single();
 
       if (errorUsuario) {
-        console.error(
-          "Error al cargar datos del usuario:",
-          errorUsuario.message
-        );
+        toast.error("Error al obtener datos del oferente.");
+
         setUsuario(user); // fallback mínimo
       } else {
         setUsuario({
@@ -146,7 +148,6 @@ const DashboardOferente: React.FC = () => {
       .eq("solicitud_id", solicitudId);
 
     if (errorCheck) {
-      console.error("❌ Error al verificar postulaciones:", errorCheck.message);
       toast.error("Error al comprobar postulaciones previas.");
       return;
     }
@@ -170,8 +171,7 @@ const DashboardOferente: React.FC = () => {
       .single();
 
     if (errorPostulacion) {
-      console.error("❌ Error al postularse:", errorPostulacion.message);
-      toast.error("Error al postularse: " + errorPostulacion.message);
+      toast.error("⚠️ No se ha postulado a esta solicitud.");
       return;
     }
 
@@ -194,7 +194,8 @@ const DashboardOferente: React.FC = () => {
         .insert(docsAInsertar);
 
       if (errorDocs) {
-        console.warn("⚠️ Documentos no guardados:", errorDocs.message);
+        toast.error("⚠️ No se han adjuntado los documentos.");
+        return;
       }
     }
 
@@ -237,7 +238,8 @@ const DashboardOferente: React.FC = () => {
           .eq("categorias_oferente.oferente_id", usuario.id);
 
       if (errorSolicitudes) {
-        console.error("Error al cargar solicitudes:", errorSolicitudes.message);
+        toast.error("⚠️ No se han obtenido las solicitudes.");
+
         return;
       }
 
