@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { normalizarTextoCategoria } from "../../utils/normalizarTextoCategoria";
 
 const EditarPerfil: React.FC = () => {
   const navigate = useNavigate();
@@ -79,46 +80,52 @@ const EditarPerfil: React.FC = () => {
       return;
     }
 
-    // Elimina las asociaciones anteriores
+    // Elimina asociaciones anteriores
     await supabase
       .from("categorias_oferente")
       .delete()
       .eq("oferente_id", user.id);
 
-    // Si hay nueva categoría escrita, crearla
-    let nuevaId = null;
-    if (nuevaCategoria.trim()) {
-      const nombreNormalizado = nuevaCategoria.trim().toLowerCase();
+    let nuevaId: string | null = null;
+
+    if (nuevaCategoria.trim().length > 1) {
+      const nombreNormalizado = normalizarTextoCategoria(nuevaCategoria);
 
       const { data: existente } = await supabase
         .from("categorias")
         .select("id")
-        .eq("nombre", nombreNormalizado)
+        .eq("nombre_normalizado", nombreNormalizado)
         .single();
 
       if (existente) {
         nuevaId = existente.id;
       } else {
-        const { data: insertada, error: errorInsert } = await supabase
-          .from("categorias")
-          .insert([{ nombre: nombreNormalizado }])
-          .select()
-          .single();
+        const { error: errorPendiente } = await supabase
+          .from("categorias_pendientes")
+          .insert([
+            {
+              nombre: nuevaCategoria.trim(),
+              nombre_normalizado: nombreNormalizado,
+              sugerida_por: user.id,
+            },
+          ]);
 
-        if (errorInsert || !insertada) {
-          toast.error("Error al crear nueva categoría.");
-          return;
+        if (errorPendiente) {
+          toast.error("No se pudo registrar la nueva categoría (pendiente).");
+        } else {
+          toast.success("Tu categoría será revisada por el equipo.");
         }
-
-        nuevaId = insertada.id;
       }
 
-      // Añadir nueva categoría a las seleccionadas
-      setSeleccionadas((prev) => [
-        ...prev.filter((id) => id !== "otras"),
-        nuevaId!,
-      ]);
+      if (nuevaId) {
+        setSeleccionadas((prev) => [
+          ...prev.filter((id) => id !== "otras"),
+          nuevaId!,
+        ]);
+      }
     }
+
+    // Guardar categorías seleccionadas
     const inserts = seleccionadas
       .filter((id) => id !== "otras")
       .map((categoriaId) => ({

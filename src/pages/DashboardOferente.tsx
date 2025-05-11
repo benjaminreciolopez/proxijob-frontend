@@ -29,7 +29,7 @@ const DashboardOferente: React.FC = () => {
     const { data: existentes } = await supabase
       .from("categorias")
       .select("id")
-      .eq("nombre", nombreNormalizado)
+      .ilike("nombre", nombreNormalizado)
       .single();
 
     let categoriaId: string | null = null;
