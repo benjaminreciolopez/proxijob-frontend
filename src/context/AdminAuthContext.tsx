@@ -1,9 +1,9 @@
 // src/context/AdminAuthContext.tsx
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
-  login: (password: string) => boolean;
+  login: (email: string, password: string) => boolean;
   logout: () => void;
 }
 
@@ -16,15 +16,28 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  const login = (password: string) => {
-    if (password === import.meta.env.VITE_ADMIN_PASSWORD) {
+  useEffect(() => {
+    const adminStored = localStorage.getItem("usuario_admin");
+    const emailValido = adminStored === import.meta.env.VITE_ADMIN_EMAIL;
+    setIsAuthenticated(emailValido);
+  }, []);
+
+  const login = (email: string, password: string) => {
+    if (
+      email === import.meta.env.VITE_ADMIN_EMAIL &&
+      password === import.meta.env.VITE_ADMIN_CLAVE
+    ) {
+      localStorage.setItem("usuario_admin", email);
       setIsAuthenticated(true);
       return true;
     }
     return false;
   };
 
-  const logout = () => setIsAuthenticated(false);
+  const logout = () => {
+    localStorage.removeItem("usuario_admin");
+    setIsAuthenticated(false);
+  };
 
   return (
     <AdminAuthContext.Provider value={{ isAuthenticated, login, logout }}>
@@ -35,8 +48,10 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useAdminAuth = () => {
   const context = useContext(AdminAuthContext);
-  if (!context)
+  if (!context) {
     throw new Error("useAdminAuth debe usarse dentro de AdminAuthProvider");
+  }
   return context;
 };
+
 export default AdminAuthProvider;
