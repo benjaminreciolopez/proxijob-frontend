@@ -39,22 +39,19 @@ const App: React.FC = () => {
         <Route path="/registro" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
- <Route
-    path="/"
-    element={
-      modoMantenimiento ? (
-        <RutaProtegida>
-          <LandingPage />
-        </RutaProtegida>
-      ) : (
-        <LandingPage />
-      )
-    }
-  />
-
-        {/* Rutas protegidas por mantenimiento */}
-
+        <Route
+          path="/"
+          element={
+            modoMantenimiento ? (
+              <RutaProtegida>
+                <LandingPage />
+              </RutaProtegida>
+            ) : (
+              <LandingPage />
+            )
+          }
         />
+        {/* Rutas protegidas por mantenimiento */}
         <Route
           path="/dashboard/cliente"
           element={
