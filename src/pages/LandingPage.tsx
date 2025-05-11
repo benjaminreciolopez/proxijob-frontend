@@ -47,9 +47,6 @@ const LandingPage: React.FC = () => {
       <section className={styles.hero}>
         <h2>Conecta con el talento que tienes cerca</h2>
         <p>Rápido, fácil, geolocalizado.</p>
-        <button className={styles.cta} onClick={() => navigate("/registro")}>
-          Empieza gratis
-        </button>
       </section>
 
       <section className={styles.steps}>
