@@ -113,14 +113,20 @@ const DashboardOferente: React.FC = () => {
       }
 
       // Verificar si tiene alguna postulación aceptada
-      const { data: aceptada } = await supabase
+      const { data: aceptada, error: errorAceptada } = await supabase
         .from("postulaciones")
         .select("solicitud_id")
         .eq("oferente_id", user.id)
         .eq("estado", "aceptado")
-        .single();
+        .maybeSingle();
 
-      if (aceptada?.solicitud_id) {
+      if (errorAceptada) {
+        console.warn(
+          "No hay postulaciones aceptadas o no se pudo consultar:",
+          errorAceptada.message
+        );
+        setSolicitudAceptada(null);
+      } else if (aceptada?.solicitud_id) {
         const { data: solicitudRelacionada } = await supabase
           .from("solicitudes")
           .select("cliente_id")
