@@ -37,7 +37,6 @@ const DashboardOferente: React.FC = () => {
     if (existentes) {
       categoriaId = existentes.id;
     } else {
-      // Insertar nueva categoría
       const { data: nueva, error: errorInsert } = await supabase
         .from("categorias")
         .insert([{ nombre: nombreNormalizado }])
@@ -52,21 +51,28 @@ const DashboardOferente: React.FC = () => {
       categoriaId = nueva.id;
     }
 
-    // Asociar al oferente (si no lo está)
-    const { data: yaAsociada } = await supabase
+    // Verifica si ya está asociada (uso de .match() para evitar error 400)
+    const { data: yaAsociada, error: errorYaAsociada } = await supabase
       .from("categorias_oferente")
       .select("id")
-      .eq("oferente_id", usuarioId)
-      .eq("categoria_id", categoriaId)
+      .match({
+        oferente_id: usuarioId,
+        categoria_id: categoriaId,
+      })
       .maybeSingle();
 
     if (!yaAsociada) {
-      await supabase.from("categorias_oferente").insert([
-        {
-          oferente_id: usuarioId,
-          categoria_id: categoriaId,
-        },
-      ]);
+      const { error: errorInsertRelacion } = await supabase
+        .from("categorias_oferente")
+        .insert([
+          {
+            oferente_id: usuarioId,
+            categoria_id: categoriaId,
+          },
+        ]);
+      if (errorInsertRelacion) {
+        toast.error("⚠️ No se ha podido asociar la categoría al oferente.");
+      }
     }
   }
 
@@ -109,22 +115,21 @@ const DashboardOferente: React.FC = () => {
       // Verificar si tiene alguna postulación aceptada
       const { data: aceptada } = await supabase
         .from("postulaciones")
-        .select("solicitud_id, solicitud:solicitud_id(cliente_id)")
+        .select("solicitud_id")
         .eq("oferente_id", user.id)
         .eq("estado", "aceptado")
         .single();
 
-      if (aceptada) {
-        const solicitud = aceptada.solicitud as
-          | { cliente_id: string }
-          | { cliente_id: string }[];
-        const clienteId = Array.isArray(solicitud)
-          ? solicitud[0]?.cliente_id
-          : solicitud?.cliente_id;
+      if (aceptada?.solicitud_id) {
+        const { data: solicitudRelacionada } = await supabase
+          .from("solicitudes")
+          .select("cliente_id")
+          .eq("id", aceptada.solicitud_id)
+          .single();
 
         setSolicitudAceptada({
           solicitud_id: aceptada.solicitud_id,
-          cliente_id: clienteId,
+          cliente_id: solicitudRelacionada?.cliente_id ?? "",
         });
       } else {
         setSolicitudAceptada(null);
@@ -220,8 +225,7 @@ const DashboardOferente: React.FC = () => {
 
       if (!zonasData) return;
 
-      // 2. Obtener solicitudes compatibles por categoría
-      // 1. Obtener IDs de categorías del oferente
+      // 2. Obtener IDs de categorías asociadas
       const { data: categorias } = await supabase
         .from("categorias_oferente")
         .select("categoria_id")
@@ -234,7 +238,7 @@ const DashboardOferente: React.FC = () => {
 
       const idsCategoria = categorias.map((c) => c.categoria_id);
 
-      // 2. Obtener solicitudes que tengan esas categorías
+      // 3. Consultar solicitudes (solo si hay categorías válidas)
       const { data: solicitudesCompatibles, error: errorSolicitudes } =
         await supabase
           .from("solicitudes")
@@ -248,7 +252,7 @@ const DashboardOferente: React.FC = () => {
         return;
       }
 
-      // 3. Filtrar solicitudes por zonas
+      // 4. Filtrar por zona
       setZonas(zonasData);
       setSolicitudes(solicitudesCompatibles);
       const visibles = filtrarSolicitudesPorZonas(
