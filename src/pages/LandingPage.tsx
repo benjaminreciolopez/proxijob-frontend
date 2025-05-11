@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./LandingPage.module.css";
 import { useNavigate } from "react-router-dom";
-
+import toast from "react-hot-toast";
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<
@@ -88,6 +88,26 @@ const LandingPage: React.FC = () => {
           <a href="#">Sobre nosotros</a> | <a href="#">Contacto</a> |{" "}
           <a href="#">Términos</a>
         </div>
+        {localStorage.getItem("usuario_admin") && (
+          <button
+            onClick={() => {
+              localStorage.removeItem("usuario_admin");
+              toast.success("Sesión de administrador cerrada");
+              window.location.reload(); // o navigate(0)
+            }}
+            style={{
+              marginTop: "2rem",
+              background: "#dc3545",
+              color: "white",
+              padding: "0.5rem 1rem",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Cerrar sesión admin
+          </button>
+        )}
       </footer>
     </div>
   );
