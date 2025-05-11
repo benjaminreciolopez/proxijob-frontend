@@ -1,0 +1,91 @@
+.container {
+  font-family: sans-serif;
+  max-width: 900px;
+  margin: auto;
+  padding: 1rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navButton,
+.loginButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #eee;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.loginButton {
+  background: #007bff;
+  color: white;
+}
+
+.hero {
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: #f9f9f9;
+}
+
+.hero h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.cta {
+  padding: 0.7rem 1.5rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.steps,
+.benefits,
+.join {
+  padding: 2rem 1rem;
+}
+
+.steps ol,
+.benefits ul {
+  padding-left: 1.5rem;
+}
+
+.join input {
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  width: 250px;
+  max-width: 100%;
+}
+
+.footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  border-top: 1px solid #ddd;
+  margin-top: 2rem;
+}
+.active {
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+}
