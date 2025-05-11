@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styles from "./LandingPage.module.css";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<
