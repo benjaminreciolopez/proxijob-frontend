@@ -1,19 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useAdminAuth } from "../context/AdminAuthContext";
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
   const [clave, setClave] = useState("");
+  const { login } = useAdminAuth();
 
   const handleLogin = () => {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-    const claveMaestra = import.meta.env.VITE_ADMIN_CLAVE;
-
-    if (email === adminEmail && clave === claveMaestra) {
-      localStorage.setItem("usuario_admin", adminEmail);
-      toast.success("Acceso concedido como administrador");
+    const ok = login(clave);
+    if (ok) {
+      toast.success("Acceso administrador concedido");
       navigate("/");
     } else {
       toast.error("Credenciales incorrectas");
@@ -23,13 +21,6 @@ const AdminLogin: React.FC = () => {
   return (
     <div style={{ padding: "2rem", maxWidth: "400px", margin: "auto" }}>
       <h2>🔐 Acceso Administrador</h2>
-      <input
-        type="email"
-        placeholder="Correo administrador"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{ display: "block", width: "100%", marginBottom: "1rem" }}
-      />
       <input
         type="password"
         placeholder="Clave secreta"

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
-  login: (email: string, password: string) => boolean;
+  login: (password: string) => boolean;
   logout: () => void;
 }
 
@@ -22,12 +22,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsAuthenticated(emailValido);
   }, []);
 
-  const login = (email: string, password: string) => {
-    if (
-      email === import.meta.env.VITE_ADMIN_EMAIL &&
-      password === import.meta.env.VITE_ADMIN_CLAVE
-    ) {
-      localStorage.setItem("usuario_admin", email);
+  const login = (password: string) => {
+    if (password === import.meta.env.VITE_ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       return true;
     }
