@@ -8,8 +8,15 @@ import DashboardOferente from "./pages/DashboardOferente";
 import Chat from "./Chat";
 import { Toaster } from "react-hot-toast";
 import EditarPerfil from "./components/oferente/EditarPerfil";
+import Mantenimiento from "./pages/Mantenimiento";
 
 const App: React.FC = () => {
+  const modoMantenimiento = import.meta.env.VITE_MODO_MANTENIMIENTO === "true";
+
+  if (modoMantenimiento) {
+    return <Mantenimiento />;
+  }
+
   return (
     <>
       <Toaster position="top-center" />
