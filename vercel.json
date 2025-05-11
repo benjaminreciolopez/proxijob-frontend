@@ -1,6 +1,5 @@
 {
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "pnpm install && pnpm run build",
   "outputDirectory": "dist",
-  "cleanUrls": true,
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "installCommand": "pnpm install"
 }
