@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 
 interface Props {
   clienteId: string;
-  refrescar: boolean;
 }
 
 interface Solicitud {
@@ -16,7 +15,7 @@ interface Solicitud {
   created_at: string;
 }
 
-const HistorialSolicitudes: React.FC<Props> = ({ clienteId, refrescar }) => {
+const HistorialSolicitudes: React.FC<Props> = ({ clienteId }) => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
@@ -44,7 +43,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, refrescar }) => {
 
   useEffect(() => {
     fetchSolicitudes();
-  }, [clienteId, refrescar]);
+  }, [clienteId]);
 
   const eliminarSolicitud = async (id: string) => {
     const confirmar = confirm("¿Seguro que quieres eliminar esta solicitud?");
@@ -101,6 +100,27 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, refrescar }) => {
       fetchSolicitudes();
     }
   };
+  useEffect(() => {
+    const canal = supabase
+      .channel("solicitudes_historial")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "solicitudes",
+          filter: `cliente_id=eq.${clienteId}`,
+        },
+        (payload) => {
+          fetchSolicitudes(); // Actualiza el historial ante cualquier cambio
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [clienteId]);
 
   return (
     <div style={{ marginTop: "2rem" }}>

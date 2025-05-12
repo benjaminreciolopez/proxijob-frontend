@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import NuevaSolicitud from "../components/cliente/NuevaSolicitud";
 import HistorialSolicitudes from "../components/cliente/HistorialSolicitudes";
@@ -17,8 +17,6 @@ const DashboardCliente: React.FC = () => {
     ? JSON.parse(usuarioGuardado)
     : null;
 
-  const [refrescarHistorial, setRefrescarHistorial] = useState<boolean>(false);
-
   if (!usuario) {
     return (
       <div style={{ padding: "2rem", fontFamily: "sans-serif", color: "red" }}>
@@ -33,18 +31,11 @@ const DashboardCliente: React.FC = () => {
       <p>Bienvenido. Desde aquí puedes gestionar tus solicitudes.</p>
 
       <div style={{ marginBottom: "2rem" }}>
-        <NuevaSolicitud
-          clienteId={usuario.id}
-          nombre={usuario.nombre}
-          onPublicar={() => setRefrescarHistorial((v) => !v)}
-        />
+        <NuevaSolicitud clienteId={usuario.id} nombre={usuario.nombre} />
       </div>
 
       <div style={{ marginBottom: "2rem" }}>
-        <HistorialSolicitudes
-          clienteId={usuario.id}
-          refrescar={refrescarHistorial}
-        />
+        <HistorialSolicitudes clienteId={usuario.id} />
       </div>
 
       <div style={{ marginBottom: "2rem" }}>

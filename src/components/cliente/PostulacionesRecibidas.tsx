@@ -52,62 +52,290 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
         .from("postulaciones")
         .select(
           `
-            id,
-            oferente_id,
-            mensaje,
-            estado,
-            created_at,
-            solicitud:solicitud_id (
+        id,
+        oferente_id,
+        mensaje,
+        estado,
+        created_at,
+        solicitud:solicitud_id (
+          id,
+          descripcion,
+          categoria,
+          ubicacion,
+          cliente_id,
+          cliente:cliente_id ( id, nombre )
+        ),
+        oferente:oferente_id (
+          id,
+          nombre,
+          especialidad,
+          descripcion
+        ),
+        documentos:documentos_postulacion (
+          id,
+          tipo,
+          titulo,
+          url
+        )
+      `
+        )
+        .order("created_at", { ascending: false });
+
+      if (error || !data) {
+        console.error("Error al cargar postulaciones:", error?.message);
+        return;
+      }
+
+      const normalizadas = data
+        .map((raw: any) => {
+          const solicitud = Array.isArray(raw.solicitud)
+            ? raw.solicitud[0]
+            : raw.solicitud;
+          const cliente = Array.isArray(solicitud?.cliente)
+            ? solicitud.cliente[0]
+            : solicitud?.cliente;
+
+          if (!solicitud || !cliente || solicitud.cliente_id !== clienteId)
+            return null;
+
+          return {
+            id: raw.id,
+            oferente_id: raw.oferente_id,
+            mensaje: raw.mensaje,
+            estado: raw.estado,
+            created_at: raw.created_at,
+            solicitud: {
+              id: solicitud.id,
+              descripcion: solicitud.descripcion,
+              categoria: solicitud.categoria,
+              ubicacion: solicitud.ubicacion,
+              cliente_id: solicitud.cliente_id,
+              cliente: {
+                id: cliente.id,
+                nombre: cliente.nombre,
+              },
+            },
+            oferente: Array.isArray(raw.oferente)
+              ? raw.oferente[0]
+              : raw.oferente,
+            documentos: Array.isArray(raw.documentos) ? raw.documentos : [],
+          } as Postulacion;
+        })
+        .filter((p: Postulacion | null): p is Postulacion => p !== null);
+
+      setPostulaciones(normalizadas);
+    };
+
+    cargarPostulaciones();
+  }, [clienteId]);
+
+  useEffect(() => {
+    const canal = supabase
+      .channel("postulaciones_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "postulaciones" },
+        async (payload) => {
+          const tipo = payload.eventType;
+          const nueva = payload.new as { id: string } | null;
+          const antigua = payload.old as
+            | ({ id: string } & { solicitud?: { cliente_id?: string } })
+            | null;
+
+          if ((tipo === "INSERT" || tipo === "UPDATE") && nueva?.id) {
+            const { data, error } = await supabase
+              .from("postulaciones")
+              .select(
+                `
+              id,
+              oferente_id,
+              mensaje,
+              estado,
+              created_at,
+              solicitud:solicitud_id (
                 id,
                 descripcion,
                 categoria,
                 ubicacion,
                 cliente_id,
                 cliente:cliente_id ( id, nombre )
-            ),
-            oferente:oferente_id (
+              ),
+              oferente:oferente_id (
                 id,
-                nombre
+                nombre,
                 especialidad,
                 descripcion
-            ),
-            documentos:documentos_postulacion (
+              ),
+              documentos:documentos_postulacion (
                 id,
                 tipo,
                 titulo,
                 url
-            )
+              )
             `
-        )
-        .order("created_at", { ascending: false });
+              )
+              .eq("id", nueva.id)
+              .maybeSingle();
 
-      if (error) {
-        console.error("Error al cargar postulaciones:", error.message);
-        return;
-      }
+            if (error || !data) return;
 
-      const filtradas = (data || [])
-        .map((p: any) => ({
-          ...p,
-          solicitud: Array.isArray(p.solicitud) ? p.solicitud[0] : p.solicitud,
-        }))
-        .filter((p, _, arr) => {
-          const mismaSolicitud = (id: string) =>
-            arr.filter((x) => x.solicitud.id === id);
+            // Normaliza datos anidados
+            const solicitud = Array.isArray(data.solicitud)
+              ? data.solicitud[0]
+              : data.solicitud;
 
-          const yaAceptada = mismaSolicitud(p.solicitud.id).some(
-            (x) => x.estado === "aceptado"
-          );
+            const cliente = Array.isArray(solicitud?.cliente)
+              ? solicitud.cliente[0]
+              : solicitud?.cliente;
 
-          if (p.estado === "aceptado") return true;
-          if (!yaAceptada) return true;
-          return false; // Oculta descartadas, pendientes, etc. si ya hay una aceptada
-        });
+            if (!solicitud || !cliente) return;
+            if (solicitud.cliente_id !== clienteId) return;
 
-      setPostulaciones(filtradas);
+            const postulacionNormalizada: Postulacion = {
+              id: data.id,
+              oferente_id: data.oferente_id,
+              mensaje: data.mensaje,
+              estado: data.estado,
+              created_at: data.created_at,
+              solicitud: {
+                id: solicitud.id,
+                descripcion: solicitud.descripcion,
+                categoria: solicitud.categoria,
+                ubicacion: solicitud.ubicacion,
+                cliente_id: solicitud.cliente_id,
+                cliente: {
+                  id: cliente.id,
+                  nombre: cliente.nombre,
+                },
+              },
+              oferente: Array.isArray(data.oferente)
+                ? data.oferente[0]
+                : data.oferente,
+              documentos: Array.isArray(data.documentos) ? data.documentos : [],
+            };
+
+            setPostulaciones((prev) => {
+              const sinAntigua = prev.filter(
+                (p) => p.id !== postulacionNormalizada.id
+              );
+              return [postulacionNormalizada, ...sinAntigua];
+            });
+          }
+
+          if (
+            tipo === "DELETE" &&
+            antigua?.solicitud?.cliente_id === clienteId
+          ) {
+            setPostulaciones((prev) => prev.filter((p) => p.id !== antigua.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
     };
+  }, [clienteId]);
 
-    cargarPostulaciones();
+  useEffect(() => {
+    const canalDocs = supabase
+      .channel("documentos_postulacion_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "documentos_postulacion",
+        },
+        async (payload) => {
+          const { new: nuevo, old } = payload;
+
+          const postulacionId =
+            (nuevo as { postulacion_id?: string })?.postulacion_id ||
+            (old as { postulacion_id?: string })?.postulacion_id;
+          if (!postulacionId) return;
+
+          // Reconsultar la postulación a la que pertenece el documento
+          const { data, error } = await supabase
+            .from("postulaciones")
+            .select(
+              `
+            id,
+            oferente_id,
+            mensaje,
+            estado,
+            created_at,
+            solicitud:solicitud_id (
+              id,
+              descripcion,
+              categoria,
+              ubicacion,
+              cliente_id,
+              cliente:cliente_id ( id, nombre )
+            ),
+            oferente:oferente_id (
+              id,
+              nombre,
+              especialidad,
+              descripcion
+            ),
+            documentos:documentos_postulacion (
+              id,
+              tipo,
+              titulo,
+              url
+            )
+          `
+            )
+            .eq("id", postulacionId)
+            .maybeSingle();
+
+          if (error || !data) return;
+
+          const solicitud = Array.isArray(data.solicitud)
+            ? data.solicitud[0]
+            : data.solicitud;
+          const cliente = Array.isArray(solicitud?.cliente)
+            ? solicitud.cliente[0]
+            : solicitud?.cliente;
+
+          if (!solicitud || !cliente || solicitud.cliente_id !== clienteId)
+            return;
+
+          const postulacionNormalizada: Postulacion = {
+            id: data.id,
+            oferente_id: data.oferente_id,
+            mensaje: data.mensaje,
+            estado: data.estado,
+            created_at: data.created_at,
+            solicitud: {
+              id: solicitud.id,
+              descripcion: solicitud.descripcion,
+              categoria: solicitud.categoria,
+              ubicacion: solicitud.ubicacion,
+              cliente_id: solicitud.cliente_id,
+              cliente: {
+                id: cliente.id,
+                nombre: cliente.nombre,
+              },
+            },
+            oferente: Array.isArray(data.oferente)
+              ? data.oferente[0]
+              : data.oferente,
+            documentos: Array.isArray(data.documentos) ? data.documentos : [],
+          };
+
+          setPostulaciones((prev) => {
+            const sinAntigua = prev.filter((p) => p.id !== postulacionId);
+            return [postulacionNormalizada, ...sinAntigua];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canalDocs);
+    };
   }, [clienteId]);
 
   const actualizarEstado = async (

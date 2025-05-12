@@ -5,11 +5,10 @@ import MapaZona from "../common/MapaZona";
 
 interface Props {
   clienteId: string;
-  onPublicar?: () => void;
   nombre: string;
 }
 
-const NuevaSolicitud: React.FC<Props> = ({ clienteId, onPublicar }) => {
+const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
   const [formData, setFormData] = useState({
     descripcion: "",
     categoria: "",
@@ -62,7 +61,6 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId, onPublicar }) => {
         longitud: null,
         radioKm: 10,
       });
-      if (onPublicar) onPublicar();
     }
   };
 

@@ -9,6 +9,7 @@ import {
   Solicitud,
 } from "../utils/geo";
 import toast from "react-hot-toast";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 const DashboardOferente: React.FC = () => {
   const navigate = useNavigate();
@@ -279,6 +280,69 @@ const DashboardOferente: React.FC = () => {
       </div>
     );
   }
+
+  useEffect(() => {
+    if (!usuario) return;
+
+    const canal: RealtimeChannel = supabase
+
+      .channel("solicitudes_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "solicitudes" },
+        async (payload) => {
+          const nuevaSolicitud = payload.new as Solicitud;
+
+          if (payload.eventType === "INSERT") {
+            const esCompatible =
+              zonas.length > 0 &&
+              filtrarSolicitudesPorZonas([nuevaSolicitud], zonas).length > 0;
+
+            const coincideCategoria = await supabase
+              .from("categorias_oferente")
+              .select("*")
+              .eq("oferente_id", usuario.id)
+              .eq("categoria_id", nuevaSolicitud.categoria_id);
+
+            if (
+              esCompatible &&
+              coincideCategoria.data &&
+              coincideCategoria.data.length > 0
+            ) {
+              setSolicitudes((prev) => [...prev, nuevaSolicitud]);
+              setSolicitudesFiltradas((prev) => [...prev, nuevaSolicitud]);
+              toast.success("📬 Nueva solicitud disponible en tu zona");
+            }
+          }
+
+          if (payload.eventType === "DELETE") {
+            const eliminadaId = (payload.old as Solicitud).id;
+            setSolicitudes((prev) => prev.filter((s) => s.id !== eliminadaId));
+            setSolicitudesFiltradas((prev) =>
+              prev.filter((s) => s.id !== eliminadaId)
+            );
+          }
+
+          if (payload.eventType === "UPDATE") {
+            const actualizada = payload.new as Solicitud;
+            setSolicitudes((prev) =>
+              prev.map((s) => (s.id === actualizada.id ? actualizada : s))
+            );
+            const visibles = filtrarSolicitudesPorZonas([actualizada], zonas);
+            setSolicitudesFiltradas((prev) =>
+              visibles.length > 0
+                ? [...prev.filter((s) => s.id !== actualizada.id), actualizada]
+                : prev.filter((s) => s.id !== actualizada.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [usuario, zonas]);
 
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>

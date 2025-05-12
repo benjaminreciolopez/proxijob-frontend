@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 
@@ -18,6 +18,15 @@ const Chat: React.FC = () => {
 
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState("");
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll automático cuando llegan mensajes nuevos
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [mensajes]);
 
   useEffect(() => {
     if (!solicitudId) return;
@@ -29,10 +38,35 @@ const Chat: React.FC = () => {
         .eq("solicitud_id", solicitudId)
         .order("created_at", { ascending: true });
 
-      if (!error) setMensajes(data || []);
+      if (!error && data) setMensajes(data);
     };
 
     cargarMensajes();
+  }, [solicitudId]);
+
+  useEffect(() => {
+    if (!solicitudId) return;
+
+    const canal = supabase
+      .channel("chat_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "mensajes",
+          filter: `solicitud_id=eq.${solicitudId}`,
+        },
+        (payload) => {
+          const nuevo = payload.new as Mensaje;
+          setMensajes((prev) => [...prev, nuevo]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
   }, [solicitudId]);
 
   const enviarMensaje = async () => {
@@ -62,6 +96,7 @@ const Chat: React.FC = () => {
     <div style={{ padding: "1rem", maxWidth: "600px", margin: "auto" }}>
       <h3>💬 Chat con el oferente</h3>
       <div
+        ref={chatContainerRef}
         style={{
           border: "1px solid #ccc",
           padding: "1rem",
@@ -87,6 +122,9 @@ const Chat: React.FC = () => {
                 maxWidth: "80%",
               }}
             >
+              <div style={{ fontSize: "0.75rem", color: "#555" }}>
+                {msg.tipo_emisor === "cliente" ? "Tú" : "Oferente"}
+              </div>
               {msg.contenido}
             </div>
           </div>
