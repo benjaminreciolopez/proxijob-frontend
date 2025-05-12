@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Circle, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Circle,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface Props {
@@ -19,8 +25,8 @@ const MapaZona: React.FC<Props> = ({
   } | null>(zonaActiva ? { lat: zonaActiva.lat, lng: zonaActiva.lng } : null);
 
   const [radioKm, setRadioKm] = useState(zonaActiva?.radioKm || 10);
+  const [volviendo, setVolviendo] = useState(false); // flag para forzar flyTo
 
-  // Volver a ubicación del navegador
   const volverAMiUbicacion = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -30,6 +36,7 @@ const MapaZona: React.FC<Props> = ({
         };
         setUbicacion(coords);
         onChange({ ...coords, radioKm });
+        setVolviendo(true); // activa el centrado en el mapa
       },
       (err) => {
         console.error("Ubicación denegada:", err.message);
@@ -61,6 +68,18 @@ const MapaZona: React.FC<Props> = ({
     return null;
   };
 
+  // 🔁 Hook para forzar el flyTo al volver a ubicación
+  const FlyToUbicacion = () => {
+    const map = useMap();
+    useEffect(() => {
+      if (ubicacion && volviendo) {
+        map.flyTo([ubicacion.lat, ubicacion.lng], 13);
+        setVolviendo(false);
+      }
+    }, [ubicacion, volviendo]);
+    return null;
+  };
+
   const centro = zonaActiva
     ? [zonaActiva.lat, zonaActiva.lng]
     : ubicacion
@@ -81,7 +100,6 @@ const MapaZona: React.FC<Props> = ({
         />
       </label>
 
-      {/* Botón fuera del mapa, pero superpuesto */}
       <button
         onClick={volverAMiUbicacion}
         style={{
@@ -114,6 +132,7 @@ const MapaZona: React.FC<Props> = ({
             pathOptions={{ color: "blue" }}
           />
           <ClickHandler />
+          <FlyToUbicacion />
         </MapContainer>
       )}
     </div>
