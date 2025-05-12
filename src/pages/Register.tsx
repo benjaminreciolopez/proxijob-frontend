@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 
 const Register: React.FC = () => {
   const [role, setRole] = useState<"oferente" | "cliente" | null>(null);
+  const [verPassword, setVerPassword] = useState(false); // 👈 visibilidad
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -20,7 +21,6 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones básicas
     if (!formData.nombre || !formData.email || !formData.password) {
       toast.error("Todos los campos son obligatorios.");
       return;
@@ -37,7 +37,6 @@ const Register: React.FC = () => {
       return;
     }
 
-    // Paso 1: crear cuenta en Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
@@ -53,15 +52,14 @@ const Register: React.FC = () => {
       return;
     }
 
-    // Paso 2: guardar datos en tabla `usuarios`
     const { error: errorInsert } = await supabase.from("usuarios").insert([
       {
         id: data.user.id,
         nombre: formData.nombre,
         email: formData.email,
         rol: role,
-        descripcion: "", // 👈 necesario para evitar error de constraint
-        especialidad: "", // 👈 también si es obligatoria en la tabla
+        descripcion: "",
+        especialidad: "",
       },
     ]);
 
@@ -74,6 +72,7 @@ const Register: React.FC = () => {
     toast.success("¡Registro exitoso! Puedes iniciar sesión.");
     navigate("/login");
   };
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const rolParam = searchParams.get("rol");
@@ -82,7 +81,7 @@ const Register: React.FC = () => {
     if (rolParam === "oferente" || rolParam === "cliente") {
       setRole(rolParam);
     } else {
-      navigate("/"); // vuelve a la landing si el parámetro es inválido
+      navigate("/");
     }
   }, [rolParam]);
 
@@ -119,14 +118,34 @@ const Register: React.FC = () => {
             onChange={handleChange}
             required
           />
-          <input
-            type="password"
-            name="password"
-            placeholder="Contraseña"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              type={verPassword ? "text" : "password"}
+              name="password"
+              placeholder="Contraseña"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              style={{ width: "100%", paddingRight: "2.5rem" }}
+            />
+            <button
+              type="button"
+              onClick={() => setVerPassword((prev) => !prev)}
+              style={{
+                position: "absolute",
+                right: "0.5rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "1rem",
+              }}
+              title={verPassword ? "Ocultar" : "Mostrar"}
+            >
+              {verPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
           <button type="submit">Registrarme</button>
           <button type="button" onClick={() => navigate("/")}>
             Volver
