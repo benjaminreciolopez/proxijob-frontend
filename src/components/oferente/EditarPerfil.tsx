@@ -28,7 +28,6 @@ const EditarPerfil: React.FC = () => {
         return;
       }
 
-      // Obtener descripción
       const { data: datosUsuario } = await supabase
         .from("usuarios")
         .select("descripcion")
@@ -37,14 +36,12 @@ const EditarPerfil: React.FC = () => {
 
       setDescripcion(datosUsuario?.descripcion || "");
 
-      // Obtener todas las categorías disponibles
       const { data: categoriasData } = await supabase
         .from("categorias")
         .select("*");
 
       setTodasCategorias(categoriasData || []);
 
-      // Obtener las ya seleccionadas por el usuario
       const { data: asociadas } = await supabase
         .from("categorias_oferente")
         .select("categoria_id")
@@ -70,7 +67,6 @@ const EditarPerfil: React.FC = () => {
       return;
     }
 
-    // 🔽 Buscar nombre de la primera categoría seleccionada
     let especialidad = "";
 
     if (seleccionadas.length > 0 && seleccionadas[0] !== "otras") {
@@ -82,7 +78,6 @@ const EditarPerfil: React.FC = () => {
       }
     }
 
-    // 🔽 Eliminar asociaciones anteriores
     await supabase
       .from("categorias_oferente")
       .delete()
@@ -90,7 +85,6 @@ const EditarPerfil: React.FC = () => {
 
     let nuevaId: string | null = null;
 
-    // 🔽 Si el usuario escribió una nueva categoría personalizada
     if (nuevaCategoria.trim().length > 1) {
       const nombreNormalizado = normalizarTextoCategoria(nuevaCategoria);
 
@@ -121,31 +115,42 @@ const EditarPerfil: React.FC = () => {
       }
 
       if (nuevaId) {
-        // ⬅️ Agrega nuevaId a la lista seleccionada manualmente
         seleccionadas.push(nuevaId);
-        especialidad = nuevaCategoria.trim(); // También actualizar especialidad
+        especialidad = nuevaCategoria.trim();
       }
     }
 
-    // 🔽 Guardar categorías seleccionadas
-    const inserts = seleccionadas
-      .filter((id) => id !== "otras")
-      .map((categoriaId) => ({
-        oferente_id: user.id,
-        categoria_id: categoriaId,
-      }));
-
-    if (inserts.length > 0) {
-      const { error: errorInsertRelacion } = await supabase
+    for (const categoriaId of seleccionadas.filter((id) => id !== "otras")) {
+      const { data: existenteRelacion, error: errorRelacion } = await supabase
         .from("categorias_oferente")
-        .insert(inserts);
+        .select("id")
+        .eq("oferente_id", user.id)
+        .eq("categoria_id", categoriaId)
+        .maybeSingle();
 
-      if (errorInsertRelacion) {
-        toast.error("❌ No se ha podido asociar alguna categoría.");
+      if (errorRelacion) {
+        console.error(
+          "❌ Error al comprobar relación existente:",
+          errorRelacion
+        );
+        continue; // evita insertar si hubo error en la consulta
+      }
+
+      if (!existenteRelacion) {
+        const { error: errorInsertRelacion } = await supabase
+          .from("categorias_oferente")
+          .insert([{ oferente_id: user.id, categoria_id: categoriaId }]);
+
+        if (errorInsertRelacion) {
+          console.error(
+            "❌ Error al insertar en categorias_oferente:",
+            errorInsertRelacion
+          );
+          toast.error("❌ No se ha podido asociar alguna categoría.");
+        }
       }
     }
 
-    // 🔽 Actualizar usuario
     const { error: updateError } = await supabase
       .from("usuarios")
       .update({ descripcion, especialidad })
