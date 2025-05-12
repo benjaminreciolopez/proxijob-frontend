@@ -21,8 +21,6 @@ const DashboardOferente: React.FC = () => {
     []
   );
 
-  const [usuario, setUsuario] = useState<any>(null);
-
   async function registrarCategoria(usuarioId: string, nombre: string) {
     const nombreNormalizado = nombre.trim().toLowerCase();
 
@@ -77,6 +75,22 @@ const DashboardOferente: React.FC = () => {
     }
   }
 
+  interface UsuarioExtendido {
+    id: string;
+    email: string;
+    nombre: string;
+    especialidad: string;
+    descripcion: string;
+  }
+
+  const [usuario, setUsuario] = useState<UsuarioExtendido | null>(null);
+
+  const [solicitudAceptada, setSolicitudAceptada] = useState<{
+    solicitud_id: string;
+    cliente_id: string;
+  } | null>(null);
+
+  // ✅ 1. Obtener usuario
   useEffect(() => {
     const obtenerUsuario = async () => {
       const {
@@ -90,30 +104,32 @@ const DashboardOferente: React.FC = () => {
         return;
       }
 
-      // Obtener datos del oferente desde la tabla usuarios
       const { data: datosUsuario, error: errorUsuario } = await supabase
         .from("usuarios")
         .select("nombre, especialidad, descripcion")
         .eq("id", user.id)
         .single();
 
-      if (errorUsuario) {
-        toast.error("Error al obtener datos del oferente.");
-
-        setUsuario(user); // fallback mínimo
-      } else {
-        setUsuario({
-          ...user,
+      if (!errorUsuario && datosUsuario) {
+        const datosExtendidos: UsuarioExtendido = {
+          id: user.id,
+          email: user.email ?? "",
           nombre: datosUsuario.nombre,
           especialidad: datosUsuario.especialidad,
           descripcion: datosUsuario.descripcion,
-        });
-        if (datosUsuario?.especialidad) {
-          await registrarCategoria(user.id, datosUsuario.especialidad);
+        };
+
+        setUsuario(datosExtendidos);
+
+        if (datosUsuario.especialidad) {
+          registrarCategoria(user.id, datosUsuario.especialidad);
         }
+      } else {
+        toast.error("Error al obtener datos del oferente.");
+        setUsuario(null);
       }
 
-      // Verificar si tiene alguna postulación aceptada
+      // ✅ Consultar si tiene alguna postulación aceptada
       const { data: aceptada, error: errorAceptada } = await supabase
         .from("postulaciones")
         .select("solicitud_id")
@@ -133,7 +149,6 @@ const DashboardOferente: React.FC = () => {
           .select("cliente_id")
           .eq("id", aceptada.solicitud_id)
           .single();
-
         setSolicitudAceptada({
           solicitud_id: aceptada.solicitud_id,
           cliente_id: solicitudRelacionada?.cliente_id ?? "",
@@ -142,9 +157,94 @@ const DashboardOferente: React.FC = () => {
         setSolicitudAceptada(null);
       }
     };
-
     obtenerUsuario();
   }, []);
+  const [seleccionada, setSeleccionada] = useState<string | null>(null);
+
+  // ✅ 2. Realtime listener para solicitudes (este era el que causaba el error por estar después del `return`)
+  useEffect(() => {
+    if (!usuario) return;
+
+    const canal: RealtimeChannel = supabase
+      .channel("solicitudes_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "solicitudes" },
+        async (payload) => {
+          const nuevaSolicitud = payload.new as Solicitud;
+          const solicitudAnterior = payload.old as Solicitud;
+
+          // Normalizar cliente
+          if (
+            nuevaSolicitud?.cliente &&
+            Array.isArray(nuevaSolicitud.cliente)
+          ) {
+            nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
+          }
+
+          if (payload.eventType === "INSERT") {
+            const esCompatible =
+              zonas.length > 0 &&
+              filtrarSolicitudesPorZonas([nuevaSolicitud], zonas).length > 0;
+
+            const coincideCategoria = await supabase
+              .from("categorias_oferente")
+              .select("*")
+              .eq("oferente_id", usuario.id)
+              .eq("categoria_id", nuevaSolicitud.categoria_id);
+
+            if (
+              esCompatible &&
+              coincideCategoria.data &&
+              coincideCategoria.data.length > 0
+            ) {
+              setSolicitudes((prev) => [...prev, nuevaSolicitud]);
+              setSolicitudesFiltradas((prev) => [...prev, nuevaSolicitud]);
+              toast.success("📬 Nueva solicitud disponible en tu zona");
+            }
+          }
+
+          if (payload.eventType === "DELETE") {
+            const eliminadaId = solicitudAnterior.id;
+            setSolicitudes((prev) => prev.filter((s) => s.id !== eliminadaId));
+            setSolicitudesFiltradas((prev) =>
+              prev.filter((s) => s.id !== eliminadaId)
+            );
+          }
+
+          if (payload.eventType === "UPDATE") {
+            if (
+              nuevaSolicitud?.cliente &&
+              Array.isArray(nuevaSolicitud.cliente)
+            ) {
+              nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
+            }
+
+            setSolicitudes((prev) =>
+              prev.map((s) => (s.id === nuevaSolicitud.id ? nuevaSolicitud : s))
+            );
+
+            const visibles = filtrarSolicitudesPorZonas(
+              [nuevaSolicitud],
+              zonas
+            );
+            setSolicitudesFiltradas((prev) =>
+              visibles.length > 0
+                ? [
+                    ...prev.filter((s) => s.id !== nuevaSolicitud.id),
+                    nuevaSolicitud,
+                  ]
+                : prev.filter((s) => s.id !== nuevaSolicitud.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [usuario, zonas]);
 
   const postularse = async (solicitudId: string) => {
     if (!usuario?.id || !solicitudId) {
@@ -215,11 +315,7 @@ const DashboardOferente: React.FC = () => {
     navigate("/dashboard/oferente");
   };
 
-  const [solicitudAceptada, setSolicitudAceptada] = useState<{
-    solicitud_id: string;
-    cliente_id: string;
-  } | null>(null);
-
+  // ✅ Cargar zonas, categorías y solicitudes cuando hay usuario
   useEffect(() => {
     if (!usuario) return;
 
@@ -271,8 +367,8 @@ const DashboardOferente: React.FC = () => {
 
     cargarDatos();
   }, [usuario]);
-  const [seleccionada, setSeleccionada] = useState<string | null>(null);
 
+  // ✅ Esta verificación debe ir después de todos los hooks
   if (!usuario) {
     return (
       <div style={{ padding: "2rem", fontFamily: "sans-serif", color: "red" }}>
@@ -280,91 +376,6 @@ const DashboardOferente: React.FC = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!usuario) return;
-
-    const canal: RealtimeChannel = supabase
-      .channel("solicitudes_realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "solicitudes" },
-        async (payload) => {
-          const nuevaSolicitud = payload.new as Solicitud;
-          const solicitudAnterior = payload.old as Solicitud;
-
-          // 👇 Normalizar cliente si viene como array
-          if (
-            nuevaSolicitud?.cliente &&
-            Array.isArray(nuevaSolicitud.cliente)
-          ) {
-            nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
-          }
-
-          if (payload.eventType === "INSERT") {
-            const esCompatible =
-              zonas.length > 0 &&
-              filtrarSolicitudesPorZonas([nuevaSolicitud], zonas).length > 0;
-
-            const coincideCategoria = await supabase
-              .from("categorias_oferente")
-              .select("*")
-              .eq("oferente_id", usuario.id)
-              .eq("categoria_id", nuevaSolicitud.categoria_id);
-
-            if (
-              esCompatible &&
-              coincideCategoria.data &&
-              coincideCategoria.data.length > 0
-            ) {
-              setSolicitudes((prev) => [...prev, nuevaSolicitud]);
-              setSolicitudesFiltradas((prev) => [...prev, nuevaSolicitud]);
-              toast.success("📬 Nueva solicitud disponible en tu zona");
-            }
-          }
-
-          if (payload.eventType === "DELETE") {
-            const eliminadaId = solicitudAnterior.id;
-            setSolicitudes((prev) => prev.filter((s) => s.id !== eliminadaId));
-            setSolicitudesFiltradas((prev) =>
-              prev.filter((s) => s.id !== eliminadaId)
-            );
-          }
-
-          if (payload.eventType === "UPDATE") {
-            // 👇 Normalizar cliente también aquí si es array
-            if (
-              nuevaSolicitud?.cliente &&
-              Array.isArray(nuevaSolicitud.cliente)
-            ) {
-              nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
-            }
-
-            setSolicitudes((prev) =>
-              prev.map((s) => (s.id === nuevaSolicitud.id ? nuevaSolicitud : s))
-            );
-
-            const visibles = filtrarSolicitudesPorZonas(
-              [nuevaSolicitud],
-              zonas
-            );
-            setSolicitudesFiltradas((prev) =>
-              visibles.length > 0
-                ? [
-                    ...prev.filter((s) => s.id !== nuevaSolicitud.id),
-                    nuevaSolicitud,
-                  ]
-                : prev.filter((s) => s.id !== nuevaSolicitud.id)
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(canal);
-    };
-  }, [usuario, zonas]);
 
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
