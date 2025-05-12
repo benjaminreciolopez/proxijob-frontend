@@ -118,7 +118,7 @@ const Register: React.FC = () => {
             onChange={handleChange}
             required
           />
-          <div style={{ position: "relative" }}>
+          <div className="passwordWrapper">
             <input
               type={verPassword ? "text" : "password"}
               name="password"
@@ -126,23 +126,12 @@ const Register: React.FC = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              style={{ width: "100%", paddingRight: "2.5rem" }}
             />
             <button
               type="button"
-              onClick={() => setVerPassword((v) => !v)}
-              style={{
-                position: "absolute",
-                right: "0.5rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "1.2rem",
-                padding: 0,
-              }}
-              aria-label="Mostrar u ocultar contraseña"
+              className="togglePassword"
+              onClick={() => setVerPassword((prev) => !prev)}
+              title={verPassword ? "Ocultar" : "Mostrar"}
             >
               {verPassword ? "🙈" : "👁️"}
             </button>
