@@ -12,16 +12,15 @@ interface Mensaje {
 
 const Chat: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const clienteId = searchParams.get("cliente_id");
-  const oferenteId = searchParams.get("oferente_id");
-  const solicitudId = searchParams.get("solicitud_id");
+  const clienteId = searchParams.get("cliente_id") ?? "";
+  const oferenteId = searchParams.get("oferente_id") ?? "";
+  const solicitudId = searchParams.get("solicitud_id") ?? "";
 
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll automático cuando llegan mensajes nuevos
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
