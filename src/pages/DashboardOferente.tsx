@@ -285,13 +285,21 @@ const DashboardOferente: React.FC = () => {
     if (!usuario) return;
 
     const canal: RealtimeChannel = supabase
-
       .channel("solicitudes_realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "solicitudes" },
         async (payload) => {
           const nuevaSolicitud = payload.new as Solicitud;
+          const solicitudAnterior = payload.old as Solicitud;
+
+          // 👇 Normalizar cliente si viene como array
+          if (
+            nuevaSolicitud?.cliente &&
+            Array.isArray(nuevaSolicitud.cliente)
+          ) {
+            nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
+          }
 
           if (payload.eventType === "INSERT") {
             const esCompatible =
@@ -316,7 +324,7 @@ const DashboardOferente: React.FC = () => {
           }
 
           if (payload.eventType === "DELETE") {
-            const eliminadaId = (payload.old as Solicitud).id;
+            const eliminadaId = solicitudAnterior.id;
             setSolicitudes((prev) => prev.filter((s) => s.id !== eliminadaId));
             setSolicitudesFiltradas((prev) =>
               prev.filter((s) => s.id !== eliminadaId)
@@ -324,15 +332,29 @@ const DashboardOferente: React.FC = () => {
           }
 
           if (payload.eventType === "UPDATE") {
-            const actualizada = payload.new as Solicitud;
+            // 👇 Normalizar cliente también aquí si es array
+            if (
+              nuevaSolicitud?.cliente &&
+              Array.isArray(nuevaSolicitud.cliente)
+            ) {
+              nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
+            }
+
             setSolicitudes((prev) =>
-              prev.map((s) => (s.id === actualizada.id ? actualizada : s))
+              prev.map((s) => (s.id === nuevaSolicitud.id ? nuevaSolicitud : s))
             );
-            const visibles = filtrarSolicitudesPorZonas([actualizada], zonas);
+
+            const visibles = filtrarSolicitudesPorZonas(
+              [nuevaSolicitud],
+              zonas
+            );
             setSolicitudesFiltradas((prev) =>
               visibles.length > 0
-                ? [...prev.filter((s) => s.id !== actualizada.id), actualizada]
-                : prev.filter((s) => s.id !== actualizada.id)
+                ? [
+                    ...prev.filter((s) => s.id !== nuevaSolicitud.id),
+                    nuevaSolicitud,
+                  ]
+                : prev.filter((s) => s.id !== nuevaSolicitud.id)
             );
           }
         }
