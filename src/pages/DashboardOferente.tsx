@@ -360,6 +360,8 @@ const DashboardOferente: React.FC = () => {
         toast.error("No tienes categorías válidas asociadas.");
         return;
       }
+      console.log("idsCategoria:", idsCategoria);
+      console.log("Consulta IN:", `(${idsCategoria.join(",")})`);
 
       const { data: solicitudesCompatibles, error: errorSolicitudes } =
         await supabase
@@ -367,7 +369,7 @@ const DashboardOferente: React.FC = () => {
           .select(
             "*, cliente:cliente_id(nombre), categoria_id, ubicacion, radio_km, descripcion"
           )
-          .in("categoria_id", idsCategoria);
+          .filter("categoria_id", "in", `(${idsCategoria.join(",")})`);
 
       if (errorSolicitudes) {
         console.error("❌ Error al cargar solicitudes:", errorSolicitudes);
