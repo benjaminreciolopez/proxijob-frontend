@@ -90,6 +90,7 @@ const EditarPerfil: React.FC = () => {
 
     let nuevaId: string | null = null;
 
+    // 🔽 Si el usuario escribió una nueva categoría personalizada
     if (nuevaCategoria.trim().length > 1) {
       const nombreNormalizado = normalizarTextoCategoria(nuevaCategoria);
 
@@ -120,11 +121,9 @@ const EditarPerfil: React.FC = () => {
       }
 
       if (nuevaId) {
-        setSeleccionadas((prev) => [
-          ...prev.filter((id) => id !== "otras"),
-          nuevaId as string,
-        ]);
-        especialidad = nuevaCategoria.trim(); // ⬅️ también actualizar la especialidad
+        // ⬅️ Agrega nuevaId a la lista seleccionada manualmente
+        seleccionadas.push(nuevaId);
+        especialidad = nuevaCategoria.trim(); // También actualizar especialidad
       }
     }
 
@@ -137,7 +136,13 @@ const EditarPerfil: React.FC = () => {
       }));
 
     if (inserts.length > 0) {
-      await supabase.from("categorias_oferente").insert(inserts);
+      const { error: errorInsertRelacion } = await supabase
+        .from("categorias_oferente")
+        .insert(inserts);
+
+      if (errorInsertRelacion) {
+        toast.error("❌ No se ha podido asociar alguna categoría.");
+      }
     }
 
     // 🔽 Actualizar usuario

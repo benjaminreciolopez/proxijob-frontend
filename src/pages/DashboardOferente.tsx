@@ -61,6 +61,14 @@ const DashboardOferente: React.FC = () => {
       .maybeSingle();
 
     if (!yaAsociada) {
+      if (!usuarioId || !categoriaId) {
+        console.warn("❌ ID inválido para asociación:", {
+          usuarioId,
+          categoriaId,
+        });
+        return;
+      }
+
       const { error: errorInsertRelacion } = await supabase
         .from("categorias_oferente")
         .insert([
@@ -69,7 +77,12 @@ const DashboardOferente: React.FC = () => {
             categoria_id: categoriaId,
           },
         ]);
+
       if (errorInsertRelacion) {
+        console.error(
+          "❌ Error al insertar en categorias_oferente:",
+          errorInsertRelacion.message
+        );
         toast.error("⚠️ No se ha podido asociar la categoría al oferente.");
       }
     }
