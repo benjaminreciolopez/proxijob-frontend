@@ -130,7 +130,7 @@ const Register: React.FC = () => {
             />
             <button
               type="button"
-              onClick={() => setVerPassword((prev) => !prev)}
+              onClick={() => setVerPassword((v) => !v)}
               style={{
                 position: "absolute",
                 right: "0.5rem",
@@ -139,9 +139,10 @@ const Register: React.FC = () => {
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                fontSize: "1rem",
+                fontSize: "1.2rem",
+                padding: 0,
               }}
-              title={verPassword ? "Ocultar" : "Mostrar"}
+              aria-label="Mostrar u ocultar contraseña"
             >
               {verPassword ? "🙈" : "👁️"}
             </button>
