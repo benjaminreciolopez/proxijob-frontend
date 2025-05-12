@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabaseClient";
 import toast from "react-hot-toast";
 import MapaZona from "../common/MapaZona";
+import { normalizarTextoCategoria } from "../../utils/normalizarTextoCategoria";
 
 interface Props {
   clienteId: string;
@@ -19,6 +20,20 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
     radioKm: 10,
   });
 
+  const [categoriasExistentes, setCategoriasExistentes] = useState<string[]>(
+    []
+  );
+
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      const { data } = await supabase.from("categorias").select("nombre");
+      if (data) {
+        setCategoriasExistentes(data.map((c) => c.nombre));
+      }
+    };
+    cargarCategorias();
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -33,6 +48,35 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.categoria.trim()) {
+      toast.error("Debes introducir una categoría.");
+      return;
+    }
+
+    const nombreNormalizado = normalizarTextoCategoria(formData.categoria);
+    const categoriaExiste = categoriasExistentes.some(
+      (c) => normalizarTextoCategoria(c) === nombreNormalizado
+    );
+
+    if (!categoriaExiste) {
+      const { error: errorPendiente } = await supabase
+        .from("categorias_pendientes")
+        .insert([
+          {
+            nombre: formData.categoria.trim(),
+            nombre_normalizado: nombreNormalizado,
+            sugerida_por: clienteId,
+          },
+        ]);
+
+      if (errorPendiente) {
+        toast.error("No se pudo registrar la nueva categoría (pendiente).");
+        return;
+      } else {
+        toast.success("Categoría sugerida. Será revisada por el equipo.");
+      }
+    }
 
     const { error } = await supabase.from("solicitudes").insert([
       {
@@ -104,10 +148,8 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
         ¿Requiere titulación o acreditación?
       </label>
 
-      {/* 👇 Mapa funcional aquí */}
       <MapaZona
         onChange={async ({ lat, lng, radioKm }) => {
-          // Obtener ciudad automáticamente
           try {
             const res = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
@@ -124,13 +166,14 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
               latitud: lat,
               longitud: lng,
               radioKm,
-              ubicacion: ciudad, // 👈 autocompleta aquí
+              ubicacion: ciudad,
             }));
           } catch (error) {
             console.error("Error al obtener ubicación:", error);
           }
         }}
       />
+
       {formData.latitud && formData.longitud && (
         <button
           type="submit"
@@ -147,4 +190,5 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
     </form>
   );
 };
+
 export default NuevaSolicitud;
