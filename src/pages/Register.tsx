@@ -102,6 +102,7 @@ const Register: React.FC = () => {
       ) : (
         <form className={styles.form} onSubmit={handleSubmit}>
           <h2>Registro como {role === "oferente" ? "Oferente" : "Cliente"}</h2>
+
           <input
             type="text"
             name="nombre"
@@ -110,6 +111,7 @@ const Register: React.FC = () => {
             onChange={handleChange}
             required
           />
+
           <input
             type="email"
             name="email"
@@ -118,7 +120,8 @@ const Register: React.FC = () => {
             onChange={handleChange}
             required
           />
-          <div className="passwordWrapper">
+
+          <div className={styles.passwordWrapper}>
             <input
               type={verPassword ? "text" : "password"}
               name="password"
@@ -129,13 +132,14 @@ const Register: React.FC = () => {
             />
             <button
               type="button"
-              className="togglePassword"
-              onClick={() => setVerPassword((prev) => !prev)}
-              title={verPassword ? "Ocultar" : "Mostrar"}
+              onClick={() => setVerPassword((v) => !v)}
+              className={styles.togglePassword}
+              aria-label="Mostrar u ocultar contraseña"
             >
               {verPassword ? "🙈" : "👁️"}
             </button>
           </div>
+
           <button type="submit">Registrarme</button>
           <button type="button" onClick={() => navigate("/")}>
             Volver
@@ -145,5 +149,4 @@ const Register: React.FC = () => {
     </div>
   );
 };
-
 export default Register;
