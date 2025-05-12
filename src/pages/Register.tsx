@@ -12,10 +12,23 @@ const Register: React.FC = () => {
     nombre: "",
     email: "",
     password: "",
+    tratamiento: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +73,7 @@ const Register: React.FC = () => {
         rol: role,
         descripcion: "",
         especialidad: "",
+        tratamiento: formData.tratamiento,
       },
     ]);
 
@@ -150,6 +164,19 @@ const Register: React.FC = () => {
           <h2 style={{ textAlign: "center" }}>
             Registro como {role === "oferente" ? "Oferente" : "Cliente"}
           </h2>
+
+          <label>
+            Tratamiento:
+            <select
+              name="tratamiento"
+              value={formData.tratamiento}
+              onChange={handleSelectChange}
+            >
+              <option value="">Selecciona</option>
+              <option value="Sr">Sr</option>
+              <option value="Sra">Sra</option>
+            </select>
+          </label>
 
           <input
             type="text"

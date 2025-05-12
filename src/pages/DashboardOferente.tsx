@@ -97,6 +97,7 @@ const DashboardOferente: React.FC = () => {
     nombre: string;
     especialidad: string;
     descripcion: string;
+    tratamiento: string;
   }
 
   const [usuario, setUsuario] = useState<UsuarioExtendido | null>(null);
@@ -122,7 +123,7 @@ const DashboardOferente: React.FC = () => {
 
       const { data: datosUsuario, error: errorUsuario } = await supabase
         .from("usuarios")
-        .select("nombre, especialidad, descripcion")
+        .select("nombre, especialidad, tratamiento, descripcion")
         .eq("id", user.id)
         .single();
 
@@ -133,6 +134,7 @@ const DashboardOferente: React.FC = () => {
           nombre: datosUsuario.nombre,
           especialidad: datosUsuario.especialidad,
           descripcion: datosUsuario.descripcion,
+          tratamiento: datosUsuario.tratamiento,
         };
 
         setUsuario(datosExtendidos);
@@ -406,8 +408,13 @@ const DashboardOferente: React.FC = () => {
 
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h2>🛠️ {usuario.nombre}</h2>
-      <p>Bienvenido. Desde aquí puedes gestionar tu perfil y oportunidades.</p>
+      <h2>
+        🛠️ {usuario.tratamiento} {usuario.nombre}
+      </h2>
+      <p>
+        {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
+        aquí puedes gestionar tu perfil y oportunidades.
+      </p>
       <>
         <DocumentosOferente usuarioId={usuario.id} />
 
@@ -505,8 +512,8 @@ const DashboardOferente: React.FC = () => {
             <div style={{ marginTop: "2rem" }}>
               <h3>💬 Comunicación activa</h3>
               <p>
-                Has sido aceptado para una solicitud. Puedes contactar al
-                cliente:
+                Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"} para
+                una solicitud. Puedes contactar al cliente:
               </p>
               <button
                 onClick={() =>
@@ -526,30 +533,6 @@ const DashboardOferente: React.FC = () => {
             </div>
           )}
         </div>
-
-        {solicitudAceptada && (
-          <div style={{ marginTop: "2rem" }}>
-            <h3>💬 Comunicación activa</h3>
-            <p>
-              Has sido aceptado para una solicitud. Puedes contactar al cliente:
-            </p>
-            <button
-              onClick={() =>
-                (window.location.href = `/chat?cliente_id=${solicitudAceptada.cliente_id}&oferente_id=${usuario.id}&solicitud_id=${solicitudAceptada.solicitud_id}`)
-              }
-              style={{
-                padding: "0.6rem 1.2rem",
-                backgroundColor: "#007bff",
-                color: "#fff",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-              }}
-            >
-              💬 Acceder al chat con el cliente
-            </button>
-          </div>
-        )}
       </>
       <AnimatePresence>
         {notificacion && (

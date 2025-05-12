@@ -9,6 +9,7 @@ import { AnimatePresence } from "framer-motion"; // también
 interface Usuario {
   id: string;
   nombre: string;
+  tratamiento: string;
 }
 
 const DashboardCliente: React.FC = () => {
@@ -30,8 +31,13 @@ const DashboardCliente: React.FC = () => {
 
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h2>👤 {usuario.nombre}</h2>
-      <p>Bienvenido. Desde aquí puedes gestionar tus solicitudes.</p>
+      <h2>
+        👤 {usuario.tratamiento} {usuario.nombre}
+      </h2>
+      <p>
+        {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
+        aquí puedes gestionar tus solicitudes.
+      </p>
 
       <div style={{ marginBottom: "2rem" }}>
         <NuevaSolicitud
