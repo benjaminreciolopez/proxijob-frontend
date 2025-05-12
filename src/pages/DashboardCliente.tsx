@@ -15,6 +15,7 @@ interface Usuario {
 const DashboardCliente: React.FC = () => {
   const navigate = useNavigate();
   const [notificacion, setNotificacion] = useState<string | null>(null);
+  const [actualizarHistorial, setActualizarHistorial] = useState(0);
 
   const usuarioGuardado = localStorage.getItem("usuario");
   const usuario: Usuario | null = usuarioGuardado
@@ -44,11 +45,15 @@ const DashboardCliente: React.FC = () => {
           clienteId={usuario.id}
           nombre={usuario.nombre}
           setNotificacion={setNotificacion}
+          setActualizarHistorial={setActualizarHistorial}
         />
       </div>
 
       <div style={{ marginBottom: "2rem" }}>
-        <HistorialSolicitudes clienteId={usuario.id} />
+        <HistorialSolicitudes
+          clienteId={usuario.id}
+          actualizar={actualizarHistorial}
+        />
       </div>
 
       <div style={{ marginBottom: "2rem" }}>

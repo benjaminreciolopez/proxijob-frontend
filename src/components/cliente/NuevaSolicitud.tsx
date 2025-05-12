@@ -8,9 +8,14 @@ interface Props {
   clienteId: string;
   nombre: string;
   setNotificacion: (mensaje: string) => void;
+  setActualizarHistorial: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const NuevaSolicitud: React.FC<Props> = ({ clienteId, setNotificacion }) => {
+const NuevaSolicitud: React.FC<Props> = ({
+  clienteId,
+  setNotificacion,
+  setActualizarHistorial,
+}) => {
   const [formData, setFormData] = useState({
     descripcion: "",
     categoriaId: "",
@@ -112,6 +117,7 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId, setNotificacion }) => {
     } else {
       setNotificacion("✅ Solicitud publicada con éxito.");
       setTimeout(() => setNotificacion(""), 5000);
+      setActualizarHistorial((prev: number) => prev + 1);
 
       setFormData({
         descripcion: "",
