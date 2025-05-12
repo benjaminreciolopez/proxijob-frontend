@@ -70,17 +70,19 @@ const EditarPerfil: React.FC = () => {
       return;
     }
 
-    const { error: updateError } = await supabase
-      .from("usuarios")
-      .update({ descripcion })
-      .eq("id", user.id);
+    // 🔽 Buscar nombre de la primera categoría seleccionada
+    let especialidad = "";
 
-    if (updateError) {
-      toast.error("Error al guardar los cambios.");
-      return;
+    if (seleccionadas.length > 0 && seleccionadas[0] !== "otras") {
+      const primeraCategoria = todasCategorias.find(
+        (cat) => cat.id === seleccionadas[0]
+      );
+      if (primeraCategoria) {
+        especialidad = primeraCategoria.nombre;
+      }
     }
 
-    // Elimina asociaciones anteriores
+    // 🔽 Eliminar asociaciones anteriores
     await supabase
       .from("categorias_oferente")
       .delete()
@@ -120,12 +122,13 @@ const EditarPerfil: React.FC = () => {
       if (nuevaId) {
         setSeleccionadas((prev) => [
           ...prev.filter((id) => id !== "otras"),
-          nuevaId!,
+          nuevaId as string,
         ]);
+        especialidad = nuevaCategoria.trim(); // ⬅️ también actualizar la especialidad
       }
     }
 
-    // Guardar categorías seleccionadas
+    // 🔽 Guardar categorías seleccionadas
     const inserts = seleccionadas
       .filter((id) => id !== "otras")
       .map((categoriaId) => ({
@@ -135,6 +138,17 @@ const EditarPerfil: React.FC = () => {
 
     if (inserts.length > 0) {
       await supabase.from("categorias_oferente").insert(inserts);
+    }
+
+    // 🔽 Actualizar usuario
+    const { error: updateError } = await supabase
+      .from("usuarios")
+      .update({ descripcion, especialidad })
+      .eq("id", user.id);
+
+    if (updateError) {
+      toast.error("Error al guardar los cambios.");
+      return;
     }
 
     toast.success("Perfil actualizado.");
