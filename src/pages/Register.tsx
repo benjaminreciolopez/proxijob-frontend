@@ -181,7 +181,8 @@ const Register: React.FC = () => {
             }}
           />
 
-<div className="passwordWrapper"            <input
+          <div style={{ position: "relative" }}>
+            <input
               type={verPassword ? "text" : "password"}
               name="password"
               placeholder="Contraseña"
