@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NuevaSolicitud from "../components/cliente/NuevaSolicitud";
 import HistorialSolicitudes from "../components/cliente/HistorialSolicitudes";
-import PostulacionesCliente from "../components/cliente/PostulacionesRecibidas";
+import PostulacionesCliente from "../components/cliente/PostulacionesCliente";
+import NotificacionFlotante from "../components/NotificacionFlotante"; // arriba del todo
+import { AnimatePresence } from "framer-motion"; // también
 
 interface Usuario {
   id: string;
@@ -11,6 +13,7 @@ interface Usuario {
 
 const DashboardCliente: React.FC = () => {
   const navigate = useNavigate();
+  const [notificacion, setNotificacion] = useState<string | null>(null);
 
   const usuarioGuardado = localStorage.getItem("usuario");
   const usuario: Usuario | null = usuarioGuardado
@@ -31,7 +34,11 @@ const DashboardCliente: React.FC = () => {
       <p>Bienvenido. Desde aquí puedes gestionar tus solicitudes.</p>
 
       <div style={{ marginBottom: "2rem" }}>
-        <NuevaSolicitud clienteId={usuario.id} nombre={usuario.nombre} />
+        <NuevaSolicitud
+          clienteId={usuario.id}
+          nombre={usuario.nombre}
+          setNotificacion={setNotificacion}
+        />
       </div>
 
       <div style={{ marginBottom: "2rem" }}>
@@ -41,6 +48,14 @@ const DashboardCliente: React.FC = () => {
       <div style={{ marginBottom: "2rem" }}>
         <PostulacionesCliente clienteId={usuario.id} />
       </div>
+      <AnimatePresence>
+        {notificacion && (
+          <NotificacionFlotante
+            mensaje={notificacion}
+            onClose={() => setNotificacion(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

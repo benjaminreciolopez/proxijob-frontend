@@ -10,6 +10,8 @@ import {
 } from "../utils/geo";
 import toast from "react-hot-toast";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import NotificacionFlotante from "../components/NotificacionFlotante"; // arriba del todo
+import { AnimatePresence } from "framer-motion"; // también
 
 const DashboardOferente: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ const DashboardOferente: React.FC = () => {
   const [solicitudesFiltradas, setSolicitudesFiltradas] = useState<Solicitud[]>(
     []
   );
+  const [notificacion, setNotificacion] = useState<string | null>(null);
 
   async function registrarCategoria(usuarioId: string, nombre: string) {
     const nombreNormalizado = nombre.trim().toLowerCase();
@@ -213,7 +216,8 @@ const DashboardOferente: React.FC = () => {
             ) {
               setSolicitudes((prev) => [...prev, nuevaSolicitud]);
               setSolicitudesFiltradas((prev) => [...prev, nuevaSolicitud]);
-              toast.success("📬 Nueva solicitud disponible en tu zona");
+              setNotificacion("📬 Nueva solicitud disponible en tu zona");
+              setTimeout(() => setNotificacion(null), 5000);
             }
           }
 
@@ -324,7 +328,8 @@ const DashboardOferente: React.FC = () => {
       }
     }
 
-    toast.success("✅ Postulación enviada con documentos");
+    setNotificacion("✅ Postulación enviada con documentos");
+    setTimeout(() => setNotificacion(null), 5000);
     navigate("/dashboard/oferente");
   };
 
@@ -403,7 +408,6 @@ const DashboardOferente: React.FC = () => {
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h2>🛠️ {usuario.nombre}</h2>
       <p>Bienvenido. Desde aquí puedes gestionar tu perfil y oportunidades.</p>
-
       <>
         <DocumentosOferente usuarioId={usuario.id} />
 
@@ -497,6 +501,30 @@ const DashboardOferente: React.FC = () => {
               </li>
             ))}
           </ul>
+          {solicitudAceptada && (
+            <div style={{ marginTop: "2rem" }}>
+              <h3>💬 Comunicación activa</h3>
+              <p>
+                Has sido aceptado para una solicitud. Puedes contactar al
+                cliente:
+              </p>
+              <button
+                onClick={() =>
+                  (window.location.href = `/chat?cliente_id=${solicitudAceptada.cliente_id}&oferente_id=${usuario.id}&solicitud_id=${solicitudAceptada.solicitud_id}`)
+                }
+                style={{
+                  padding: "0.6rem 1.2rem",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                💬 Acceder al chat con el cliente
+              </button>
+            </div>
+          )}
         </div>
 
         {solicitudAceptada && (
@@ -523,6 +551,15 @@ const DashboardOferente: React.FC = () => {
           </div>
         )}
       </>
+      <AnimatePresence>
+        {notificacion && (
+          <NotificacionFlotante
+            mensaje={notificacion}
+            onClose={() => setNotificacion(null)}
+          />
+        )}
+      </AnimatePresence>
+      ;
     </div>
   );
 };

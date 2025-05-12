@@ -7,9 +7,10 @@ import { normalizarTextoCategoria } from "../../utils/normalizarTextoCategoria";
 interface Props {
   clienteId: string;
   nombre: string;
+  setNotificacion: (mensaje: string) => void;
 }
 
-const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
+const NuevaSolicitud: React.FC<Props> = ({ clienteId, setNotificacion }) => {
   const [formData, setFormData] = useState({
     descripcion: "",
     categoriaId: "",
@@ -109,7 +110,9 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
     if (error) {
       toast.error("Error al guardar la solicitud.");
     } else {
-      toast.success("Solicitud publicada con éxito.");
+      setNotificacion("✅ Solicitud publicada con éxito.");
+      setTimeout(() => setNotificacion(""), 5000);
+
       setFormData({
         descripcion: "",
         categoriaId: "",

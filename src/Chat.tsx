@@ -15,6 +15,11 @@ const Chat: React.FC = () => {
   const clienteId = searchParams.get("cliente_id") ?? "";
   const oferenteId = searchParams.get("oferente_id") ?? "";
   const solicitudId = searchParams.get("solicitud_id") ?? "";
+  const tipoEmisor: "cliente" | "oferente" = searchParams.get("cliente_id")
+    ? "cliente"
+    : "oferente";
+
+  const emisorId = tipoEmisor === "cliente" ? clienteId : oferenteId;
 
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState("");
@@ -69,16 +74,15 @@ const Chat: React.FC = () => {
   }, [solicitudId]);
 
   const enviarMensaje = async () => {
-    if (!nuevoMensaje.trim() || !clienteId || !oferenteId || !solicitudId)
-      return;
+    if (!nuevoMensaje.trim() || !emisorId || !solicitudId) return;
 
     const { data, error } = await supabase
       .from("mensajes")
       .insert([
         {
           solicitud_id: solicitudId,
-          emisor_id: clienteId,
-          tipo_emisor: "cliente",
+          emisor_id: emisorId,
+          tipo_emisor: tipoEmisor,
           contenido: nuevoMensaje,
         },
       ])
