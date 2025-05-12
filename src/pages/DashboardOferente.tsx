@@ -367,9 +367,9 @@ const DashboardOferente: React.FC = () => {
         await supabase
           .from("solicitudes")
           .select(
-            "*, cliente:cliente_id(nombre), categoria_id, ubicacion, radio_km, descripcion"
+            "*, cliente:cliente_id(nombre), categoria, ubicacion, radio_km, descripcion"
           )
-          .filter("categoria_id", "in", `(${idsCategoria.join(",")})`);
+          .filter("categoria", "in", `(${idsCategoria.join(",")})`);
 
       if (errorSolicitudes) {
         console.error("❌ Error al cargar solicitudes:", errorSolicitudes);
