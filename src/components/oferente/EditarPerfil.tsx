@@ -120,34 +120,24 @@ const EditarPerfil: React.FC = () => {
       }
     }
 
-    for (const categoriaId of seleccionadas.filter((id) => id !== "otras")) {
-      const { data: existenteRelacion, error: errorRelacion } = await supabase
+    const inserts = seleccionadas
+      .filter((id) => id !== "otras")
+      .map((categoriaId) => ({
+        oferente_id: user.id,
+        categoria_id: categoriaId,
+      }));
+
+    if (inserts.length > 0) {
+      const { error: errorInsert } = await supabase
         .from("categorias_oferente")
-        .select("id")
-        .eq("oferente_id", user.id)
-        .eq("categoria_id", categoriaId)
-        .maybeSingle();
+        .insert(inserts);
 
-      if (errorRelacion) {
+      if (errorInsert) {
         console.error(
-          "❌ Error al comprobar relación existente:",
-          errorRelacion
+          "❌ Error al insertar en categorias_oferente:",
+          errorInsert
         );
-        continue; // evita insertar si hubo error en la consulta
-      }
-
-      if (!existenteRelacion) {
-        const { error: errorInsertRelacion } = await supabase
-          .from("categorias_oferente")
-          .insert([{ oferente_id: user.id, categoria_id: categoriaId }]);
-
-        if (errorInsertRelacion) {
-          console.error(
-            "❌ Error al insertar en categorias_oferente:",
-            errorInsertRelacion
-          );
-          toast.error("❌ No se ha podido asociar alguna categoría.");
-        }
+        toast.error("❌ No se ha podido asociar las categorías.");
       }
     }
 
