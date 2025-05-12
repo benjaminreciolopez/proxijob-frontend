@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../../supabaseClient";
 import toast from "react-hot-toast";
 import MapaZona from "../common/MapaZona";
@@ -12,7 +12,8 @@ interface Props {
 const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
   const [formData, setFormData] = useState({
     descripcion: "",
-    categoria: "",
+    categoriaId: "",
+    nuevaCategoria: "",
     ubicacion: "",
     requiereProfesional: false,
     latitud: null as number | null,
@@ -20,16 +21,21 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
     radioKm: 10,
   });
 
-  const [categoriasExistentes, setCategoriasExistentes] = useState<string[]>(
-    []
-  );
+  const [categorias, setCategorias] = useState<
+    { id: string; nombre: string }[]
+  >([]);
+  const [mostrarCampoNueva, setMostrarCampoNueva] = useState(false);
 
   useEffect(() => {
     const cargarCategorias = async () => {
-      const { data } = await supabase.from("categorias").select("nombre");
-      if (data) {
-        setCategoriasExistentes(data.map((c) => c.nombre));
+      const { data, error } = await supabase
+        .from("categorias")
+        .select("id, nombre");
+      if (error) {
+        toast.error("No se pudieron cargar las categorías");
+        return;
       }
+      setCategorias(data || []);
     };
     cargarCategorias();
   }, []);
@@ -37,44 +43,53 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const target = e.target as HTMLInputElement;
-    const { name, value, type, checked } = target;
+    const target = e.target;
 
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    if (target instanceof HTMLInputElement && target.type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        [target.name]: target.checked,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [target.name]: target.value,
+      }));
+    }
+  };
+
+  const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const valor = e.target.value;
+    setFormData((prev) => ({ ...prev, categoriaId: valor }));
+    setMostrarCampoNueva(valor === "otras");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let categoriaFinalId = formData.categoriaId;
 
-    if (!formData.categoria.trim()) {
-      toast.error("Debes introducir una categoría.");
-      return;
-    }
+    if (categoriaFinalId === "otras" && formData.nuevaCategoria.trim()) {
+      const nombreNormalizado = normalizarTextoCategoria(
+        formData.nuevaCategoria
+      );
 
-    const nombreNormalizado = normalizarTextoCategoria(formData.categoria);
-    const categoriaExiste = categoriasExistentes.some(
-      (c) => normalizarTextoCategoria(c) === nombreNormalizado
-    );
+      const { data: existente } = await supabase
+        .from("categorias")
+        .select("id")
+        .eq("nombre_normalizado", nombreNormalizado)
+        .single();
 
-    if (!categoriaExiste) {
-      const { error: errorPendiente } = await supabase
-        .from("categorias_pendientes")
-        .insert([
+      if (existente) {
+        categoriaFinalId = existente.id;
+      } else {
+        await supabase.from("categorias_pendientes").insert([
           {
-            nombre: formData.categoria.trim(),
+            nombre: formData.nuevaCategoria.trim(),
             nombre_normalizado: nombreNormalizado,
             sugerida_por: clienteId,
           },
         ]);
-
-      if (errorPendiente) {
-        toast.error("No se pudo registrar la nueva categoría (pendiente).");
-        return;
-      } else {
-        toast.success("Categoría sugerida. Será revisada por el equipo.");
+        toast("Tu categoría será revisada");
       }
     }
 
@@ -82,7 +97,7 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
       {
         cliente_id: clienteId,
         descripcion: formData.descripcion,
-        categoria: formData.categoria,
+        categoria_id: categoriaFinalId !== "otras" ? categoriaFinalId : null,
         ubicacion: formData.ubicacion,
         requiere_profesional: formData.requiereProfesional,
         latitud: formData.latitud,
@@ -93,20 +108,38 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
 
     if (error) {
       toast.error("Error al guardar la solicitud.");
-      console.error(error.message);
     } else {
       toast.success("Solicitud publicada con éxito.");
       setFormData({
         descripcion: "",
-        categoria: "",
+        categoriaId: "",
+        nuevaCategoria: "",
         ubicacion: "",
         requiereProfesional: false,
         latitud: null,
         longitud: null,
         radioKm: 10,
       });
+      setMostrarCampoNueva(false);
     }
   };
+  const contenedorRef = useRef<HTMLDivElement>(null);
+
+  // Cierre de sugerencias al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        contenedorRef.current &&
+        !contenedorRef.current.contains(event.target as Node)
+      ) {
+        setMostrarCampoNueva(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: "2rem" }}>
@@ -121,14 +154,71 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
         required
       />
 
-      <input
-        type="text"
-        name="categoria"
-        placeholder="Categoría (ej: fontanería, cámara...)"
-        value={formData.categoria}
-        onChange={handleChange}
-        required
-      />
+      <label>Categoría:</label>
+      <div ref={contenedorRef} style={{ position: "relative" }}>
+        <input
+          type="text"
+          name="nuevaCategoria"
+          placeholder="Escribe o selecciona una categoría"
+          value={formData.nuevaCategoria}
+          onChange={(e) => {
+            setFormData((prev) => ({
+              ...prev,
+              nuevaCategoria: e.target.value,
+              categoriaId: "", // Limpiar selección anterior
+            }));
+            setMostrarCampoNueva(true);
+          }}
+          autoComplete="off"
+          required
+        />
+
+        {mostrarCampoNueva && formData.nuevaCategoria.length > 1 && (
+          <ul
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              zIndex: 10,
+              background: "white",
+              border: "1px solid #ccc",
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              maxHeight: "150px",
+              overflowY: "auto",
+            }}
+          >
+            {categorias
+              .filter((cat) =>
+                cat.nombre
+                  .toLowerCase()
+                  .includes(formData.nuevaCategoria.toLowerCase())
+              )
+              .map((cat) => (
+                <li
+                  key={cat.id}
+                  onClick={() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      categoriaId: cat.id,
+                      nuevaCategoria: cat.nombre,
+                    }));
+                    setMostrarCampoNueva(false);
+                  }}
+                  style={{
+                    padding: "0.5rem",
+                    borderBottom: "1px solid #eee",
+                    cursor: "pointer",
+                  }}
+                >
+                  {cat.nombre}
+                </li>
+              ))}
+          </ul>
+        )}
+      </div>
 
       <input
         type="text"
@@ -143,7 +233,12 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
           type="checkbox"
           name="requiereProfesional"
           checked={formData.requiereProfesional}
-          onChange={handleChange}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              requiereProfesional: e.target.checked,
+            }))
+          }
         />
         ¿Requiere titulación o acreditación?
       </label>
