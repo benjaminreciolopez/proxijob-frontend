@@ -352,9 +352,15 @@ const DashboardOferente: React.FC = () => {
         return;
       }
 
-      const idsCategoria = categorias.map((c) => c.categoria_id);
+      const idsCategoria = categorias
+        .map((c) => c.categoria_id)
+        .filter((id) => typeof id === "string" && id.trim() !== "");
 
-      // 3. Consultar solicitudes (solo si hay categorías válidas)
+      if (idsCategoria.length === 0) {
+        toast.error("No tienes categorías válidas asociadas.");
+        return;
+      }
+
       const { data: solicitudesCompatibles, error: errorSolicitudes } =
         await supabase
           .from("solicitudes")
@@ -364,6 +370,7 @@ const DashboardOferente: React.FC = () => {
           .in("categoria_id", idsCategoria);
 
       if (errorSolicitudes) {
+        console.error("❌ Error al cargar solicitudes:", errorSolicitudes);
         toast.error("⚠️ No se han podido cargar las solicitudes.");
         return;
       }
