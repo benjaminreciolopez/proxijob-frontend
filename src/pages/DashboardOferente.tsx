@@ -53,7 +53,7 @@ const DashboardOferente: React.FC = () => {
     // Verifica si ya está asociada (uso de .match() para evitar error 400)
     const { data: yaAsociada, error: errorYaAsociada } = await supabase
       .from("categorias_oferente")
-      .select("id")
+      .select("*")
       .match({
         oferente_id: usuarioId,
         categoria_id: categoriaId,

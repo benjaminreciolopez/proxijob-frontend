@@ -78,11 +78,6 @@ const EditarPerfil: React.FC = () => {
       }
     }
 
-    await supabase
-      .from("categorias_oferente")
-      .delete()
-      .eq("oferente_id", user.id);
-
     let nuevaId: string | null = null;
 
     if (nuevaCategoria.trim().length > 1) {
@@ -120,24 +115,24 @@ const EditarPerfil: React.FC = () => {
       }
     }
 
-    const inserts = seleccionadas
-      .filter((id) => id !== "otras")
-      .map((categoriaId) => ({
-        oferente_id: user.id,
-        categoria_id: categoriaId,
-      }));
+    // 🔁 Elimina duplicados
+    const relacionesFinales = Array.from(
+      new Set(seleccionadas.filter((id) => id !== "otras"))
+    );
+
+    const inserts = relacionesFinales.map((categoriaId) => ({
+      oferente_id: user.id,
+      categoria_id: categoriaId,
+    }));
 
     if (inserts.length > 0) {
-      const { error: errorInsert } = await supabase
+      const { error: errorUpsert } = await supabase
         .from("categorias_oferente")
-        .insert(inserts);
+        .upsert(inserts, { onConflict: "oferente_id,categoria_id" });
 
-      if (errorInsert) {
-        console.error(
-          "❌ Error al insertar en categorias_oferente:",
-          errorInsert
-        );
-        toast.error("❌ No se ha podido asociar las categorías.");
+      if (errorUpsert) {
+        console.error("❌ Error al insertar categorías:", errorUpsert);
+        toast.error("❌ No se han podido asociar las categorías.");
       }
     }
 
