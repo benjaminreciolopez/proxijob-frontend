@@ -28,20 +28,28 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Opcional: buscar datos adicionales del usuario desde la tabla "usuarios"
     const { data: perfil } = await supabase
       .from("usuarios")
       .select("*")
-      .eq("id", data.user.id) // el `id` coincide con `auth.uid()`
+      .eq("id", data.user.id)
       .single();
 
-    toast.success(`¡Bienvenido, ${perfil?.nombre || "usuario"}!`);
+    if (!perfil) {
+      toast.error("No se pudo cargar tu perfil.");
+      return;
+    }
+
+    const saludo =
+      perfil.tratamiento === "Sra"
+        ? `¡Bienvenida, ${perfil.nombre}!`
+        : `¡Bienvenido, ${perfil.nombre}!`;
+
+    toast.success(saludo);
     localStorage.setItem("usuario", JSON.stringify(perfil));
 
-    // Redirigir según rol
-    if (perfil?.rol === "cliente") {
+    if (perfil.rol === "cliente") {
       navigate("/dashboard/cliente");
-    } else if (perfil?.rol === "oferente") {
+    } else if (perfil.rol === "oferente") {
       navigate("/dashboard/oferente");
     } else {
       toast.error("Rol no reconocido.");
