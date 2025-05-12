@@ -97,7 +97,7 @@ const NuevaSolicitud: React.FC<Props> = ({ clienteId }) => {
       {
         cliente_id: clienteId,
         descripcion: formData.descripcion,
-        categoria_id: categoriaFinalId !== "otras" ? categoriaFinalId : null,
+        categoria: categoriaFinalId !== "otras" ? categoriaFinalId : null,
         ubicacion: formData.ubicacion,
         requiere_profesional: formData.requiereProfesional,
         latitud: formData.latitud,
