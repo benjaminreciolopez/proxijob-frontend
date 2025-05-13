@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "./supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 interface Mensaje {
   id: string;
@@ -24,6 +25,7 @@ const Chat: React.FC = () => {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // ✅ Obtener usuario autenticado
   useEffect(() => {
@@ -123,6 +125,27 @@ const Chat: React.FC = () => {
   return (
     <div style={{ padding: "1rem", maxWidth: "600px", margin: "auto" }}>
       <h3>💬 Chat</h3>
+      <button
+        onClick={() =>
+          navigate(
+            tipoEmisor === "cliente"
+              ? "/dashboard/cliente"
+              : "/dashboard/oferente"
+          )
+        }
+        style={{
+          marginBottom: "1rem",
+          backgroundColor: "#ccc",
+          color: "#000",
+          border: "none",
+          padding: "0.4rem 1rem",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        🔙 Volver al dashboard
+      </button>
+
       <div
         ref={chatContainerRef}
         style={{
