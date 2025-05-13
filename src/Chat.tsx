@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import { useNavigate } from "react-router-dom";
+import "../styles/dashboard.css";
 
 interface Mensaje {
   id: string;
@@ -123,8 +124,7 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "1rem", maxWidth: "600px", margin: "auto" }}>
-      <h3>💬 Chat</h3>
+    <div className="dashboard">
       <button
         onClick={() =>
           navigate(
@@ -155,38 +155,28 @@ const Chat: React.FC = () => {
           overflowY: "auto",
         }}
       >
-        {mensajes.map((msg) => (
-          <div
-            key={msg.id}
-            style={{
-              display: "flex",
-              justifyContent:
-                msg.emisor_id === emisorId ? "flex-end" : "flex-start",
-              marginBottom: "0.5rem",
-            }}
-          >
+        {mensajes.map((msg) => {
+          const esMio = msg.emisor_id === emisorId;
+          return (
             <div
-              style={{
-                backgroundColor:
-                  msg.emisor_id === emisorId ? "#dcf8c6" : "#f1f0f0",
-                padding: "0.5rem 1rem",
-                borderRadius: "12px",
-                maxWidth: "80%",
-              }}
+              key={msg.id}
+              className={`mensaje-burbuja ${esMio ? "mio" : "otro"}`}
             >
-              <div style={{ fontSize: "0.75rem", color: "#555" }}>
-                {msg.emisor_id === emisorId
-                  ? "Tú"
-                  : msg.tipo_emisor === "cliente"
-                  ? "Cliente"
-                  : "Oferente"}
+              <div className="mensaje-contenido">
+                <div className="mensaje-emisor">
+                  {esMio
+                    ? "Tú"
+                    : msg.tipo_emisor === "cliente"
+                    ? "Cliente"
+                    : "Oferente"}
+                </div>
+                <div>{msg.contenido}</div>
               </div>
-              {msg.contenido}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
+      <div className="chat-input-container">
         <input
           type="text"
           value={nuevoMensaje}

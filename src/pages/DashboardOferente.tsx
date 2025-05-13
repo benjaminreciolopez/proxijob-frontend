@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import NotificacionFlotante from "../components/NotificacionFlotante"; // arriba del todo
 import { AnimatePresence } from "framer-motion"; // también
+import "../styles/dashboard.css";
 
 const DashboardOferente: React.FC = () => {
   const navigate = useNavigate();
@@ -422,7 +423,7 @@ const DashboardOferente: React.FC = () => {
   }, [usuario]);
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+    <div className="dashboard">
       {cargandoUsuario ? (
         <div>Cargando usuario...</div>
       ) : !usuario ? (
@@ -468,7 +469,7 @@ const DashboardOferente: React.FC = () => {
             </button>
           </div>
 
-          <div style={{ marginTop: "2rem" }}>
+          <div className="dashboard-section">
             <h3>🔔 Solicitudes disponibles en tu zona</h3>
             {solicitudesFiltradas.length === 0 ? (
               <p>No hay solicitudes cercanas.</p>
@@ -536,7 +537,7 @@ const DashboardOferente: React.FC = () => {
             </ul>
 
             {solicitudAceptada && (
-              <div style={{ marginTop: "2rem" }}>
+              <div className="dashboard-section">
                 <h3>💬 Comunicación activa</h3>
                 <p>
                   Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"}{" "}

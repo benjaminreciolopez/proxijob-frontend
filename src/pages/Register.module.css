@@ -110,3 +110,24 @@
 .form button:hover {
   background-color: #0056b3;
 }
+/* Adaptaciones móviles */
+@media (max-width: 480px) {
+  .container {
+    margin: 1rem;
+    max-width: 100%;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .buttons button {
+    width: 100%;
+  }
+
+  .form input,
+  .form button {
+    font-size: 0.95rem;
+  }
+}

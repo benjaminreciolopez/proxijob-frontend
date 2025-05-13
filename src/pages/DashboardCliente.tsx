@@ -5,6 +5,7 @@ import HistorialSolicitudes from "../components/cliente/HistorialSolicitudes";
 import PostulacionesCliente from "../components/cliente/PostulacionesCliente";
 import NotificacionFlotante from "../components/NotificacionFlotante"; // arriba del todo
 import { AnimatePresence } from "framer-motion"; // también
+import "../styles/dashboard.css";
 
 interface Usuario {
   id: string;
@@ -24,14 +25,12 @@ const DashboardCliente: React.FC = () => {
 
   if (!usuario) {
     return (
-      <div style={{ padding: "2rem", fontFamily: "sans-serif", color: "red" }}>
-        ❌ No se ha podido cargar tu usuario.
-      </div>
+      <div className="dashboard">❌ No se ha podido cargar tu usuario.</div>
     );
   }
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+    <div className="dashboard">
       <h2>
         👤 {usuario.tratamiento} {usuario.nombre}
       </h2>
@@ -40,7 +39,7 @@ const DashboardCliente: React.FC = () => {
         aquí puedes gestionar tus solicitudes.
       </p>
 
-      <div style={{ marginBottom: "2rem" }}>
+      <div className="dashboard-section">
         <NuevaSolicitud
           clienteId={usuario.id}
           nombre={usuario.nombre}
@@ -49,14 +48,14 @@ const DashboardCliente: React.FC = () => {
         />
       </div>
 
-      <div style={{ marginBottom: "2rem" }}>
+      <div className="dashboard-section">
         <HistorialSolicitudes
           clienteId={usuario.id}
           actualizar={actualizarHistorial}
         />
       </div>
 
-      <div style={{ marginBottom: "2rem" }}>
+      <div className="dashboard-section">
         <PostulacionesCliente clienteId={usuario.id} />
       </div>
       <AnimatePresence>

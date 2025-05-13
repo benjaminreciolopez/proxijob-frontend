@@ -111,3 +111,57 @@
   color: white;
   font-weight: bold;
 }
+@media (max-width: 480px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .navButton,
+  .loginButton {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .hero {
+    padding: 2rem 1rem;
+  }
+
+  .hero h2 {
+    font-size: 1.5rem;
+  }
+
+  .cta {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  .steps,
+  .benefits,
+  .join {
+    padding: 1rem;
+  }
+
+  .join input {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer {
+    font-size: 0.8rem;
+  }
+}
