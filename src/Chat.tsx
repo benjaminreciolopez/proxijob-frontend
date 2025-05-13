@@ -27,8 +27,10 @@ const Chat: React.FC = () => {
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth", // 👈 desplazamiento suave
+      });
     }
   }, [mensajes]);
 
@@ -139,6 +141,12 @@ const Chat: React.FC = () => {
           type="text"
           value={nuevoMensaje}
           onChange={(e) => setNuevoMensaje(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              enviarMensaje();
+            }
+          }}
           placeholder="Escribe tu mensaje..."
           style={{ flex: 1, padding: "0.5rem" }}
         />
