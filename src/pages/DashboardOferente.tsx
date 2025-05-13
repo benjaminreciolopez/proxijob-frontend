@@ -401,55 +401,6 @@ const DashboardOferente: React.FC = () => {
     cargarDatos();
   }, [usuario]);
 
-  // ✅ Esta verificación debe ir después de todos los hooks
-  if (!usuario) {
-    return (
-      <div style={{ padding: "2rem", fontFamily: "sans-serif", color: "red" }}>
-        ❌ No se ha podido cargar tu usuario.
-      </div>
-    );
-  }
-  // Escuchar cambios en postulaciones para detectar aceptación en tiempo real
-  useEffect(() => {
-    if (!usuario) return;
-
-    const canalPostulaciones = supabase
-      .channel("postulaciones_realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "postulaciones",
-          filter: `oferente_id=eq.${usuario.id}`,
-        },
-        async (payload) => {
-          const nuevaPostulacion = payload.new;
-
-          if (nuevaPostulacion.estado === "aceptado") {
-            const { data: solicitudRelacionada } = await supabase
-              .from("solicitudes")
-              .select("cliente_id")
-              .eq("id", nuevaPostulacion.solicitud_id)
-              .single();
-
-            setSolicitudAceptada({
-              solicitud_id: nuevaPostulacion.solicitud_id,
-              cliente_id: solicitudRelacionada?.cliente_id ?? "",
-            });
-
-            setNotificacion("🎉 Has sido aceptado para una solicitud");
-            setTimeout(() => setNotificacion(null), 5000);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(canalPostulaciones);
-    };
-  }, [usuario]);
-
   useEffect(() => {
     if (!usuario) return;
 
@@ -470,53 +421,37 @@ const DashboardOferente: React.FC = () => {
 
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h2>
-        🛠️ {usuario.tratamiento} {usuario.nombre}
-      </h2>
-      <p>
-        {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
-        aquí puedes gestionar tu perfil y oportunidades.
-      </p>
-
-      <>
-        <DocumentosOferente usuarioId={usuario.id} />
-        <ZonasOferente usuarioId={usuario.id} />
-
-        <div style={{ marginTop: "1.5rem" }}>
-          <h4>📄 Sobre mí</h4>
-          <p>
-            <strong>Especialidad:</strong>{" "}
-            {usuario.especialidad || "No especificada"}
-          </p>
-          <p>
-            <strong>Descripción:</strong>{" "}
-            {usuario.descripcion || "No has escrito aún tu presentación."}
-          </p>
-          <button
-            onClick={() => navigate("/editar-perfil")}
-            style={{
-              marginTop: "0.5rem",
-              padding: "0.4rem 0.8rem",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            ✏️ Editar perfil
-          </button>
+      {!usuario ? (
+        <div style={{ color: "red" }}>
+          ❌ No se ha podido cargar tu usuario.
         </div>
+      ) : (
+        <>
+          <h2>
+            🛠️ {usuario.tratamiento} {usuario.nombre}
+          </h2>
+          <p>
+            {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
+            aquí puedes gestionar tu perfil y oportunidades.
+          </p>
 
-        <div style={{ marginTop: "2rem" }}>
-          <h3>🔔 Solicitudes disponibles en tu zona</h3>
-          {solicitudesFiltradas.length === 0 ? (
-            <p>No hay solicitudes cercanas.</p>
-          ) : (
+          <DocumentosOferente usuarioId={usuario.id} />
+          <ZonasOferente usuarioId={usuario.id} />
+
+          <div style={{ marginTop: "1.5rem" }}>
+            <h4>📄 Sobre mí</h4>
+            <p>
+              <strong>Especialidad:</strong>{" "}
+              {usuario.especialidad || "No especificada"}
+            </p>
+            <p>
+              <strong>Descripción:</strong>{" "}
+              {usuario.descripcion || "No has escrito aún tu presentación."}
+            </p>
             <button
-              onClick={() => setMostrarTodas((prev) => !prev)}
+              onClick={() => navigate("/editar-perfil")}
               style={{
-                marginBottom: "1rem",
+                marginTop: "0.5rem",
                 padding: "0.4rem 0.8rem",
                 backgroundColor: "#007bff",
                 color: "white",
@@ -525,82 +460,104 @@ const DashboardOferente: React.FC = () => {
                 cursor: "pointer",
               }}
             >
-              {mostrarTodas ? "🔽 Ver menos" : "🔼 Ver todas"}
+              ✏️ Editar perfil
             </button>
-          )}
+          </div>
 
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {(mostrarTodas ? solicitudes : solicitudesFiltradas).map((s) => (
-              <li
-                key={s.id}
-                onClick={() =>
-                  setSeleccionada(seleccionada === s.id ? null : s.id)
-                }
+          <div style={{ marginTop: "2rem" }}>
+            <h3>🔔 Solicitudes disponibles en tu zona</h3>
+            {solicitudesFiltradas.length === 0 ? (
+              <p>No hay solicitudes cercanas.</p>
+            ) : (
+              <button
+                onClick={() => setMostrarTodas((prev) => !prev)}
                 style={{
                   marginBottom: "1rem",
-                  border: "1px solid #ccc",
-                  padding: "1rem",
-                  borderRadius: "8px",
-                  backgroundColor:
-                    seleccionada === s.id ? "#f1f1f1" : "transparent",
-                  cursor: "pointer",
-                }}
-              >
-                <strong>{s.categoria}</strong> — {s.descripcion}
-                <br />
-                📍 {s.ubicacion} | {s.radio_km} km
-                <br />
-                👤 Cliente: {s.cliente?.nombre || "Desconocido"}
-                <br />
-                {!postulacionesIds.has(s.id) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      postularse(s.id);
-                    }}
-                    style={{
-                      marginTop: "0.5rem",
-                      padding: "0.4rem 0.8rem",
-                      backgroundColor: "#28a745",
-                      color: "white",
-                      border: "1px solid #ccc",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    ✅ Postularme
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-
-          {solicitudAceptada && (
-            <div style={{ marginTop: "2rem" }}>
-              <h3>💬 Comunicación activa</h3>
-              <p>
-                Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"} para
-                una solicitud. Puedes contactar al cliente:
-              </p>
-              <button
-                onClick={() =>
-                  (window.location.href = `/chat?cliente_id=${solicitudAceptada.cliente_id}&oferente_id=${usuario.id}&solicitud_id=${solicitudAceptada.solicitud_id}`)
-                }
-                style={{
-                  padding: "0.6rem 1.2rem",
+                  padding: "0.4rem 0.8rem",
                   backgroundColor: "#007bff",
-                  color: "#fff",
+                  color: "white",
                   border: "none",
-                  borderRadius: "5px",
+                  borderRadius: "4px",
                   cursor: "pointer",
                 }}
               >
-                💬 Acceder al chat con el cliente
+                {mostrarTodas ? "🔽 Ver menos" : "🔼 Ver todas"}
               </button>
-            </div>
-          )}
-        </div>
-      </>
+            )}
+
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {(mostrarTodas ? solicitudes : solicitudesFiltradas).map((s) => (
+                <li
+                  key={s.id}
+                  onClick={() =>
+                    setSeleccionada(seleccionada === s.id ? null : s.id)
+                  }
+                  style={{
+                    marginBottom: "1rem",
+                    border: "1px solid #ccc",
+                    padding: "1rem",
+                    borderRadius: "8px",
+                    backgroundColor:
+                      seleccionada === s.id ? "#f1f1f1" : "transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  <strong>{s.categoria}</strong> — {s.descripcion}
+                  <br />
+                  📍 {s.ubicacion} | {s.radio_km} km
+                  <br />
+                  👤 Cliente: {s.cliente?.nombre || "Desconocido"}
+                  <br />
+                  {!postulacionesIds.has(s.id) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        postularse(s.id);
+                      }}
+                      style={{
+                        marginTop: "0.5rem",
+                        padding: "0.4rem 0.8rem",
+                        backgroundColor: "#28a745",
+                        color: "white",
+                        border: "1px solid #ccc",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✅ Postularme
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            {solicitudAceptada && (
+              <div style={{ marginTop: "2rem" }}>
+                <h3>💬 Comunicación activa</h3>
+                <p>
+                  Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"}{" "}
+                  para una solicitud. Puedes contactar al cliente:
+                </p>
+                <button
+                  onClick={() =>
+                    (window.location.href = `/chat?cliente_id=${solicitudAceptada.cliente_id}&oferente_id=${usuario.id}&solicitud_id=${solicitudAceptada.solicitud_id}`)
+                  }
+                  style={{
+                    padding: "0.6rem 1.2rem",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                  }}
+                >
+                  💬 Acceder al chat con el cliente
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <AnimatePresence>
         {notificacion && (
