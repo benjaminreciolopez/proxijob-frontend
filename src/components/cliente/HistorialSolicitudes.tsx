@@ -14,12 +14,14 @@ interface Solicitud {
   ubicacion: string;
   requiere_profesional: boolean;
   created_at: string;
+  estado: string;
 }
 
 const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
+  const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [formData, setFormData] = useState({
     descripcion: "",
     categoria: "",
@@ -125,92 +127,123 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
 
   return (
     <div style={{ marginTop: "2rem" }}>
-      <h3>📂 Historial de solicitudes</h3>
-      {solicitudes.length === 0 ? (
-        <p>No has publicado ninguna solicitud todavía.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {solicitudes.map((s) => (
-            <li
-              key={s.id}
-              onClick={() =>
-                setSeleccionada(seleccionada === s.id ? null : s.id)
-              }
-              style={{
-                marginBottom: "1rem",
-                border: "1px solid #ccc",
-                padding: "1rem",
-                borderRadius: "8px",
-                cursor: "pointer",
-                backgroundColor: seleccionada === s.id ? "#f9f9f9" : "#fff",
-              }}
-            >
-              {editandoId === s.id ? (
-                <>
-                  <input
-                    type="text"
-                    value={formData.descripcion}
-                    onChange={(e) =>
-                      setFormData({ ...formData, descripcion: e.target.value })
-                    }
-                    placeholder="Descripción"
-                  />
-                  <input
-                    type="text"
-                    value={formData.categoria}
-                    onChange={(e) =>
-                      setFormData({ ...formData, categoria: e.target.value })
-                    }
-                    placeholder="Categoría"
-                  />
-                  <input
-                    type="text"
-                    value={formData.ubicacion}
-                    onChange={(e) =>
-                      setFormData({ ...formData, ubicacion: e.target.value })
-                    }
-                    placeholder="Ubicación"
-                  />
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={formData.requiere_profesional}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          requiere_profesional: e.target.checked,
-                        })
-                      }
-                    />
-                    ¿Requiere título?
-                  </label>
-                  <br />
-                  <button onClick={guardarCambios}>💾 Guardar</button>
-                  <button onClick={cancelarEdicion}>❌ Cancelar</button>
-                </>
-              ) : (
-                <>
-                  <strong>{s.categoria}</strong> — {s.descripcion}{" "}
-                  {s.requiere_profesional && "(requiere título)"}
-                  <br />
-                  📍 {s.ubicacion} | 🕓{" "}
-                  {new Date(s.created_at).toLocaleDateString()}
-                  <br />
-                  {seleccionada === s.id && (
+      <button
+        onClick={() => setMostrarHistorial(!mostrarHistorial)}
+        style={{ marginBottom: "1rem" }}
+      >
+        {mostrarHistorial
+          ? "🔽 Ocultar historial"
+          : `📂 Ver historial de solicitudes (${solicitudes.length})`}
+      </button>
+
+      {mostrarHistorial && (
+        <>
+          <h3>📂 Historial de solicitudes</h3>
+          {solicitudes.length === 0 ? (
+            <p>No has publicado ninguna solicitud todavía.</p>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {solicitudes.map((s) => (
+                <li
+                  key={s.id}
+                  onClick={() =>
+                    setSeleccionada(seleccionada === s.id ? null : s.id)
+                  }
+                  style={{
+                    marginBottom: "1rem",
+                    border: "1px solid #ccc",
+                    padding: "1rem",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    backgroundColor: seleccionada === s.id ? "#f9f9f9" : "#fff",
+                  }}
+                >
+                  {editandoId === s.id ? (
                     <>
-                      <button onClick={() => iniciarEdicion(s)}>
-                        ✏️ Editar
-                      </button>
-                      <button onClick={() => eliminarSolicitud(s.id)}>
-                        🗑️ Eliminar
-                      </button>
+                      <input
+                        type="text"
+                        value={formData.descripcion}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            descripcion: e.target.value,
+                          })
+                        }
+                        placeholder="Descripción"
+                      />
+                      <input
+                        type="text"
+                        value={formData.categoria}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            categoria: e.target.value,
+                          })
+                        }
+                        placeholder="Categoría"
+                      />
+                      <input
+                        type="text"
+                        value={formData.ubicacion}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            ubicacion: e.target.value,
+                          })
+                        }
+                        placeholder="Ubicación"
+                      />
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={formData.requiere_profesional}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              requiere_profesional: e.target.checked,
+                            })
+                          }
+                        />
+                        ¿Requiere título?
+                      </label>
+                      <br />
+                      <button onClick={guardarCambios}>💾 Guardar</button>
+                      <button onClick={cancelarEdicion}>❌ Cancelar</button>
+                    </>
+                  ) : (
+                    <>
+                      <strong>{s.categoria}</strong> — {s.descripcion}{" "}
+                      {s.requiere_profesional && "(requiere título)"}
+                      <br />
+                      📍 {s.ubicacion} | 🕓{" "}
+                      {new Date(s.created_at).toLocaleDateString()}
+                      <br />
+                      {seleccionada === s.id && (
+                        <>
+                          {s.estado === "aceptado" ? (
+                            <p style={{ color: "green", marginTop: "0.5rem" }}>
+                              ✅ Esta solicitud fue aceptada y ya no puede
+                              modificarse.
+                            </p>
+                          ) : (
+                            <>
+                              <button onClick={() => iniciarEdicion(s)}>
+                                ✏️ Editar
+                              </button>
+                              <button onClick={() => eliminarSolicitud(s.id)}>
+                                🗑️ Eliminar
+                              </button>
+                            </>
+                          )}
+                        </>
+                      )}
                     </>
                   )}
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );

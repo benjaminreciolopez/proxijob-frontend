@@ -193,4 +193,64 @@
     width: 100%;
     font-size: 1rem;
   }
+  .formulario-nueva-solicitud {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    font-family: sans-serif;
+  }
+
+  .formulario-nueva-solicitud input[type="text"],
+  .formulario-nueva-solicitud input[type="checkbox"],
+  .formulario-nueva-solicitud textarea {
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .formulario-nueva-solicitud label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .formulario-nueva-solicitud button[type="submit"] {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    background-color: green;
+    color: white;
+    cursor: pointer;
+  }
+
+  .formulario-nueva-solicitud button[type="submit"]:hover {
+    background-color: #0a7a0a;
+  }
+
+  .formulario-nueva-solicitud ul {
+    margin-top: 0.3rem;
+    padding: 0.4rem;
+    list-style: none;
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 10;
+    width: 100%;
+  }
+
+  .formulario-nueva-solicitud ul li {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+
+  .formulario-nueva-solicitud ul li:hover {
+    background-color: #f0f0f0;
+  }
 }

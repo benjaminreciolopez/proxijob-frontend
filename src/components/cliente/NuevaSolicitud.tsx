@@ -151,7 +151,7 @@ const NuevaSolicitud: React.FC<Props> = ({
   }, []);
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: "2rem" }}>
+    <form onSubmit={handleSubmit} className="formulario-nueva-solicitud">
       <h3>📢 Publicar nueva necesidad</h3>
 
       <input
@@ -174,7 +174,7 @@ const NuevaSolicitud: React.FC<Props> = ({
             setFormData((prev) => ({
               ...prev,
               nuevaCategoria: e.target.value,
-              categoriaId: "", // Limpiar selección anterior
+              categoriaId: "",
             }));
             setMostrarCampoNueva(true);
           }}
@@ -183,22 +183,7 @@ const NuevaSolicitud: React.FC<Props> = ({
         />
 
         {mostrarCampoNueva && formData.nuevaCategoria.length > 1 && (
-          <ul
-            style={{
-              position: "absolute",
-              top: "100%",
-              left: 0,
-              right: 0,
-              zIndex: 10,
-              background: "white",
-              border: "1px solid #ccc",
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              maxHeight: "150px",
-              overflowY: "auto",
-            }}
-          >
+          <ul>
             {categorias
               .filter((cat) =>
                 cat.nombre
@@ -215,11 +200,6 @@ const NuevaSolicitud: React.FC<Props> = ({
                       nuevaCategoria: cat.nombre,
                     }));
                     setMostrarCampoNueva(false);
-                  }}
-                  style={{
-                    padding: "0.5rem",
-                    borderBottom: "1px solid #eee",
-                    cursor: "pointer",
                   }}
                 >
                   {cat.nombre}
@@ -279,17 +259,7 @@ const NuevaSolicitud: React.FC<Props> = ({
       />
 
       {formData.latitud && formData.longitud && (
-        <button
-          type="submit"
-          style={{
-            marginTop: "1rem",
-            background: "green",
-            color: "white",
-            padding: "0.5rem 1rem",
-          }}
-        >
-          📍 Guardar ubicación y publicar
-        </button>
+        <button type="submit">📍 Guardar ubicación y publicar</button>
       )}
     </form>
   );
