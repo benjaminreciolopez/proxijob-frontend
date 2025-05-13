@@ -83,8 +83,11 @@ const Chat: React.FC = () => {
         (payload) => {
           const nuevo = payload.new as Mensaje;
 
-          // 👇 Ya no filtramos por ID, porque se carga solo desde el servidor
-          setMensajes((prev) => [...prev, nuevo]);
+          // ❌ Ignorar si ya existe
+          setMensajes((prev) => {
+            const yaExiste = prev.some((m) => m.id === nuevo.id);
+            return yaExiste ? prev : [...prev, nuevo];
+          });
         }
       )
       .subscribe();
@@ -142,7 +145,7 @@ const Chat: React.FC = () => {
             <div
               style={{
                 backgroundColor:
-                  msg.emisor_id === emisorId ? "#dcf8c6" : "#e6e6e6",
+                  msg.emisor_id === emisorId ? "#dcf8c6" : "#f1f0f0",
                 padding: "0.5rem 1rem",
                 borderRadius: "12px",
                 maxWidth: "80%",
@@ -151,9 +154,9 @@ const Chat: React.FC = () => {
               <div style={{ fontSize: "0.75rem", color: "#555" }}>
                 {msg.emisor_id === emisorId
                   ? "Tú"
-                  : msg.tipo_emisor === "cliente"
-                  ? "Cliente"
-                  : "Oferente"}
+                  : tipoEmisor === "cliente"
+                  ? "Oferente"
+                  : "Cliente"}
               </div>
               {msg.contenido}
             </div>
