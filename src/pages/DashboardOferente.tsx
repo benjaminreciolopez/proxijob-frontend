@@ -26,6 +26,8 @@ const DashboardOferente: React.FC = () => {
   const [postulacionesIds, setPostulacionesIds] = useState<Set<string>>(
     new Set()
   );
+  const [usuario, setUsuario] = useState<UsuarioExtendido | null>(null);
+  const [cargandoUsuario, setCargandoUsuario] = useState(true); // 👈 nuevo estado
 
   async function registrarCategoria(usuarioId: string, nombre: string) {
     const nombreNormalizado = nombre.trim().toLowerCase();
@@ -103,8 +105,6 @@ const DashboardOferente: React.FC = () => {
     tratamiento: string;
   }
 
-  const [usuario, setUsuario] = useState<UsuarioExtendido | null>(null);
-
   const [solicitudAceptada, setSolicitudAceptada] = useState<{
     solicitud_id: string;
     cliente_id: string;
@@ -121,6 +121,7 @@ const DashboardOferente: React.FC = () => {
       if (error || !user) {
         toast.error("No estás autenticado.");
         setUsuario(null);
+        setCargandoUsuario(false); // 👈 aquí dentro
         return;
       }
 
@@ -177,6 +178,7 @@ const DashboardOferente: React.FC = () => {
       } else {
         setSolicitudAceptada(null);
       }
+      setCargandoUsuario(false);
     };
     obtenerUsuario();
   }, []);
@@ -421,7 +423,9 @@ const DashboardOferente: React.FC = () => {
 
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      {!usuario ? (
+      {cargandoUsuario ? (
+        <div>Cargando usuario...</div>
+      ) : !usuario ? (
         <div style={{ color: "red" }}>
           ❌ No se ha podido cargar tu usuario.
         </div>
