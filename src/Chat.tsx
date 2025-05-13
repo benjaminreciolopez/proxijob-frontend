@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import { useNavigate } from "react-router-dom";
-import "../styles/dashboard.css";
+import "./styles/dashboard.css";
 
 interface Mensaje {
   id: string;
