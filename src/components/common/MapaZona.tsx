@@ -7,6 +7,15 @@ import {
   useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { Marker, Icon } from "leaflet";
+import { Marker as RLMarker } from "react-leaflet";
+import L from "leaflet";
+
+const iconoCentro = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
 interface Props {
   onChange: (coords: { lat: number; lng: number; radioKm: number }) => void;
@@ -25,7 +34,9 @@ const MapaZona: React.FC<Props> = ({
   } | null>(zonaActiva ? { lat: zonaActiva.lat, lng: zonaActiva.lng } : null);
 
   const [radioKm, setRadioKm] = useState(zonaActiva?.radioKm || 10);
-  const [volviendo, setVolviendo] = useState(false); // flag para forzar flyTo
+  const [volviendo, setVolviendo] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [sugerencias, setSugerencias] = useState<any[]>([]);
 
   const volverAMiUbicacion = () => {
     navigator.geolocation.getCurrentPosition(
@@ -36,7 +47,7 @@ const MapaZona: React.FC<Props> = ({
         };
         setUbicacion(coords);
         onChange({ ...coords, radioKm });
-        setVolviendo(true); // activa el centrado en el mapa
+        setVolviendo(true);
       },
       (err) => {
         console.error("Ubicación denegada:", err.message);
@@ -56,6 +67,35 @@ const MapaZona: React.FC<Props> = ({
     }
   }, [radioKm]);
 
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (busqueda.length < 3) {
+        setSugerencias([]);
+        return;
+      }
+
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          busqueda
+        )}`
+      )
+        .then((res) => res.json())
+        .then((data) => setSugerencias(data.slice(0, 5)))
+        .catch(() => setSugerencias([]));
+    }, 400);
+
+    return () => clearTimeout(delay);
+  }, [busqueda]);
+
+  const seleccionarSugerencia = (sug: any) => {
+    const coords = { lat: parseFloat(sug.lat), lng: parseFloat(sug.lon) };
+    setUbicacion(coords);
+    setBusqueda(sug.display_name);
+    setSugerencias([]);
+    onChange({ ...coords, radioKm });
+    setVolviendo(true);
+  };
+
   const ClickHandler = () => {
     useMapEvents({
       click(e) {
@@ -68,7 +108,6 @@ const MapaZona: React.FC<Props> = ({
     return null;
   };
 
-  // 🔁 Hook para forzar el flyTo al volver a ubicación
   const FlyToUbicacion = () => {
     const map = useMap();
     useEffect(() => {
@@ -99,6 +138,51 @@ const MapaZona: React.FC<Props> = ({
           disabled={!editable}
         />
       </label>
+      {busqueda && (
+        <p style={{ fontSize: "0.9rem", marginTop: "0.5rem", color: "#555" }}>
+          📍 Ubicación seleccionada: <strong>{busqueda}</strong>
+        </p>
+      )}
+
+      <div style={{ marginTop: "0.5rem", position: "relative" }}>
+        <input
+          type="text"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar ciudad o calle..."
+          style={{ width: "100%", padding: "0.5rem" }}
+          disabled={!editable}
+        />
+        {sugerencias.length > 0 && (
+          <ul
+            style={{
+              listStyle: "none",
+              margin: 0,
+              padding: "0.5rem",
+              background: "white",
+              border: "1px solid #ccc",
+              maxHeight: "150px",
+              overflowY: "auto",
+              position: "absolute",
+              zIndex: 1000,
+              width: "100%",
+            }}
+          >
+            {sugerencias.map((s, idx) => (
+              <li
+                key={idx}
+                onClick={() => seleccionarSugerencia(s)}
+                style={{
+                  padding: "0.3rem 0",
+                  cursor: "pointer",
+                }}
+              >
+                {s.display_name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <button
         onClick={volverAMiUbicacion}
@@ -120,7 +204,7 @@ const MapaZona: React.FC<Props> = ({
       {ubicacion && (
         <MapContainer
           center={centro as [number, number]}
-          zoom={12}
+          zoom={13}
           scrollWheelZoom={true}
           dragging={editable}
           style={{ height: "300px", width: "100%", marginTop: "1rem" }}
@@ -131,6 +215,13 @@ const MapaZona: React.FC<Props> = ({
             radius={radioKm * 1000}
             pathOptions={{ color: "blue" }}
           />
+          {ubicacion && (
+            <RLMarker
+              position={[ubicacion.lat, ubicacion.lng]}
+              icon={iconoCentro}
+            />
+          )}
+
           <ClickHandler />
           <FlyToUbicacion />
         </MapContainer>

@@ -85,6 +85,20 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
     if (!zonaSeleccionada) return;
 
     const { lat, lng, radioKm } = zonaSeleccionada;
+
+    // Verificar duplicados aproximados (±0.0001 en coordenadas y ±1 km en radio)
+    const yaExiste = zonas.some((zona) => {
+      const mismaLat = Math.abs(zona.latitud - lat) < 0.0001;
+      const mismaLng = Math.abs(zona.longitud - lng) < 0.0001;
+      const mismoRadio = Math.abs(zona.radio_km - radioKm) < 1;
+      return mismaLat && mismaLng && mismoRadio;
+    });
+
+    if (yaExiste) {
+      toast.error("⚠️ Esta zona ya ha sido registrada.");
+      return;
+    }
+
     const { error } = await supabase.from("zonas_trabajo_clientes").insert([
       {
         cliente_id: clienteId,
@@ -104,7 +118,7 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
   };
 
   return (
-    <div style={{ marginTop: "2rem" }}>
+    <div className="zonas-container">
       <h3>📍 Zonas de interés del cliente</h3>
 
       <MapaZona
@@ -122,21 +136,14 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
       />
 
       {modoEdicion && zonaSeleccionada && (
-        <button
-          onClick={guardarZona}
-          style={{
-            marginTop: "1rem",
-            background: "green",
-            color: "white",
-            padding: "0.5rem 1rem",
-          }}
-        >
+        <button className="zonas-boton" onClick={guardarZona}>
           💾 Guardar esta zona
         </button>
       )}
 
       <div style={{ marginTop: "1rem" }}>
         <button
+          className="zonas-boton-secundario"
           onClick={() => {
             setZonaActivaId(null);
             setModoEdicion(true);
@@ -147,10 +154,12 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
       </div>
 
       {zonas.length > 0 && (
-        <ul style={{ marginTop: "1rem" }}>
+        <ul className="zonas-lista">
           {zonas.map((zona, i) => (
-            <li key={zona.id}>
+            <li key={zona.id} className="zonas-item">
               <button
+                type="button"
+                aria-label={`Ver zona ${i + 1}`}
                 onClick={() => {
                   setZonaActivaId(zona.id);
                   setModoEdicion(false);
@@ -159,8 +168,10 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
                 📍 Zona {i + 1} ({zona.ciudad}) — {zona.radio_km} km
               </button>
               <button
+                type="button"
+                aria-label={`Eliminar zona ${i + 1}`}
                 onClick={() => eliminarZona(zona.id)}
-                style={{ marginLeft: "1rem", color: "red" }}
+                style={{ color: "red" }}
               >
                 ❌ Eliminar
               </button>
