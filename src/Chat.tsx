@@ -154,9 +154,9 @@ const Chat: React.FC = () => {
               <div style={{ fontSize: "0.75rem", color: "#555" }}>
                 {msg.emisor_id === emisorId
                   ? "Tú"
-                  : tipoEmisor === "cliente"
-                  ? "Oferente"
-                  : "Cliente"}
+                  : msg.tipo_emisor === "cliente"
+                  ? "Cliente"
+                  : "Oferente"}
               </div>
               {msg.contenido}
             </div>
