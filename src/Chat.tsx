@@ -65,6 +65,10 @@ const Chat: React.FC = () => {
         },
         (payload) => {
           const nuevo = payload.new as Mensaje;
+
+          // ⛔️ Ignora si el mensaje es tuyo
+          if (nuevo.emisor_id === emisorId) return;
+
           setMensajes((prev) => [...prev, nuevo]);
         }
       )
@@ -73,7 +77,7 @@ const Chat: React.FC = () => {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [solicitudId]);
+  }, [solicitudId, emisorId]);
 
   const enviarMensaje = async () => {
     if (!nuevoMensaje.trim() || !emisorId || !solicitudId) return;
@@ -91,9 +95,8 @@ const Chat: React.FC = () => {
       .select()
       .single();
 
-    if (!error && data) {
-      setMensajes((prev) => [...prev, data]);
-      setNuevoMensaje("");
+    if (!error) {
+      setNuevoMensaje(""); // ✅ Limpiar solo el input
     }
   };
 
@@ -113,29 +116,33 @@ const Chat: React.FC = () => {
           <div
             key={msg.id}
             style={{
-              textAlign: msg.tipo_emisor === "cliente" ? "right" : "left",
+              display: "flex",
+              justifyContent:
+                msg.emisor_id === emisorId ? "flex-end" : "flex-start",
               marginBottom: "0.5rem",
             }}
           >
             <div
               style={{
-                display: "inline-block",
                 backgroundColor:
-                  msg.tipo_emisor === "cliente" ? "#dcf8c6" : "#f1f0f0",
+                  msg.emisor_id === emisorId ? "#dcf8c6" : "#f1f0f0",
                 padding: "0.5rem 1rem",
                 borderRadius: "12px",
                 maxWidth: "80%",
               }}
             >
               <div style={{ fontSize: "0.75rem", color: "#555" }}>
-                {msg.tipo_emisor === "cliente" ? "Tú" : "Oferente"}
+                {msg.emisor_id === emisorId
+                  ? "Tú"
+                  : tipoEmisor === "cliente"
+                  ? "Oferente"
+                  : "Cliente"}
               </div>
               {msg.contenido}
             </div>
           </div>
         ))}
       </div>
-
       <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
         <input
           type="text"
