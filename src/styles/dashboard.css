@@ -11,7 +11,53 @@
   padding-top: 1.5rem;
 }
 
-/* Responsive para móviles */
+/* 💬 Mensajes del chat */
+.mensaje-burbuja {
+  display: flex;
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.mensaje-burbuja.mio {
+  justify-content: flex-end;
+}
+
+.mensaje-burbuja.otro {
+  justify-content: flex-start;
+}
+
+.mensaje-contenido {
+  max-width: 80%;
+  padding: 0.6rem 1rem;
+  border-radius: 16px;
+  font-size: 1rem;
+  line-height: 1.4;
+  background-color: #f1f0f0;
+  position: relative;
+}
+
+.mensaje-burbuja.mio .mensaje-contenido {
+  background-color: #dcf8c6;
+  border-bottom-right-radius: 2px;
+}
+
+.mensaje-burbuja.otro .mensaje-contenido {
+  border-bottom-left-radius: 2px;
+}
+
+.mensaje-emisor {
+  font-size: 0.75rem;
+  color: #777;
+  margin-bottom: 0.25rem;
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* 📱 Responsive para móviles */
 @media (max-width: 600px) {
   .dashboard {
     padding: 0.5rem;
@@ -38,68 +84,26 @@
   .dashboard p {
     font-size: 1rem;
   }
+
   .dashboard h3 {
     font-size: 1.2rem;
   }
+
   .dashboard h4 {
     font-size: 1rem;
   }
+
   .dashboard h5 {
     font-size: 0.9rem;
   }
+
   .chat-input-container {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    flex-direction: column;
   }
 
-  @media (max-width: 600px) {
-    .chat-input-container {
-      flex-direction: column;
-    }
-
-    .chat-input-container input,
-    .chat-input-container button {
-      width: 100%;
-      font-size: 1rem;
-    }
-  }
-  .mensaje-burbuja {
-    display: flex;
-    margin-bottom: 0.5rem;
-    padding: 0 0.5rem;
-  }
-
-  .mensaje-burbuja.mio {
-    justify-content: flex-end;
-  }
-
-  .mensaje-burbuja.otro {
-    justify-content: flex-start;
-  }
-
-  .mensaje-contenido {
-    max-width: 80%;
-    padding: 0.6rem 1rem;
-    border-radius: 16px;
+  .chat-input-container input,
+  .chat-input-container button {
+    width: 100%;
     font-size: 1rem;
-    line-height: 1.4;
-    background-color: #f1f0f0;
-    position: relative;
-  }
-
-  .mensaje-burbuja.mio .mensaje-contenido {
-    background-color: #dcf8c6;
-    border-bottom-right-radius: 2px;
-  }
-
-  .mensaje-burbuja.otro .mensaje-contenido {
-    border-bottom-left-radius: 2px;
-  }
-
-  .mensaje-emisor {
-    font-size: 0.75rem;
-    color: #777;
-    margin-bottom: 0.25rem;
   }
 }
