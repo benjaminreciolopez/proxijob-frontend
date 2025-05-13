@@ -15,28 +15,45 @@ const Chat: React.FC = () => {
   const clienteId = searchParams.get("cliente_id") ?? "";
   const oferenteId = searchParams.get("oferente_id") ?? "";
   const solicitudId = searchParams.get("solicitud_id") ?? "";
-  const tipoEmisor: "cliente" | "oferente" = searchParams.get("cliente_id")
-    ? "cliente"
-    : "oferente";
 
-  const emisorId = tipoEmisor === "cliente" ? clienteId : oferenteId;
+  const [emisorId, setEmisorId] = useState<string>("");
+  const [tipoEmisor, setTipoEmisor] = useState<"cliente" | "oferente" | null>(
+    null
+  );
 
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  // ✅ Obtener usuario autenticado
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setEmisorId(user.id);
+        if (user.id === clienteId) {
+          setTipoEmisor("cliente");
+        } else if (user.id === oferenteId) {
+          setTipoEmisor("oferente");
+        } else {
+          console.warn("⚠️ El usuario no coincide con cliente ni oferente");
+        }
+      }
+    });
+  }, [clienteId, oferenteId]);
+
+  // ✅ Scroll automático
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
         top: chatContainerRef.current.scrollHeight,
-        behavior: "smooth", // 👈 desplazamiento suave
+        behavior: "smooth",
       });
     }
   }, [mensajes]);
 
+  // ✅ Cargar mensajes
   useEffect(() => {
     if (!solicitudId) return;
-
     const cargarMensajes = async () => {
       const { data, error } = await supabase
         .from("mensajes")
@@ -46,10 +63,10 @@ const Chat: React.FC = () => {
 
       if (!error && data) setMensajes(data);
     };
-
     cargarMensajes();
   }, [solicitudId]);
 
+  // ✅ Realtime: escuchar nuevos mensajes
   useEffect(() => {
     if (!solicitudId) return;
 
@@ -66,6 +83,7 @@ const Chat: React.FC = () => {
         (payload) => {
           const nuevo = payload.new as Mensaje;
 
+          // 👇 Ya no filtramos por ID, porque se carga solo desde el servidor
           setMensajes((prev) => [...prev, nuevo]);
         }
       )
@@ -74,10 +92,11 @@ const Chat: React.FC = () => {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [solicitudId, emisorId]);
+  }, [solicitudId]);
 
   const enviarMensaje = async () => {
-    if (!nuevoMensaje.trim() || !emisorId || !solicitudId) return;
+    if (!nuevoMensaje.trim() || !emisorId || !tipoEmisor || !solicitudId)
+      return;
 
     const { data, error } = await supabase
       .from("mensajes")
@@ -93,14 +112,14 @@ const Chat: React.FC = () => {
       .single();
 
     if (!error && data) {
-      setMensajes((prev) => [...prev, data]); // ✅ vuelve a añadirlo localmente
+      setMensajes((prev) => [...prev, data]);
       setNuevoMensaje("");
     }
   };
 
   return (
     <div style={{ padding: "1rem", maxWidth: "600px", margin: "auto" }}>
-      <h3>💬 Chat con el oferente</h3>
+      <h3>💬 Chat</h3>
       <div
         ref={chatContainerRef}
         style={{
@@ -123,7 +142,7 @@ const Chat: React.FC = () => {
             <div
               style={{
                 backgroundColor:
-                  msg.emisor_id === emisorId ? "#dcf8c6" : "#f1f0f0",
+                  msg.emisor_id === emisorId ? "#dcf8c6" : "#e6e6e6",
                 padding: "0.5rem 1rem",
                 borderRadius: "12px",
                 maxWidth: "80%",
@@ -132,9 +151,9 @@ const Chat: React.FC = () => {
               <div style={{ fontSize: "0.75rem", color: "#555" }}>
                 {msg.emisor_id === emisorId
                   ? "Tú"
-                  : tipoEmisor === "cliente"
-                  ? "Oferente"
-                  : "Cliente"}
+                  : msg.tipo_emisor === "cliente"
+                  ? "Cliente"
+                  : "Oferente"}
               </div>
               {msg.contenido}
             </div>
