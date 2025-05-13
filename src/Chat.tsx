@@ -66,9 +66,6 @@ const Chat: React.FC = () => {
         (payload) => {
           const nuevo = payload.new as Mensaje;
 
-          // ⛔️ Ignora si el mensaje es tuyo
-          if (nuevo.emisor_id === emisorId) return;
-
           setMensajes((prev) => [...prev, nuevo]);
         }
       )
@@ -95,8 +92,9 @@ const Chat: React.FC = () => {
       .select()
       .single();
 
-    if (!error) {
-      setNuevoMensaje(""); // ✅ Limpiar solo el input
+    if (!error && data) {
+      setMensajes((prev) => [...prev, data]); // ✅ vuelve a añadirlo localmente
+      setNuevoMensaje("");
     }
   };
 
