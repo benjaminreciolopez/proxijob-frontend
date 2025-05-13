@@ -23,6 +23,9 @@ const DashboardOferente: React.FC = () => {
     []
   );
   const [notificacion, setNotificacion] = useState<string | null>(null);
+  const [postulacionesIds, setPostulacionesIds] = useState<Set<string>>(
+    new Set()
+  );
 
   async function registrarCategoria(usuarioId: string, nombre: string) {
     const nombreNormalizado = nombre.trim().toLowerCase();
@@ -332,6 +335,7 @@ const DashboardOferente: React.FC = () => {
 
     setNotificacion("✅ Postulación enviada con documentos");
     setTimeout(() => setNotificacion(null), 5000);
+    setPostulacionesIds((prev) => new Set(prev).add(solicitudId));
     navigate("/dashboard/oferente");
   };
 
@@ -405,6 +409,64 @@ const DashboardOferente: React.FC = () => {
       </div>
     );
   }
+  // Escuchar cambios en postulaciones para detectar aceptación en tiempo real
+  useEffect(() => {
+    if (!usuario) return;
+
+    const canalPostulaciones = supabase
+      .channel("postulaciones_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "postulaciones",
+          filter: `oferente_id=eq.${usuario.id}`,
+        },
+        async (payload) => {
+          const nuevaPostulacion = payload.new;
+
+          if (nuevaPostulacion.estado === "aceptado") {
+            const { data: solicitudRelacionada } = await supabase
+              .from("solicitudes")
+              .select("cliente_id")
+              .eq("id", nuevaPostulacion.solicitud_id)
+              .single();
+
+            setSolicitudAceptada({
+              solicitud_id: nuevaPostulacion.solicitud_id,
+              cliente_id: solicitudRelacionada?.cliente_id ?? "",
+            });
+
+            setNotificacion("🎉 Has sido aceptado para una solicitud");
+            setTimeout(() => setNotificacion(null), 5000);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canalPostulaciones);
+    };
+  }, [usuario]);
+
+  useEffect(() => {
+    if (!usuario) return;
+
+    const cargarPostulaciones = async () => {
+      const { data } = await supabase
+        .from("postulaciones")
+        .select("solicitud_id")
+        .eq("oferente_id", usuario.id);
+
+      if (data) {
+        const ids = new Set(data.map((p) => p.solicitud_id));
+        setPostulacionesIds(ids);
+      }
+    };
+
+    cargarPostulaciones();
+  }, [usuario]);
 
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
@@ -415,10 +477,11 @@ const DashboardOferente: React.FC = () => {
         {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
         aquí puedes gestionar tu perfil y oportunidades.
       </p>
+
       <>
         <DocumentosOferente usuarioId={usuario.id} />
-
         <ZonasOferente usuarioId={usuario.id} />
+
         <div style={{ marginTop: "1.5rem" }}>
           <h4>📄 Sobre mí</h4>
           <p>
@@ -465,6 +528,7 @@ const DashboardOferente: React.FC = () => {
               {mostrarTodas ? "🔽 Ver menos" : "🔼 Ver todas"}
             </button>
           )}
+
           <ul style={{ listStyle: "none", padding: 0 }}>
             {(mostrarTodas ? solicitudes : solicitudesFiltradas).map((s) => (
               <li
@@ -488,26 +552,29 @@ const DashboardOferente: React.FC = () => {
                 <br />
                 👤 Cliente: {s.cliente?.nombre || "Desconocido"}
                 <br />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    postularse(s.id);
-                  }}
-                  style={{
-                    marginTop: "0.5rem",
-                    padding: "0.4rem 0.8rem",
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  ✅ Postularme
-                </button>
+                {!postulacionesIds.has(s.id) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      postularse(s.id);
+                    }}
+                    style={{
+                      marginTop: "0.5rem",
+                      padding: "0.4rem 0.8rem",
+                      backgroundColor: "#28a745",
+                      color: "white",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✅ Postularme
+                  </button>
+                )}
               </li>
             ))}
           </ul>
+
           {solicitudAceptada && (
             <div style={{ marginTop: "2rem" }}>
               <h3>💬 Comunicación activa</h3>
@@ -534,6 +601,7 @@ const DashboardOferente: React.FC = () => {
           )}
         </div>
       </>
+
       <AnimatePresence>
         {notificacion && (
           <NotificacionFlotante
@@ -542,7 +610,6 @@ const DashboardOferente: React.FC = () => {
           />
         )}
       </AnimatePresence>
-      ;
     </div>
   );
 };

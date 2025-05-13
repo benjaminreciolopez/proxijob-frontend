@@ -71,9 +71,11 @@ const App: React.FC = () => {
         <Route
           path="/chat"
           element={
-            <RutasProtegidas>
+            modoMantenimiento && !isAdmin() ? (
+              <Navigate to="/" replace />
+            ) : (
               <Chat />
-            </RutasProtegidas>
+            )
           }
         />
         <Route
