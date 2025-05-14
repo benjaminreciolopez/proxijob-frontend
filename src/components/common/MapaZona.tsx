@@ -201,18 +201,13 @@ const MapaZona: React.FC<Props> = ({
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
           height="24"
-          fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor"
+          width="24"
+          fill="#4285f4"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 2v2m0 16v2m10-10h-2M4 12H2m16.24 7.76l-1.42-1.42M6.34 6.34L4.92 4.92m12.02 0l-1.42 1.42M6.34 17.66l-1.42 1.42M12 8a4 4 0 100 8 4 4 0 000-8z"
-          />
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5c.6 0 1 .4 1 1v2.1c3.4.5 6 3.1 6.5 6.5H21c.6 0 1 .4 1 1s-.4 1-1 1h-2.1c-.5 3.4-3.1 6-6.5 6.5V21c0 .6-.4 1-1 1s-1-.4-1-1v-2.1c-3.4-.5-6-3.1-6.5-6.5H3c-.6 0-1-.4-1-1s.4-1 1-1h2.1c.5-3.4 3.1-6 6.5-6.5V4c0-.6.4-1 1-1z" />
         </svg>
       </button>
 
