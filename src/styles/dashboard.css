@@ -253,4 +253,129 @@
   .formulario-nueva-solicitud ul li:hover {
     background-color: #f0f0f0;
   }
+  .dashboard h2,
+  .dashboard p {
+    text-align: center;
+  }
+
+  .dashboard-section {
+    border-top: none;
+    margin-top: 1rem;
+  }
+
+  .dashboard-section:first-of-type {
+    margin-top: 0;
+  }
+
+  /* Espaciado extra para evitar solapamientos con el teclado móvil */
+  .dashboard input,
+  .dashboard textarea {
+    margin-bottom: 1rem;
+  }
+
+  /* Ajustes de botones en las listas */
+  .dashboard li button {
+    font-size: 1rem;
+    padding: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  /* Historial y postulaciones */
+  .dashboard ul {
+    padding: 0;
+  }
+
+  .dashboard li {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  /* Que los botones dentro de li ocupen todo el ancho en móviles */
+  .dashboard li button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .postulacion-card {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    background: #fff;
+  }
+
+  .postulacion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .categoria {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .descripcion {
+    margin: 0.2rem 0 0;
+    color: #666;
+  }
+
+  .estado {
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-transform: capitalize;
+  }
+
+  .estado-pendiente {
+    background: #ffeeba;
+    color: #856404;
+  }
+
+  .estado-preseleccionado {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  .estado-aceptado {
+    background: #c3e6cb;
+    color: #155724;
+  }
+
+  .estado-rechazado {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .postulacion-detalles p {
+    margin: 0.2rem 0;
+  }
+
+  .postulacion-acciones {
+    margin-top: 1rem;
+  }
+
+  .postulacion-acciones select,
+  .postulacion-acciones button {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  .postulacion-acciones button {
+    background: #28a745;
+    color: white;
+    border: none;
+  }
+
+  .postulacion-docs summary {
+    margin-top: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
 }

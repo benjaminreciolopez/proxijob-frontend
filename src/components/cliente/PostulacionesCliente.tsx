@@ -409,7 +409,7 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
   };
 
   return (
-    <div style={{ marginTop: "2rem" }}>
+    <div className="dashboard-section">
       <h3>📨 Postulaciones recibidas</h3>
 
       <div style={{ marginBottom: "1rem" }}>
@@ -423,79 +423,73 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       {postulaciones.length === 0 ? (
         <p>No hay postulaciones aún.</p>
       ) : (
-        <ul>
+        <ul className="postulaciones-lista">
           {postulaciones.map((p) => (
-            <li key={p.id} style={{ marginBottom: "1rem" }}>
-              <strong>{p.solicitud.categoria}</strong> —{" "}
-              {p.solicitud.descripcion}
-              <br />
-              📍 {p.solicitud.ubicacion}
-              <br />
-              🧑‍💼 Oferente: {p.oferente?.nombre || p.oferente_id}
-              <br />
-              👷 Especialidad: {p.oferente?.especialidad || "No especificada"}
-              <br />
-              📝 Perfil: {p.oferente?.descripcion || "Sin descripción"}
-              <br />
-              ✉️ Mensaje: {p.mensaje || "Sin mensaje"}
-              <br />
-              🕓 Fecha: {new Date(p.created_at).toLocaleString()}
-              <br />
-              {p.estado !== "aceptado" && (
-                <label>
-                  Estado:
+            <li key={p.id} className="postulacion-card">
+              <div className="postulacion-header">
+                <div>
+                  <p className="categoria">{p.solicitud.categoria}</p>
+                  <p className="descripcion">{p.solicitud.descripcion}</p>
+                </div>
+                <span className={`estado estado-${p.estado}`}>{p.estado}</span>
+              </div>
+
+              <div className="postulacion-detalles">
+                <p>📍 {p.solicitud.ubicacion}</p>
+                <p>🧑‍💼 Oferente: {p.oferente?.nombre || p.oferente_id}</p>
+                <p>
+                  👷 Especialidad:{" "}
+                  {p.oferente?.especialidad || "No especificada"}
+                </p>
+                <p>📝 Perfil: {p.oferente?.descripcion || "Sin descripción"}</p>
+                <p>✉️ Mensaje: {p.mensaje || "Sin mensaje"}</p>
+                <p>🕓 Fecha: {new Date(p.created_at).toLocaleString()}</p>
+              </div>
+
+              <div className="postulacion-acciones">
+                {p.estado !== "aceptado" ? (
                   <select
                     value={p.estado}
                     onChange={(e) => actualizarEstado(p.id, e.target.value)}
-                    style={{ marginLeft: "0.5rem" }}
                   >
                     <option value="pendiente">🕓 Pendiente</option>
                     <option value="preseleccionado">👁️‍🗨️ Preseleccionado</option>
                     <option value="aceptado">✅ Aceptado</option>
                     <option value="rechazado">❌ Rechazado</option>
                   </select>
-                </label>
-              )}
-              {p.estado === "aceptado" && (
-                <button
-                  onClick={() => {
-                    window.location.href = `/chat?cliente_id=${clienteId}&oferente_id=${p.oferente_id}&solicitud_id=${p.solicitud.id}`;
-                  }}
-                  style={{
-                    marginTop: "0.5rem",
-                    padding: "0.5rem 1rem",
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  💬 Iniciar chat con el oferente
-                </button>
-              )}
-              {p.documentos && p.documentos.length > 0 && (
-                <details style={{ marginTop: "0.5rem" }}>
-                  <summary style={{ cursor: "pointer", fontWeight: "bold" }}>
+                ) : (
+                  <button
+                    onClick={() => {
+                      window.location.href = `/chat?cliente_id=${clienteId}&oferente_id=${p.oferente_id}&solicitud_id=${p.solicitud.id}`;
+                    }}
+                  >
+                    💬 Iniciar chat con el oferente
+                  </button>
+                )}
+              </div>
+
+              {Array.isArray(p.documentos) && p.documentos.length > 0 && (
+                <details className="postulacion-docs">
+                  <summary>
                     📎 Ver documentos adjuntos ({p.documentos.length})
                   </summary>
-                  <ul style={{ marginTop: "0.5rem" }}>
+                  <ul>
                     {p.documentos.map((doc) => {
-                      const extension = doc.url.split(".").pop()?.toLowerCase();
+                      const ext = doc.url.split(".").pop()?.toLowerCase();
                       return (
-                        <li key={doc.id} style={{ marginBottom: "1rem" }}>
+                        <li key={doc.id} style={{ marginTop: "0.5rem" }}>
                           <p>
                             <strong>{doc.tipo}</strong> — {doc.titulo}
                           </p>
-                          {["png", "jpg", "jpeg", "webp"].includes(
-                            extension || ""
+                          {["jpg", "jpeg", "png", "webp"].includes(
+                            ext || ""
                           ) ? (
                             <img
                               src={doc.url}
                               alt={doc.titulo}
                               style={{ maxWidth: "100%", maxHeight: "300px" }}
                             />
-                          ) : extension === "pdf" ? (
+                          ) : ext === "pdf" ? (
                             <embed
                               src={doc.url}
                               type="application/pdf"
@@ -507,14 +501,7 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
                               href={doc.url}
                               target="_blank"
                               rel="noreferrer"
-                              style={{
-                                display: "inline-block",
-                                padding: "0.5rem 1rem",
-                                background: "#007bff",
-                                color: "#fff",
-                                borderRadius: "4px",
-                                textDecoration: "none",
-                              }}
+                              className="documento-enlace"
                             >
                               📄 Ver / Descargar archivo
                             </a>

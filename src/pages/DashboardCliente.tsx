@@ -30,11 +30,14 @@ const DashboardCliente: React.FC = () => {
   }
 
   return (
-    <div className="dashboard">
-      <h2>
+    <div
+      className="dashboard"
+      style={{ width: "100%", boxSizing: "border-box" }}
+    >
+      <h2 style={{ textAlign: "center" }}>
         👤 {usuario.tratamiento} {usuario.nombre}
       </h2>
-      <p>
+      <p style={{ textAlign: "center" }}>
         {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
         aquí puedes gestionar tus solicitudes.
       </p>
@@ -58,6 +61,7 @@ const DashboardCliente: React.FC = () => {
       <div className="dashboard-section">
         <PostulacionesCliente clienteId={usuario.id} />
       </div>
+
       <AnimatePresence>
         {notificacion && (
           <NotificacionFlotante
