@@ -4,7 +4,8 @@ import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import "leaflet/dist/leaflet.css";
-import { AdminAuthProvider } from "./context/AdminAuthContext"; // importa el contexto
+import "./styles/dashboard.css"; // ✅ Añadido aquí
+import { AdminAuthProvider } from "./context/AdminAuthContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
