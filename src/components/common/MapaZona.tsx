@@ -149,6 +149,7 @@ const MapaZona: React.FC<Props> = ({
           disabled={!editable}
         />
       </label>
+
       {busqueda && (
         <p style={{ fontSize: "0.9rem", marginTop: "0.5rem", color: "#555" }}>
           📍 Ubicación seleccionada: <strong>{busqueda}</strong>
@@ -195,25 +196,6 @@ const MapaZona: React.FC<Props> = ({
         )}
       </div>
 
-      <CustomControl position="topright">
-        <button
-          onClick={volverAMiUbicacion}
-          className="leaflet-control-ubicacion"
-          aria-label="Centrar ubicación"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="20"
-            width="20"
-            viewBox="0 0 24 24"
-            fill="#4285f4"
-          >
-            <path d="M0 0h24v24H0z" fill="none" />
-            <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5c.6 0 1 .4 1 1v2.1c3.4.5 6 3.1 6.5 6.5H21c.6 0 1 .4 1 1s-.4 1-1 1h-2.1c-.5 3.4-3.1 6-6.5 6.5V21c0 .6-.4 1-1 1s-1-.4-1-1v-2.1c-3.4-.5-6-3.1-6.5-6.5H3c-.6 0-1-.4-1-1s.4-1 1-1h2.1c.5-3.4 3.1-6 6.5-6.5V4c0-.6.4-1 1-1z" />
-          </svg>
-        </button>
-      </CustomControl>
-
       {ubicacion && (
         <MapContainer
           center={centro}
@@ -229,19 +211,37 @@ const MapaZona: React.FC<Props> = ({
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <Circle
-            center={centro as [number, number]}
+            center={centro}
             radius={radioKm * 1000}
             pathOptions={{ color: "blue" }}
           />
-          {ubicacion && (
-            <RLMarker
-              position={[ubicacion.lat, ubicacion.lng]}
-              icon={iconoCentro}
-            />
-          )}
-
+          <RLMarker
+            position={[ubicacion.lat, ubicacion.lng]}
+            icon={iconoCentro}
+          />
           <ClickHandler />
           <FlyToUbicacion />
+
+          {/* ✅ Control flotante dentro del mapa */}
+          <CustomControl position="topright">
+            <button
+              onClick={volverAMiUbicacion}
+              className="leaflet-control-ubicacion"
+              aria-label="Centrar ubicación"
+              title="Volver a mi ubicación"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="20"
+                width="20"
+                viewBox="0 0 24 24"
+                fill="#4285f4"
+              >
+                <path d="M0 0h24v24H0z" fill="none" />
+                <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5c.6 0 1 .4 1 1v2.1c3.4.5 6 3.1 6.5 6.5H21c.6 0 1 .4 1 1s-.4 1-1 1h-2.1c-.5 3.4-3.1 6-6.5 6.5V21c0 .6-.4 1-1 1s-1-.4-1-1v-2.1c-3.4-.5-6-3.1-6.5-6.5H3c-.6 0-1-.4-1-1s.4-1 1-1h2.1c.5-3.4 3.1-6 6.5-6.5V4c0-.6.4-1 1-1z" />
+              </svg>
+            </button>
+          </CustomControl>
         </MapContainer>
       )}
     </div>
