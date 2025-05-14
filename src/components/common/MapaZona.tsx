@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -37,6 +37,7 @@ const MapaZona: React.FC<Props> = ({
   const [volviendo, setVolviendo] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [sugerencias, setSugerencias] = useState<any[]>([]);
+  const mapRef = useRef<L.Map | null>(null);
 
   const volverAMiUbicacion = () => {
     navigator.geolocation.getCurrentPosition(
@@ -60,6 +61,15 @@ const MapaZona: React.FC<Props> = ({
       volverAMiUbicacion();
     }
   }, []);
+
+  const handleCentrarUbicacion = () => {
+    if (navigator.geolocation && mapRef.current) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        mapRef.current!.flyTo([latitude, longitude], 15); // o setView
+      });
+    }
+  };
 
   useEffect(() => {
     if (ubicacion) {
@@ -119,7 +129,7 @@ const MapaZona: React.FC<Props> = ({
     return null;
   };
 
-  const centro = zonaActiva
+  const centro: [number, number] = zonaActiva
     ? [zonaActiva.lat, zonaActiva.lng]
     : ubicacion
     ? [ubicacion.lat, ubicacion.lng]
@@ -185,29 +195,39 @@ const MapaZona: React.FC<Props> = ({
       </div>
 
       <button
+        className="boton-flotante-ubicacion"
         onClick={volverAMiUbicacion}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          zIndex: 1000,
-          background: "white",
-          border: "1px solid #ccc",
-          borderRadius: "4px",
-          padding: "4px 8px",
-          cursor: "pointer",
-        }}
+        aria-label="Volver a mi ubicación"
       >
-        Volver a mi ubicación
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 2v2m0 16v2m10-10h-2M4 12H2m16.24 7.76l-1.42-1.42M6.34 6.34L4.92 4.92m12.02 0l-1.42 1.42M6.34 17.66l-1.42 1.42M12 8a4 4 0 100 8 4 4 0 000-8z"
+          />
+        </svg>
       </button>
 
       {ubicacion && (
         <MapContainer
-          center={centro as [number, number]}
+          center={centro}
           zoom={13}
           scrollWheelZoom={true}
           dragging={editable}
           style={{ height: "300px", width: "100%", marginTop: "1rem" }}
+          ref={(mapInstance) => {
+            if (mapInstance && !mapRef.current) {
+              mapRef.current = mapInstance;
+            }
+          }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <Circle
