@@ -432,9 +432,7 @@ const DashboardOferente: React.FC = () => {
         </div>
       ) : (
         <>
-          <h2>
-            🛠️ {usuario.tratamiento} {usuario.nombre}
-          </h2>
+          <h2>🛠️ {usuario.nombre}</h2>
           <p>
             {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
             aquí puedes gestionar tu perfil y oportunidades.

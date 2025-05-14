@@ -34,9 +34,7 @@ const DashboardCliente: React.FC = () => {
       className="dashboard"
       style={{ width: "100%", boxSizing: "border-box" }}
     >
-      <h2 style={{ textAlign: "center" }}>
-        👤 {usuario.tratamiento} {usuario.nombre}
-      </h2>
+      <h2 style={{ textAlign: "center" }}>👤 {usuario.nombre}</h2>
       <p style={{ textAlign: "center" }}>
         {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
         aquí puedes gestionar tus solicitudes.
