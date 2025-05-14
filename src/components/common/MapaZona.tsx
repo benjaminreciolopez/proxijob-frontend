@@ -10,6 +10,7 @@ import "leaflet/dist/leaflet.css";
 import { Marker, Icon } from "leaflet";
 import { Marker as RLMarker } from "react-leaflet";
 import L from "leaflet";
+import CustomControl from "react-leaflet-custom-control";
 
 const iconoCentro = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -194,22 +195,24 @@ const MapaZona: React.FC<Props> = ({
         )}
       </div>
 
-      <button
-        className="boton-flotante-ubicacion"
-        onClick={volverAMiUbicacion}
-        aria-label="Volver a mi ubicación"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24"
-          viewBox="0 0 24 24"
-          width="24"
-          fill="#4285f4"
+      <CustomControl position="topright">
+        <button
+          onClick={volverAMiUbicacion}
+          className="leaflet-control-ubicacion"
+          aria-label="Centrar ubicación"
         >
-          <path d="M0 0h24v24H0z" fill="none" />
-          <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5c.6 0 1 .4 1 1v2.1c3.4.5 6 3.1 6.5 6.5H21c.6 0 1 .4 1 1s-.4 1-1 1h-2.1c-.5 3.4-3.1 6-6.5 6.5V21c0 .6-.4 1-1 1s-1-.4-1-1v-2.1c-3.4-.5-6-3.1-6.5-6.5H3c-.6 0-1-.4-1-1s.4-1 1-1h2.1c.5-3.4 3.1-6 6.5-6.5V4c0-.6.4-1 1-1z" />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="20"
+            width="20"
+            viewBox="0 0 24 24"
+            fill="#4285f4"
+          >
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5c.6 0 1 .4 1 1v2.1c3.4.5 6 3.1 6.5 6.5H21c.6 0 1 .4 1 1s-.4 1-1 1h-2.1c-.5 3.4-3.1 6-6.5 6.5V21c0 .6-.4 1-1 1s-1-.4-1-1v-2.1c-3.4-.5-6-3.1-6.5-6.5H3c-.6 0-1-.4-1-1s.4-1 1-1h2.1c.5-3.4 3.1-6 6.5-6.5V4c0-.6.4-1 1-1z" />
+          </svg>
+        </button>
+      </CustomControl>
 
       {ubicacion && (
         <MapContainer
