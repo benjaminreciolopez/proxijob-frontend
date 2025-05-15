@@ -1,13 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./LandingPage.module.css";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
+import { obtenerReseñasPositivas } from "../api/reseñasApi";
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<
     "oferente" | "cliente" | null
   >(null);
+  const [reseñas, setReseñas] = useState<any[]>([]);
+
+  useEffect(() => {
+    const cargar = async () => {
+      const data = await obtenerReseñasPositivas();
+      setReseñas(data);
+    };
+    cargar();
+  }, []);
 
   const handleRoleClick = (rol: "oferente" | "cliente") => {
     setSelectedRole(rol);
@@ -48,14 +57,7 @@ const LandingPage: React.FC = () => {
         <div className={styles.heroText}>
           <h2>Conecta con profesionales cerca de ti</h2>
           <p>Encuentra y contrata en minutos. 100% local, 100% confiable.</p>
-          <div className={styles.heroButtons}>
-            <button onClick={() => navigate("/registro?rol=cliente")}>
-              Empezar como Cliente
-            </button>
-            <button onClick={() => navigate("/registro?rol=oferente")}>
-              Ofrecer mis servicios
-            </button>
-          </div>
+          <div className={styles.heroButtons}></div>
         </div>
         <img
           src="/images/hero-ilustracion.svg"
@@ -96,15 +98,16 @@ const LandingPage: React.FC = () => {
 
       <section className={styles.testimonials}>
         <h3>Lo que dicen nuestros usuarios</h3>
-        <blockquote>
-          "ProxiJob me ayudó a encontrar un profesional en minutos. ¡Increíble!"
-          <cite>- Juan Pérez</cite>
-        </blockquote>
-        <blockquote>
-          "La mejor plataforma para encontrar trabajos cerca de mí.
-          ¡Recomendada!"
-          <cite>- María López</cite>
-        </blockquote>
+        {reseñas.length === 0 ? (
+          <p>Aún no hay reseñas.</p>
+        ) : (
+          reseñas.map((r, idx) => (
+            <blockquote key={idx}>
+              "{r.mensaje}"
+              <cite>- {r.usuarios?.nombre || "Usuario anónimo"}</cite>
+            </blockquote>
+          ))
+        )}
       </section>
 
       <section className={styles.ctaSection}>
