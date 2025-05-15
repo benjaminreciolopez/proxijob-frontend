@@ -12,7 +12,6 @@ export async function obtenerReseñasPositivas(limit = 3) {
     `
     )
     .gte("puntuacion", 4)
-    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
