@@ -3,6 +3,7 @@ import styles from "./LandingPage.module.css";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { obtenerReseñasPositivas } from "../api/reseñasApi";
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<
@@ -57,7 +58,6 @@ const LandingPage: React.FC = () => {
         <div className={styles.heroText}>
           <h2>Conecta con profesionales cerca de ti</h2>
           <p>Encuentra y contrata en minutos. 100% local, 100% confiable.</p>
-          <div className={styles.heroButtons}></div>
         </div>
         <img
           src="/images/hero-ilustracion.svg"
@@ -120,7 +120,12 @@ const LandingPage: React.FC = () => {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
                 }}
               >
-                “{r.mensaje}”
+                <div style={{ marginBottom: "0.5rem" }}>
+                  {Array.from({ length: r.puntuacion }, (_, i) => (
+                    <span key={i}>⭐</span>
+                  ))}
+                </div>
+                “{r.comentario}”
                 <br />
                 <cite
                   style={{
@@ -129,7 +134,7 @@ const LandingPage: React.FC = () => {
                     color: "#555",
                   }}
                 >
-                  — {r.usuarios?.nombre || "Usuario anónimo"}
+                  — {r.nombre_autor}
                 </cite>
               </blockquote>
             ))}
