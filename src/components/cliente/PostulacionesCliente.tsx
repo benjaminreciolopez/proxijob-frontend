@@ -467,7 +467,7 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       .from("reseñas")
       .select("id")
       .eq("usuario_id", usuario_id)
-      .eq("solicitud_id", solicitud_id)
+      .or(`cliente_id.eq.${usuario_id},oferente_id.eq.${usuario_id}`)
       .limit(1)
       .single();
 
