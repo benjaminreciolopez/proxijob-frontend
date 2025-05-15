@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { obtenerReseñasPositivas } from "../api/reseñasApi";
 import { supabase } from "../supabaseClient";
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<
@@ -163,8 +164,8 @@ const LandingPage: React.FC = () => {
         <p>Regístrate gratis y encuentra oportunidades cerca de ti.</p>
       </section>
 
-      <footer className={styles.footer}>
-        <div className={styles.footerGrid}>
+      <footer className="footer">
+        <div className="footerContent">
           <div>
             <h4>Nosotros</h4>
             <ul>
@@ -235,9 +236,10 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className={styles.footerBottom}>
+        <div className="footerBottom">
           <p>© {new Date().getFullYear()} ProxiJob</p>
-          <div className={styles.footerSocial}>
+
+          <div className="socialIcons">
             <a href="#">
               <img src="/icons/facebook.svg" alt="Facebook" />
             </a>
@@ -248,32 +250,33 @@ const LandingPage: React.FC = () => {
               <img src="/icons/youtube.svg" alt="YouTube" />
             </a>
           </div>
-          <div className={styles.footerApps}>
-            <img src="/icons/google-play.png" alt="Google Play" height={32} />
-            <img src="/icons/app-store.png" alt="App Store" height={32} />
-          </div>
-        </div>
 
-        {localStorage.getItem("usuario_admin") && (
-          <button
-            onClick={() => {
-              localStorage.removeItem("usuario_admin");
-              toast.success("Sesión de administrador cerrada");
-              window.location.reload();
-            }}
-            style={{
-              marginTop: "2rem",
-              background: "#dc3545",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Cerrar sesión admin
-          </button>
-        )}
+          <div className="storeBadges" style={{ marginTop: "1rem" }}>
+            <img src="/icons/google-play.svg" alt="Google Play" />
+            <img src="/icons/app-store.svg" alt="App Store" />
+          </div>
+
+          {localStorage.getItem("usuario_admin") && (
+            <button
+              onClick={() => {
+                localStorage.removeItem("usuario_admin");
+                toast.success("Sesión de administrador cerrada");
+                window.location.reload();
+              }}
+              style={{
+                marginTop: "2rem",
+                background: "#dc3545",
+                color: "white",
+                padding: "0.5rem 1rem",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              Cerrar sesión admin
+            </button>
+          )}
+        </div>
       </footer>
     </div>
   );
