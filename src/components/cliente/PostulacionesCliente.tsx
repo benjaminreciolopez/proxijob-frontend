@@ -445,9 +445,8 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
 
     const solicitud_id = postulacionSeleccionada.solicitud.id;
     const usuario_id = clienteId; // el que emite la reseña
-    const nombre = postulacionSeleccionada.oferente?.nombre || "";
 
-    if (!puntuacion || !usuario_id || !solicitud_id || !nombre) {
+    if (!puntuacion || !usuario_id || !solicitud_id) {
       toast.error("Faltan datos para enviar la reseña.");
       return;
     }
@@ -457,39 +456,49 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       return;
     }
 
-    // Verifica que no haya ya una reseña para esta solicitud por este usuario
-    if (!usuario_id || !solicitud_id) {
-      toast.error("Datos incompletos para comprobar reseñas.");
-      return;
-    }
-
-    const { data: existente, error: errorExistente } = await supabase
+    // Verifica si ya existe una reseña por este usuario (cliente u oferente)
+    const { data: existenteCliente, error: errorCliente } = await supabase
       .from("reseñas")
       .select("id")
-      .or(`cliente_id.eq.${usuario_id},oferente_id.eq.${usuario_id}`)
-      .eq("solicitud_id", solicitud_id)
-      .limit(1)
-      .single();
+      .match({ solicitud_id, cliente_id: usuario_id })
+      .maybeSingle();
 
-    if (errorExistente && errorExistente.code !== "PGRST116") {
-      // PGRST116 = no rows found → lo ignoramos
-      toast.error("Error al comprobar reseñas previas.");
+    if (errorCliente && errorCliente.code !== "PGRST116") {
+      toast.error("Error al comprobar reseñas previas (cliente).");
       return;
     }
 
-    if (existente) {
+    if (existenteCliente) {
       toast.error("Ya has dejado una reseña para esta solicitud.");
       setMostrarReseñas(false);
       return;
     }
 
+    const { data: existenteOferente, error: errorOferente } = await supabase
+      .from("reseñas")
+      .select("id")
+      .match({ solicitud_id, oferente_id: usuario_id })
+      .maybeSingle();
+
+    if (errorOferente && errorOferente.code !== "PGRST116") {
+      toast.error("Error al comprobar reseñas previas (oferente).");
+      return;
+    }
+
+    if (existenteOferente) {
+      toast.error("Ya has dejado una reseña para esta solicitud.");
+      setMostrarReseñas(false);
+      return;
+    }
+
+    // Insertar reseña (cliente hacia oferente)
     const { error } = await supabase.from("reseñas").insert([
       {
-        usuario_id, // ID de quien escribe
-        solicitud_id, // Relación con la solicitud
-        puntuacion, // Estrellas
-        comentario, // Texto
-        nombre, // Nombre visible para mostrar en el landing
+        cliente_id: usuario_id,
+        solicitud_id,
+        puntuacion,
+        comentario,
+        oferente_id: postulacionSeleccionada.oferente_id,
       },
     ]);
 
