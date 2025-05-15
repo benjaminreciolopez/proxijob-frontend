@@ -182,6 +182,7 @@ const Register: React.FC = () => {
               name="tratamiento"
               value={formData.tratamiento}
               onChange={handleSelectChange}
+              required
             >
               <option value="">Selecciona</option>
               <option value="Sr">Sr</option>
