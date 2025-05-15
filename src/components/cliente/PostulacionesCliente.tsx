@@ -444,7 +444,7 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
     if (!postulacionSeleccionada) return;
 
     const solicitud_id = postulacionSeleccionada.solicitud.id;
-    const usuario_id = clienteId;
+    const usuario_id = clienteId; // el que emite la reseña
     const nombre = postulacionSeleccionada.oferente?.nombre || "";
 
     if (!puntuacion || !usuario_id || !solicitud_id || !nombre) {
@@ -457,10 +457,11 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       return;
     }
 
+    // Verifica que no haya ya una reseña para esta solicitud por este usuario
     const { data: existente, error: errorExistente } = await supabase
       .from("reseñas")
       .select("id")
-      .eq("cliente_id", usuario_id)
+      .eq("usuario_id", usuario_id)
       .eq("solicitud_id", solicitud_id)
       .maybeSingle();
 
@@ -477,11 +478,11 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
 
     const { error } = await supabase.from("reseñas").insert([
       {
-        usuario_id,
-        solicitud_id,
-        puntuacion,
-        comentario,
-        nombre,
+        usuario_id, // ID de quien escribe
+        solicitud_id, // Relación con la solicitud
+        puntuacion, // Estrellas
+        comentario, // Texto
+        nombre, // Nombre visible para mostrar en el landing
       },
     ]);
 
