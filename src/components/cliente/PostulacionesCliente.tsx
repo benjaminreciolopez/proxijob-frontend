@@ -466,8 +466,8 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
     const { data: existente, error: errorExistente } = await supabase
       .from("reseñas")
       .select("id")
-      .eq("usuario_id", usuario_id)
       .or(`cliente_id.eq.${usuario_id},oferente_id.eq.${usuario_id}`)
+      .eq("solicitud_id", solicitud_id)
       .limit(1)
       .single();
 
