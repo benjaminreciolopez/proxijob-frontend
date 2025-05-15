@@ -498,138 +498,147 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
   };
 
   return (
-    <div className="dashboard-section">
-      <h3>📨 Postulaciones recibidas</h3>
+    <>
+      <div className="dashboard-section">
+        <h3>📨 Postulaciones recibidas</h3>
 
-      <div style={{ marginBottom: "1rem" }}>
-        <strong>Resumen:</strong>
-        <br />
-        🕓 Pendientes: {contadores.pendiente} | 👁️‍🗨️ Preseleccionadas:{" "}
-        {contadores.preseleccionado} | ✅ Aceptadas: {contadores.aceptado} | ❌
-        Rechazadas: {contadores.rechazado}
-      </div>
+        <div style={{ marginBottom: "1rem" }}>
+          <strong>Resumen:</strong>
+          <br />
+          🕓 Pendientes: {contadores.pendiente} | 👁️‍🗨️ Preseleccionadas:{" "}
+          {contadores.preseleccionado} | ✅ Aceptadas: {contadores.aceptado} |
+          ❌ Rechazadas: {contadores.rechazado}
+        </div>
 
-      {postulaciones.length === 0 ? (
-        <p>No hay postulaciones aún.</p>
-      ) : (
-        <ul className="postulaciones-lista">
-          {postulaciones.map((p) => (
-            <li key={p.id} className="postulacion-card">
-              <div className="postulacion-header">
-                <div>
-                  <p className="categoria">{p.solicitud.categoria}</p>
-                  <p className="descripcion">{p.solicitud.descripcion}</p>
+        {postulaciones.length === 0 ? (
+          <p>No hay postulaciones aún.</p>
+        ) : (
+          <ul className="postulaciones-lista">
+            {postulaciones.map((p) => (
+              <li key={p.id} className="postulacion-card">
+                <div className="postulacion-header">
+                  <div>
+                    <p className="categoria">{p.solicitud.categoria}</p>
+                    <p className="descripcion">{p.solicitud.descripcion}</p>
+                  </div>
+                  <span className={`estado estado-${p.estado}`}>
+                    {p.estado}
+                  </span>
                 </div>
-                <span className={`estado estado-${p.estado}`}>{p.estado}</span>
-              </div>
 
-              <div className="postulacion-detalles">
-                <p>📍 {p.solicitud.ubicacion}</p>
-                <p>🧑‍💼 Oferente: {p.oferente?.nombre || p.oferente_id}</p>
-                <p>
-                  👷 Especialidad:{" "}
-                  {p.oferente?.especialidad || "No especificada"}
-                </p>
-                <p>📝 Perfil: {p.oferente?.descripcion || "Sin descripción"}</p>
-                <p>✉️ Mensaje: {p.mensaje || "Sin mensaje"}</p>
-                <p>🕓 Fecha: {new Date(p.created_at).toLocaleString()}</p>
-              </div>
+                <div className="postulacion-detalles">
+                  <p>📍 {p.solicitud.ubicacion}</p>
+                  <p>🧑‍💼 Oferente: {p.oferente?.nombre || p.oferente_id}</p>
+                  <p>
+                    👷 Especialidad:{" "}
+                    {p.oferente?.especialidad || "No especificada"}
+                  </p>
+                  <p>
+                    📝 Perfil: {p.oferente?.descripcion || "Sin descripción"}
+                  </p>
+                  <p>✉️ Mensaje: {p.mensaje || "Sin mensaje"}</p>
+                  <p>🕓 Fecha: {new Date(p.created_at).toLocaleString()}</p>
+                </div>
 
-              <div className="postulacion-acciones">
-                {p.estado !== "aceptado" ? (
-                  <select
-                    value={p.estado}
-                    onChange={(e) => actualizarEstado(p.id, e.target.value)}
-                  >
-                    <option value="pendiente">🕓 Pendiente</option>
-                    <option value="preseleccionado">👁️‍🗨️ Preseleccionado</option>
-                    <option value="aceptado">✅ Aceptado</option>
-                    <option value="rechazado">❌ Rechazado</option>
-                  </select>
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <button
-                      onClick={() => {
-                        window.location.href = `/chat?cliente_id=${clienteId}&oferente_id=${p.oferente_id}&solicitud_id=${p.solicitud.id}`;
+                <div className="postulacion-acciones">
+                  {p.estado !== "aceptado" ? (
+                    <select
+                      value={p.estado}
+                      onChange={(e) => actualizarEstado(p.id, e.target.value)}
+                    >
+                      <option value="pendiente">🕓 Pendiente</option>
+                      <option value="preseleccionado">
+                        👁️‍🗨️ Preseleccionado
+                      </option>
+                      <option value="aceptado">✅ Aceptado</option>
+                      <option value="rechazado">❌ Rechazado</option>
+                    </select>
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.5rem",
                       }}
                     >
-                      💬 Iniciar chat con el oferente
-                    </button>
-
-                    {!solicitudesReseñadas.includes(p.solicitud.id) && (
                       <button
                         onClick={() => {
-                          setPostulacionSeleccionada(p);
-                          setMostrarReseñas(true);
-                          setPuntuacion(0);
-                          setComentario("");
+                          window.location.href = `/chat?cliente_id=${clienteId}&oferente_id=${p.oferente_id}&solicitud_id=${p.solicitud.id}`;
                         }}
                       >
-                        ✍️ Dejar reseña
+                        💬 Iniciar chat con el oferente
                       </button>
-                    )}
-                  </div>
+
+                      {!solicitudesReseñadas.includes(p.solicitud.id) && (
+                        <button
+                          onClick={() => {
+                            setPostulacionSeleccionada(p);
+                            setMostrarReseñas(true);
+                            setPuntuacion(0);
+                            setComentario("");
+                          }}
+                        >
+                          ✍️ Dejar reseña
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {Array.isArray(p.documentos) && p.documentos.length > 0 && (
+                  <details className="postulacion-docs">
+                    <summary>
+                      📎 Ver documentos adjuntos ({p.documentos.length})
+                    </summary>
+                    <ul>
+                      {p.documentos.map((doc) => {
+                        const ext = doc.url.split(".").pop()?.toLowerCase();
+                        return (
+                          <li key={doc.id} style={{ marginTop: "0.5rem" }}>
+                            <p>
+                              <strong>{doc.tipo}</strong> — {doc.titulo}
+                            </p>
+                            {["jpg", "jpeg", "png", "webp"].includes(
+                              ext || ""
+                            ) ? (
+                              <img
+                                src={doc.url}
+                                alt={doc.titulo}
+                                style={{
+                                  maxWidth: "100%",
+                                  maxHeight: "300px",
+                                }}
+                              />
+                            ) : ext === "pdf" ? (
+                              <embed
+                                src={doc.url}
+                                type="application/pdf"
+                                width="100%"
+                                height="300px"
+                              />
+                            ) : (
+                              <a
+                                href={doc.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="documento-enlace"
+                              >
+                                📄 Ver / Descargar archivo
+                              </a>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
                 )}
-              </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-              {Array.isArray(p.documentos) && p.documentos.length > 0 && (
-                <details className="postulacion-docs">
-                  <summary>
-                    📎 Ver documentos adjuntos ({p.documentos.length})
-                  </summary>
-                  <ul>
-                    {p.documentos.map((doc) => {
-                      const ext = doc.url.split(".").pop()?.toLowerCase();
-                      return (
-                        <li key={doc.id} style={{ marginTop: "0.5rem" }}>
-                          <p>
-                            <strong>{doc.tipo}</strong> — {doc.titulo}
-                          </p>
-                          {["jpg", "jpeg", "png", "webp"].includes(
-                            ext || ""
-                          ) ? (
-                            <img
-                              src={doc.url}
-                              alt={doc.titulo}
-                              style={{
-                                maxWidth: "100%",
-                                maxHeight: "300px",
-                              }}
-                            />
-                          ) : ext === "pdf" ? (
-                            <embed
-                              src={doc.url}
-                              type="application/pdf"
-                              width="100%"
-                              height="300px"
-                            />
-                          ) : (
-                            <a
-                              href={doc.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="documento-enlace"
-                            >
-                              📄 Ver / Descargar archivo
-                            </a>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </details>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-
+      {/* Modal de reseña FUERA del contenido principal */}
       {mostrarReseñas && postulacionSeleccionada && (
         <div className="modal-reseña-overlay">
           <div className="modal-reseña">
@@ -670,7 +679,7 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
