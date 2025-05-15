@@ -229,7 +229,7 @@ const NuevaSolicitud: React.FC<Props> = ({
             }))
           }
         />
-        ¿Requiere titulación o acreditación?
+        <span>¿Requiere titulación o acreditación?</span>
       </label>
 
       <MapaZona

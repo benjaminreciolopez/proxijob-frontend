@@ -6,7 +6,7 @@ import PostulacionesCliente from "../components/cliente/PostulacionesCliente";
 import NotificacionFlotante from "../components/NotificacionFlotante"; // arriba del todo
 import { AnimatePresence } from "framer-motion"; // también
 import "../styles/dashboard.css";
-
+import CrearReseña from "./CrearReseña";
 interface Usuario {
   id: string;
   nombre: string;
@@ -28,7 +28,11 @@ const DashboardCliente: React.FC = () => {
       <div className="dashboard">❌ No se ha podido cargar tu usuario.</div>
     );
   }
-
+  const handleCrearReseña = (solicitud_id: string) => {
+    navigate(
+      `/crear-reseña?solicitud_id=${solicitud_id}&usuario_id=${usuario.id}&nombre=${usuario.nombre}`
+    );
+  };
   return (
     <div
       className="dashboard"

@@ -11,7 +11,7 @@ import { Toaster } from "react-hot-toast";
 import EditarPerfil from "./components/oferente/EditarPerfil";
 import AdminLogin from "./pages/AdminLogin"; // o la ruta correspondiente
 import RutaProtegida from "./components/RutaProtegida";
-
+import CrearReseña from "./pages/CrearReseña";
 const modoMantenimiento = import.meta.env.VITE_MODO_MANTENIMIENTO === "true";
 const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
 
@@ -52,6 +52,16 @@ const App: React.FC = () => {
           }
         />
         {/* Rutas protegidas por mantenimiento */}
+        <Route
+          path="/crear-reseña"
+          element={
+            modoMantenimiento && !isAdmin() ? (
+              <Navigate to="/" replace />
+            ) : (
+              <CrearReseña />
+            )
+          }
+        />
         <Route
           path="/dashboard/cliente"
           element={

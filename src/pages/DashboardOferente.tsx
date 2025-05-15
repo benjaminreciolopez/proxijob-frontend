@@ -13,12 +13,17 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import NotificacionFlotante from "../components/NotificacionFlotante"; // arriba del todo
 import { AnimatePresence } from "framer-motion"; // también
 import "../styles/dashboard.css";
+import CrearReseña from "./CrearReseña";
 
 const DashboardOferente: React.FC = () => {
   const navigate = useNavigate();
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [zonas, setZonas] = useState<ZonaTrabajo[]>([]);
   const [mostrarTodas, setMostrarTodas] = useState(false);
+  const [mostrarReseña, setMostrarReseña] = useState(false);
+  const [puntuacion, setPuntuacion] = useState(0);
+  const [comentario, setComentario] = useState("");
+  const [reseñaEnviada, setReseñaEnviada] = useState(false);
 
   const [solicitudesFiltradas, setSolicitudesFiltradas] = useState<Solicitud[]>(
     []
@@ -114,6 +119,7 @@ const DashboardOferente: React.FC = () => {
   // ✅ 1. Obtener usuario
   useEffect(() => {
     const obtenerUsuario = async () => {
+      // 1. Obtener usuario autenticado
       const {
         data: { user },
         error,
@@ -122,37 +128,40 @@ const DashboardOferente: React.FC = () => {
       if (error || !user) {
         toast.error("No estás autenticado.");
         setUsuario(null);
-        setCargandoUsuario(false); // 👈 aquí dentro
+        setCargandoUsuario(false);
         return;
       }
 
+      // 2. Obtener datos del perfil del usuario
       const { data: datosUsuario, error: errorUsuario } = await supabase
         .from("usuarios")
         .select("nombre, especialidad, tratamiento, descripcion")
         .eq("id", user.id)
         .single();
 
-      if (!errorUsuario && datosUsuario) {
-        const datosExtendidos: UsuarioExtendido = {
-          id: user.id,
-          email: user.email ?? "",
-          nombre: datosUsuario.nombre,
-          especialidad: datosUsuario.especialidad,
-          descripcion: datosUsuario.descripcion,
-          tratamiento: datosUsuario.tratamiento,
-        };
-
-        setUsuario(datosExtendidos);
-
-        if (datosUsuario.especialidad) {
-          registrarCategoria(user.id, datosUsuario.especialidad);
-        }
-      } else {
+      if (errorUsuario || !datosUsuario) {
         toast.error("Error al obtener datos del oferente.");
         setUsuario(null);
+        setCargandoUsuario(false);
+        return;
       }
 
-      // ✅ Consultar si tiene alguna postulación aceptada
+      const datosExtendidos: UsuarioExtendido = {
+        id: user.id,
+        email: user.email ?? "",
+        nombre: datosUsuario.nombre,
+        especialidad: datosUsuario.especialidad,
+        descripcion: datosUsuario.descripcion,
+        tratamiento: datosUsuario.tratamiento,
+      };
+
+      setUsuario(datosExtendidos);
+
+      if (datosUsuario.especialidad) {
+        registrarCategoria(user.id, datosUsuario.especialidad);
+      }
+
+      // 3. Consultar si tiene alguna postulación aceptada
       const { data: aceptada, error: errorAceptada } = await supabase
         .from("postulaciones")
         .select("solicitud_id")
@@ -160,29 +169,39 @@ const DashboardOferente: React.FC = () => {
         .eq("estado", "aceptado")
         .maybeSingle();
 
-      if (errorAceptada) {
-        console.warn(
-          "No hay postulaciones aceptadas o no se pudo consultar:",
-          errorAceptada.message
-        );
+      if (errorAceptada || !aceptada?.solicitud_id) {
         setSolicitudAceptada(null);
-      } else if (aceptada?.solicitud_id) {
-        const { data: solicitudRelacionada } = await supabase
-          .from("solicitudes")
-          .select("cliente_id")
-          .eq("id", aceptada.solicitud_id)
-          .single();
-        setSolicitudAceptada({
-          solicitud_id: aceptada.solicitud_id,
-          cliente_id: solicitudRelacionada?.cliente_id ?? "",
-        });
-      } else {
-        setSolicitudAceptada(null);
+        setCargandoUsuario(false);
+        return;
       }
+
+      const solicitud_id = aceptada.solicitud_id;
+
+      // 4. Obtener cliente_id relacionado
+      const { data: solicitudRelacionada } = await supabase
+        .from("solicitudes")
+        .select("cliente_id")
+        .eq("id", solicitud_id)
+        .single();
+
+      const cliente_id = solicitudRelacionada?.cliente_id ?? "";
+      setSolicitudAceptada({ solicitud_id, cliente_id });
+
+      // 5. Verificar si ya se dejó reseña
+      const { data: yaReseñada } = await supabase
+        .from("reseñas")
+        .select("id")
+        .eq("usuario_id", user.id)
+        .eq("solicitud_id", solicitud_id)
+        .maybeSingle();
+
+      setReseñaEnviada(!!yaReseñada);
       setCargandoUsuario(false);
     };
+
     obtenerUsuario();
   }, []);
+
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
 
   // ✅ 2. Realtime listener para solicitudes (este era el que causaba el error por estar después del `return`)
@@ -556,6 +575,26 @@ const DashboardOferente: React.FC = () => {
                 >
                   💬 Acceder al chat con el cliente
                 </button>
+                {!reseñaEnviada && (
+                  <button
+                    onClick={() => {
+                      setMostrarReseña(true);
+                      setPuntuacion(0);
+                      setComentario("");
+                    }}
+                    style={{
+                      marginTop: "1rem",
+                      padding: "0.6rem 1.2rem",
+                      backgroundColor: "#28a745",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✍️ Valorar al cliente
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -570,6 +609,126 @@ const DashboardOferente: React.FC = () => {
           />
         )}
       </AnimatePresence>
+      {mostrarReseña && solicitudAceptada && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "2rem",
+              borderRadius: "10px",
+              width: "90%",
+              maxWidth: "500px",
+            }}
+          >
+            <h3>✍️ Deja una reseña para el cliente</h3>
+
+            <label>Puntuación:</label>
+            <select
+              value={puntuacion}
+              onChange={(e) => setPuntuacion(parseInt(e.target.value))}
+              style={{ marginBottom: "1rem", display: "block", width: "100%" }}
+            >
+              <option value={0}>Selecciona una puntuación</option>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n} ⭐
+                </option>
+              ))}
+            </select>
+
+            <textarea
+              placeholder="Comentario (obligatorio si das 4 o 5 estrellas)"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              rows={4}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+
+            <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
+              <button
+                onClick={async () => {
+                  if (!usuario || !solicitudAceptada) return;
+                  if (puntuacion >= 4 && comentario.trim() === "") {
+                    toast.error(
+                      "Añade un comentario si la puntuación es alta."
+                    );
+                    return;
+                  }
+
+                  const { data: existente } = await supabase
+                    .from("reseñas")
+                    .select("id")
+                    .eq("usuario_id", usuario.id)
+                    .eq("solicitud_id", solicitudAceptada.solicitud_id)
+                    .maybeSingle();
+
+                  if (existente) {
+                    toast.error("Ya has enviado una reseña.");
+                    setMostrarReseña(false);
+                    return;
+                  }
+
+                  const { error } = await supabase.from("reseñas").insert([
+                    {
+                      usuario_id: usuario.id,
+                      solicitud_id: solicitudAceptada.solicitud_id,
+                      puntuacion,
+                      comentario,
+                      nombre: usuario.nombre,
+                    },
+                  ]);
+
+                  if (error) {
+                    toast.error("Error al guardar reseña.");
+                  } else {
+                    toast.success("✅ ¡Gracias por tu reseña!");
+                    setMostrarReseña(false);
+                    setReseñaEnviada(true);
+                    setPuntuacion(0);
+                    setComentario("");
+                  }
+                }}
+                style={{
+                  padding: "0.7rem 1.5rem",
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                Enviar reseña
+              </button>
+              <button
+                onClick={() => setMostrarReseña(false)}
+                style={{
+                  padding: "0.7rem 1.5rem",
+                  backgroundColor: "#ccc",
+                  color: "black",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

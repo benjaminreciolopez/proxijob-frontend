@@ -45,6 +45,12 @@ interface Props {
 
 const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
+  const [mostrarReseñas, setMostrarReseñas] = useState(false);
+  const [postulacionSeleccionada, setPostulacionSeleccionada] =
+    useState<Postulacion | null>(null);
+  const [solicitudesReseñadas, setSolicitudesReseñadas] = useState<string[]>(
+    []
+  );
 
   useEffect(() => {
     const cargarPostulaciones = async () => {
@@ -236,6 +242,26 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       supabase.removeChannel(canal);
     };
   }, [clienteId]);
+  useEffect(() => {
+    const cargarReseñas = async () => {
+      const { data, error } = await supabase
+        .from("reseñas")
+        .select("solicitud_id")
+        .eq("cliente_id", clienteId);
+
+      if (error) {
+        console.error("Error al cargar reseñas:", error.message);
+        return;
+      }
+
+      if (data) {
+        const ids = data.map((r) => r.solicitud_id);
+        setSolicitudesReseñadas(ids);
+      }
+    };
+
+    cargarReseñas();
+  }, [clienteId]);
 
   useEffect(() => {
     const canalDocs = supabase
@@ -381,6 +407,10 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       toast.error("❌ Error al actualizar estado");
       return;
     }
+    if (nuevoEstado === "aceptado") {
+      setPostulacionSeleccionada(postulacion);
+      setMostrarReseñas(true);
+    }
 
     // 5. Actualizar estado local
     setPostulaciones((prev) =>
@@ -406,6 +436,65 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       .length,
     aceptado: postulaciones.filter((p) => p.estado === "aceptado").length,
     rechazado: postulaciones.filter((p) => p.estado === "rechazado").length,
+  };
+  const [puntuacion, setPuntuacion] = useState<number>(0);
+  const [comentario, setComentario] = useState("");
+
+  const enviarReseñaDesdeModal = async () => {
+    if (!postulacionSeleccionada) return;
+
+    const solicitud_id = postulacionSeleccionada.solicitud.id;
+    const usuario_id = clienteId;
+    const nombre = postulacionSeleccionada.oferente?.nombre || "";
+
+    if (!puntuacion || !usuario_id || !solicitud_id || !nombre) {
+      toast.error("Faltan datos para enviar la reseña.");
+      return;
+    }
+
+    if (puntuacion >= 4 && comentario.trim() === "") {
+      toast.error("Por favor, añade un comentario si la puntuación es alta.");
+      return;
+    }
+
+    const { data: existente, error: errorExistente } = await supabase
+      .from("reseñas")
+      .select("id")
+      .eq("cliente_id", usuario_id)
+      .eq("solicitud_id", solicitud_id)
+      .maybeSingle();
+
+    if (errorExistente) {
+      toast.error("Error al comprobar reseñas previas.");
+      return;
+    }
+
+    if (existente) {
+      toast.error("Ya has dejado una reseña para esta solicitud.");
+      setMostrarReseñas(false);
+      return;
+    }
+
+    const { error } = await supabase.from("reseñas").insert([
+      {
+        usuario_id,
+        solicitud_id,
+        puntuacion,
+        comentario,
+        nombre,
+      },
+    ]);
+
+    if (error) {
+      toast.error("Error al guardar la reseña.");
+      console.error(error);
+    } else {
+      toast.success("¡Gracias por tu reseña!");
+      setMostrarReseñas(false);
+      setSolicitudesReseñadas((prev) => [...prev, solicitud_id]);
+      setPuntuacion(0);
+      setComentario("");
+    }
   };
 
   return (
@@ -458,13 +547,34 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
                     <option value="rechazado">❌ Rechazado</option>
                   </select>
                 ) : (
-                  <button
-                    onClick={() => {
-                      window.location.href = `/chat?cliente_id=${clienteId}&oferente_id=${p.oferente_id}&solicitud_id=${p.solicitud.id}`;
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
                     }}
                   >
-                    💬 Iniciar chat con el oferente
-                  </button>
+                    <button
+                      onClick={() => {
+                        window.location.href = `/chat?cliente_id=${clienteId}&oferente_id=${p.oferente_id}&solicitud_id=${p.solicitud.id}`;
+                      }}
+                    >
+                      💬 Iniciar chat con el oferente
+                    </button>
+
+                    {!solicitudesReseñadas.includes(p.solicitud.id) && (
+                      <button
+                        onClick={() => {
+                          setPostulacionSeleccionada(p);
+                          setMostrarReseñas(true);
+                          setPuntuacion(0);
+                          setComentario("");
+                        }}
+                      >
+                        ✍️ Dejar reseña
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -487,7 +597,10 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
                             <img
                               src={doc.url}
                               alt={doc.titulo}
-                              style={{ maxWidth: "100%", maxHeight: "300px" }}
+                              style={{
+                                maxWidth: "100%",
+                                maxHeight: "300px",
+                              }}
                             />
                           ) : ext === "pdf" ? (
                             <embed
@@ -515,6 +628,47 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
             </li>
           ))}
         </ul>
+      )}
+
+      {mostrarReseñas && postulacionSeleccionada && (
+        <div className="modal-reseña-overlay">
+          <div className="modal-reseña">
+            <h3>
+              ✍️ Deja una reseña para {postulacionSeleccionada.oferente?.nombre}
+            </h3>
+
+            <select
+              value={puntuacion}
+              onChange={(e) => setPuntuacion(parseInt(e.target.value))}
+            >
+              <option value={0}>Selecciona una puntuación</option>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n} ⭐
+                </option>
+              ))}
+            </select>
+
+            <textarea
+              placeholder="Comentario (obligatorio si das 4 o 5 estrellas)"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              rows={4}
+            />
+
+            <div className="modal-reseña-buttons">
+              <button className="enviar" onClick={enviarReseñaDesdeModal}>
+                Enviar reseña
+              </button>
+              <button
+                className="cancelar"
+                onClick={() => setMostrarReseñas(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
