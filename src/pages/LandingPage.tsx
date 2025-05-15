@@ -93,6 +93,10 @@ const LandingPage: React.FC = () => {
           <span>🧒 Cuidado de niños</span>
           <span>🐶 Paseo de mascotas</span>
           <span>💻 Soporte informático</span>
+          <span>🚗 Transporte</span>
+          <span>🏠 Viviendas</span>
+          <span>🪄 Mantenimiento</span>
+          <span>🧬 Cuidado de animales</span>
         </div>
       </section>
 
