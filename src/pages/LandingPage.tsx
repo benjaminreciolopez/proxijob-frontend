@@ -3,6 +3,7 @@ import styles from "./LandingPage.module.css";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { obtenerReseñasPositivas } from "../api/reseñasApi";
+import { supabase } from "../supabaseClient";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,12 +12,28 @@ const LandingPage: React.FC = () => {
   >(null);
   const [reseñas, setReseñas] = useState<any[]>([]);
 
+  const cargarReseñas = async () => {
+    const data = await obtenerReseñasPositivas();
+    setReseñas(data);
+  };
+
   useEffect(() => {
-    const cargar = async () => {
-      const data = await obtenerReseñasPositivas();
-      setReseñas(data);
+    cargarReseñas();
+
+    const canal = supabase
+      .channel("reseñas_realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reseñas" },
+        async () => {
+          await cargarReseñas();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
     };
-    cargar();
   }, []);
 
   const handleRoleClick = (rol: "oferente" | "cliente") => {
@@ -134,7 +151,7 @@ const LandingPage: React.FC = () => {
                     color: "#555",
                   }}
                 >
-                  — {r.nombre_autor}
+                  — {r.nombre || "Usuario anónimo"}
                 </cite>
               </blockquote>
             ))}
