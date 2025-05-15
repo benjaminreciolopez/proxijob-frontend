@@ -458,14 +458,21 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
     }
 
     // Verifica que no haya ya una reseña para esta solicitud por este usuario
+    if (!usuario_id || !solicitud_id) {
+      toast.error("Datos incompletos para comprobar reseñas.");
+      return;
+    }
+
     const { data: existente, error: errorExistente } = await supabase
       .from("reseñas")
       .select("id")
       .eq("usuario_id", usuario_id)
       .eq("solicitud_id", solicitud_id)
-      .maybeSingle();
+      .limit(1)
+      .single();
 
-    if (errorExistente) {
+    if (errorExistente && errorExistente.code !== "PGRST116") {
+      // PGRST116 = no rows found → lo ignoramos
       toast.error("Error al comprobar reseñas previas.");
       return;
     }
