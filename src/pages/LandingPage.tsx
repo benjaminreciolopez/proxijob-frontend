@@ -101,19 +101,41 @@ const LandingPage: React.FC = () => {
         {reseñas.length === 0 ? (
           <p>Aún no hay reseñas.</p>
         ) : (
-          reseñas.map((r, idx) => (
-            <blockquote key={idx}>
-              "{r.mensaje}"
-              <cite>- {r.usuarios?.nombre || "Usuario anónimo"}</cite>
-            </blockquote>
-          ))
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
+            {reseñas.map((r, idx) => (
+              <blockquote
+                key={idx}
+                style={{
+                  background: "#f1f1f1",
+                  borderRadius: "8px",
+                  padding: "1rem",
+                  margin: 0,
+                  fontStyle: "italic",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                }}
+              >
+                “{r.mensaje}”
+                <br />
+                <cite
+                  style={{
+                    display: "block",
+                    marginTop: "0.5rem",
+                    color: "#555",
+                  }}
+                >
+                  — {r.usuarios?.nombre || "Usuario anónimo"}
+                </cite>
+              </blockquote>
+            ))}
+          </div>
         )}
       </section>
 
       <section className={styles.ctaSection}>
         <h3>¿Listo para empezar?</h3>
         <p>Regístrate gratis y encuentra oportunidades cerca de ti.</p>
-        <button onClick={() => navigate("/registro")}>Comenzar ahora</button>
       </section>
 
       <footer className={styles.footer}>
