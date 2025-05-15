@@ -164,32 +164,99 @@ const LandingPage: React.FC = () => {
         <p>Regístrate gratis y encuentra oportunidades cerca de ti.</p>
       </section>
 
-      <footer className={styles.footer}>
-        <p>© {new Date().getFullYear()} ProxiJob</p>
-        <div>
-          <a href="#">Sobre nosotros</a> | <a href="#">Contacto</a> |{" "}
-          <a href="#">Términos</a>
+      <footer className="footer">
+        <div className="footerContent">
+          <div>
+            <h4>Nosotros</h4>
+            <ul>
+              <li>
+                <a href="#">Ayuda</a>
+              </li>
+              <li>
+                <a href="#">Seguridad</a>
+              </li>
+              <li>
+                <a href="#">Condiciones legales</a>
+              </li>
+              <li>
+                <a href="#">Política de Privacidad</a>
+              </li>
+              <li>
+                <a href="#">Uso del servicio</a>
+              </li>
+              <li>
+                <a href="#">Política de cookies</a>
+              </li>
+              <li>
+                <a href="#">Mapa web</a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4>Sobre ProxiJob</h4>
+            <ul>
+              <li>
+                <a href="#">Quiénes somos</a>
+              </li>
+              <li>
+                <a href="#">Trabaja con nosotros</a>
+              </li>
+              <li>
+                <a href="#">Ofertas activas</a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4>Recursos</h4>
+            <ul>
+              <li>
+                <a href="#">Academia ProxiJob</a>
+              </li>
+              <li>
+                <a href="#">Blog</a>
+              </li>
+              <li>
+                <a href="#">Guías para clientes</a>
+              </li>
+              <li>
+                <a href="#">Guías para profesionales</a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4>Prensa</h4>
+            <ul>
+              <li>
+                <a href="#">Notas de prensa</a>
+              </li>
+              <li>
+                <a href="#">Contacto de medios</a>
+              </li>
+            </ul>
+          </div>
         </div>
-        {localStorage.getItem("usuario_admin") && (
-          <button
-            onClick={() => {
-              localStorage.removeItem("usuario_admin");
-              toast.success("Sesión de administrador cerrada");
-              window.location.reload();
-            }}
-            style={{
-              marginTop: "2rem",
-              background: "#dc3545",
-              color: "white",
-              padding: "0.5rem 1rem",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-            }}
-          >
-            Cerrar sesión admin
-          </button>
-        )}
+        <div className="footerSocial">
+          {localStorage.getItem("usuario_admin") && (
+            <button
+              onClick={() => {
+                localStorage.removeItem("usuario_admin");
+                toast.success("Sesión de administrador cerrada");
+                window.location.reload();
+              }}
+              style={{
+                marginTop: "2rem",
+                background: "#dc3545",
+                color: "white",
+                padding: "0.5rem 1rem",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              Cerrar sesión admin
+            </button>
+          )}
+        </div>
       </footer>
     </div>
   );
