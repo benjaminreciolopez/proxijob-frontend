@@ -45,8 +45,23 @@ const LandingPage: React.FC = () => {
       </header>
 
       <section className={styles.hero}>
-        <h2>Conecta con el talento que tienes cerca</h2>
-        <p>Rápido, fácil, geolocalizado.</p>
+        <div className={styles.heroText}>
+          <h2>Conecta con profesionales cerca de ti</h2>
+          <p>Encuentra y contrata en minutos. 100% local, 100% confiable.</p>
+          <div className={styles.heroButtons}>
+            <button onClick={() => navigate("/registro?rol=cliente")}>
+              Empezar como Cliente
+            </button>
+            <button onClick={() => navigate("/registro?rol=oferente")}>
+              Ofrecer mis servicios
+            </button>
+          </div>
+        </div>
+        <img
+          src="/images/hero-ilustracion.svg"
+          alt="Trabajo local geolocalizado"
+          className={styles.heroImage}
+        />
       </section>
 
       <section className={styles.steps}>
@@ -67,6 +82,18 @@ const LandingPage: React.FC = () => {
         </ul>
       </section>
 
+      <section className={styles.categories}>
+        <h3>Especialidades populares</h3>
+        <div className={styles.categoryGrid}>
+          <span>🛠️ Reformas</span>
+          <span>🧹 Limpieza</span>
+          <span>👩‍🏫 Clases particulares</span>
+          <span>🧒 Cuidado de niños</span>
+          <span>🐶 Paseo de mascotas</span>
+          <span>💻 Soporte informático</span>
+        </div>
+      </section>
+
       <section className={styles.testimonials}>
         <h3>Lo que dicen nuestros usuarios</h3>
         <blockquote>
@@ -80,6 +107,12 @@ const LandingPage: React.FC = () => {
         </blockquote>
       </section>
 
+      <section className={styles.ctaSection}>
+        <h3>¿Listo para empezar?</h3>
+        <p>Regístrate gratis y encuentra oportunidades cerca de ti.</p>
+        <button onClick={() => navigate("/registro")}>Comenzar ahora</button>
+      </section>
+
       <footer className={styles.footer}>
         <p>© {new Date().getFullYear()} ProxiJob</p>
         <div>
@@ -91,7 +124,7 @@ const LandingPage: React.FC = () => {
             onClick={() => {
               localStorage.removeItem("usuario_admin");
               toast.success("Sesión de administrador cerrada");
-              window.location.reload(); // o navigate(0)
+              window.location.reload();
             }}
             style={{
               marginTop: "2rem",
