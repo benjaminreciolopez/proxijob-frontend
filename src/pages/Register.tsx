@@ -12,6 +12,7 @@ const Register: React.FC = () => {
     nombre: "",
     email: "",
     password: "",
+    confirmPassword: "",
     tratamiento: "",
   });
 
@@ -34,7 +35,12 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.nombre || !formData.email || !formData.password) {
+    if (
+      !formData.nombre ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       toast.error("Todos los campos son obligatorios.");
       return;
     }
@@ -47,6 +53,11 @@ const Register: React.FC = () => {
 
     if (formData.password.length < 6) {
       toast.error("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Las contraseñas no coinciden.");
       return;
     }
 
@@ -208,6 +219,7 @@ const Register: React.FC = () => {
             }}
           />
 
+          {/* Contraseña */}
           <div style={{ position: "relative" }}>
             <input
               type={verPassword ? "text" : "password"}
@@ -244,6 +256,22 @@ const Register: React.FC = () => {
               {verPassword ? "🙈" : "👁️"}
             </button>
           </div>
+
+          {/* Confirmar contraseña */}
+          <input
+            type={verPassword ? "text" : "password"}
+            name="confirmPassword"
+            placeholder="Repetir contraseña"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+            style={{
+              padding: "0.5rem",
+              fontSize: "1rem",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+          />
 
           <button type="submit" style={{ padding: "0.5rem", fontSize: "1rem" }}>
             Registrarme
