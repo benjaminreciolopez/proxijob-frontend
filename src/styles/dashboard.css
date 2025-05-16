@@ -472,4 +472,40 @@
     background-color: #ccc;
     color: black;
   }
+  .campoCheckbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.2rem 0;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .campoCheckbox input[type="checkbox"] {
+    transform: scale(1.2);
+    cursor: pointer;
+    accent-color: #007bff; /* color azul como el resto del tema */
+  }
+
+  .campoCheckbox span {
+    cursor: pointer;
+    color: #333;
+  }
+
+  /* Estilo responsive para pantallas pequeñas */
+  @media (max-width: 480px) {
+    .campoCheckbox {
+      font-size: 1rem;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+
+    .campoCheckbox input[type="checkbox"] {
+      transform: scale(1.4);
+    }
+
+    .campoCheckbox span {
+      margin-top: 0.3rem;
+    }
+  }
 }

@@ -217,7 +217,7 @@ const NuevaSolicitud: React.FC<Props> = ({
         onChange={handleChange}
       />
 
-      <label>
+      <label className="campoCheckbox">
         <input
           type="checkbox"
           name="requiereProfesional"
