@@ -77,7 +77,7 @@ const LandingPage: React.FC = () => {
           <p>Encuentra y contrata en minutos. 100% local, 100% confiable.</p>
         </div>
         <img
-          src="../hero-ilustracion.svg"
+          src="../ilustracion.svg"
           alt="Trabajo local geolocalizado"
           className={styles.heroImage}
         />
