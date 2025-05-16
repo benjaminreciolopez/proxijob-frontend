@@ -184,14 +184,6 @@
   max-width: 100%;
 }
 
-.footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.9rem;
-  border-top: 1px solid #ddd;
-  margin-top: 2rem;
-}
-
 .active {
   background-color: #28a745;
   color: white;
