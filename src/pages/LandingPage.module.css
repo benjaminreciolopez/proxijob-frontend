@@ -349,24 +349,25 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
-    gap: 1.5rem;
+    gap: 2rem;
     padding: 2rem 1rem;
+    text-align: center;
   }
 
   @media (min-width: 768px) {
     .hero {
       flex-direction: row;
       justify-content: space-between;
+      align-items: center;
       text-align: left;
     }
 
     .heroText {
-      max-width: 600px;
+      flex: 1;
     }
 
     .heroImage {
-      max-width: 250px;
+      flex: 1;
     }
   }
 }
