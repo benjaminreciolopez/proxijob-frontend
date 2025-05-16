@@ -220,6 +220,7 @@ const NuevaSolicitud: React.FC<Props> = ({
       <label className="campoCheckbox">
         <input
           type="checkbox"
+          style={{ border: "1px solid red" }} // solo para test
           name="requiereProfesional"
           checked={formData.requiereProfesional}
           onChange={(e) =>

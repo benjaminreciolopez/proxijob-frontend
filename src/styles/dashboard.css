@@ -482,9 +482,10 @@
   }
 
   .campoCheckbox input[type="checkbox"] {
-    transform: scale(1.2);
+    width: 18px;
+    height: 18px;
     cursor: pointer;
-    accent-color: #007bff; /* color azul como el resto del tema */
+    accent-color: #007bff;
   }
 
   .campoCheckbox span {
@@ -495,16 +496,14 @@
   /* Estilo responsive para pantallas pequeñas */
   @media (max-width: 480px) {
     .campoCheckbox {
-      display: flex;
-      align-items: left;
-      gap: 0.5rem;
-      font-size: 1rem;
       flex-wrap: wrap;
       justify-content: flex-start;
+      align-items: flex-start;
     }
 
     .campoCheckbox input[type="checkbox"] {
-      transform: scale(1.4);
+      width: 22px;
+      height: 22px;
     }
 
     .campoCheckbox span {
