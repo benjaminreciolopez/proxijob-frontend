@@ -81,6 +81,7 @@ const LandingPage: React.FC = () => {
           src="../ilustracion.svg"
           alt="Trabajo local geolocalizado"
           className={styles.heroImage}
+          style={{ maxWidth: "250px", width: "100%", height: "auto" }}
         />
       </section>
 
