@@ -250,4 +250,107 @@
   .footer {
     font-size: 0.8rem;
   }
+  .footer {
+    background: #f8f9fa;
+    padding: 3rem 1rem 2rem;
+    border-top: 1px solid #ddd;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  .footerContent {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .footerContent div {
+    flex: 1 1 220px;
+    min-width: 200px;
+  }
+
+  .footerContent h4 {
+    margin-bottom: 0.8rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .footerContent ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footerContent ul li {
+    margin-bottom: 0.4rem;
+  }
+
+  .footerContent a {
+    text-decoration: none;
+    color: #007bff;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+  }
+
+  .footerContent a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+  }
+
+  .footerBottom {
+    text-align: center;
+    margin-top: 3rem;
+    border-top: 1px solid #ccc;
+    padding-top: 1.5rem;
+  }
+
+  .footerBottom p {
+    margin-bottom: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .socialIcons {
+    margin-bottom: 1rem;
+  }
+
+  .socialIcons img {
+    height: 28px;
+    margin: 0 0.4rem;
+    transition: opacity 0.2s ease;
+  }
+
+  .socialIcons img:hover {
+    opacity: 0.8;
+  }
+
+  .storeBadges img {
+    height: 38px;
+    margin: 0 0.5rem;
+    transition: transform 0.2s ease;
+  }
+
+  .storeBadges img:hover {
+    transform: scale(1.05);
+  }
+
+  /* Responsive ajustes */
+  @media (max-width: 768px) {
+    .footerContent {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footerContent div {
+      width: 100%;
+    }
+
+    .footerBottom {
+      padding-top: 1rem;
+    }
+  }
 }
