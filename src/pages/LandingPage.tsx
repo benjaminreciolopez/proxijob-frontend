@@ -76,11 +76,11 @@ const LandingPage: React.FC = () => {
           <h2>Conecta con profesionales cerca de ti</h2>
           <p>Encuentra y contrata en minutos. 100% local, 100% confiable.</p>
         </div>
+
         <img
           src="../ilustracion.svg"
           alt="Trabajo local geolocalizado"
           className={styles.heroImage}
-          style={{ maxWidth: "250px", width: "100%", height: "auto" }}
         />
       </section>
 
