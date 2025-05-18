@@ -463,7 +463,7 @@ const DashboardOferente: React.FC = () => {
       const { data: solicitudesTodas, error: errorSolicitudes } = await supabase
         .from("solicitudes")
         .select(
-          "*, cliente:cliente_id(nombre), categoria:categoria_id(nombre), ubicacion, radio_km, descripcion"
+          "*, cliente:cliente_id(nombre), categoria:categorias(nombre), ubicacion, radio_km, descripcion"
         );
 
       if (errorSolicitudes) {
