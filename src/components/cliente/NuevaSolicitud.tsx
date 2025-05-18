@@ -98,6 +98,16 @@ const NuevaSolicitud: React.FC<Props> = ({
         toast("Tu categoría será revisada");
       }
     }
+    console.log({
+      cliente_id: clienteId,
+      descripcion: formData.descripcion,
+      categoria: categoriaFinalId !== "otras" ? categoriaFinalId : null,
+      ubicacion: formData.ubicacion,
+      requiere_profesional: formData.requiereProfesional,
+      latitud: formData.latitud,
+      longitud: formData.longitud,
+      radio_km: formData.radioKm,
+    });
 
     const { error } = await supabase.from("solicitudes").insert([
       {
@@ -111,6 +121,9 @@ const NuevaSolicitud: React.FC<Props> = ({
         radio_km: formData.radioKm,
       },
     ]);
+    if (!error) {
+      console.log("Solicitud insertada correctamente");
+    }
 
     if (error) {
       toast.error("Error al guardar la solicitud.");

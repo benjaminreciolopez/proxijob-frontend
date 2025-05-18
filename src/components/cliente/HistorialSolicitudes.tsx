@@ -40,6 +40,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
       toast.error("Error al cargar el historial.");
       console.error(error.message);
     } else {
+      console.log("Solicitudes recibidas del backend:", data); // <--- AÑADE ESTO
       setSolicitudes(data || []);
     }
   };
