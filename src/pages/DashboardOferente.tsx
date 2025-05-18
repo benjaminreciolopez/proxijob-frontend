@@ -303,11 +303,9 @@ const DashboardOferente: React.FC = () => {
           event: "UPDATE",
           schema: "public",
           table: "postulaciones",
-          filter: `oferente_id=eq.${usuario.id}`, // este filtro es válido si oferente_id es una columna directa
+          filter: `oferente_id=eq.${usuario.id}`, // Asegúrate de que este filtro funciona
         },
         async (payload) => {
-          console.log("📡 Cambio realtime recibido:", payload);
-
           const actualizada = payload.new as {
             estado: string;
             solicitud_id: string;
@@ -318,17 +316,20 @@ const DashboardOferente: React.FC = () => {
             actualizada.estado === "aceptado" &&
             actualizada.oferente_id === usuario.id
           ) {
-            const { data: solicitudRelacionada } = await supabase
+            const { data: solicitudRelacionada, error } = await supabase
               .from("solicitudes")
               .select("cliente_id")
               .eq("id", actualizada.solicitud_id)
               .single();
 
-            const cliente_id = solicitudRelacionada?.cliente_id ?? "";
+            if (error || !solicitudRelacionada) {
+              toast.error("❌ No se pudo obtener el cliente.");
+              return;
+            }
 
             setSolicitudAceptada({
               solicitud_id: actualizada.solicitud_id,
-              cliente_id,
+              cliente_id: solicitudRelacionada.cliente_id,
             });
 
             toast.success("🎉 ¡Tu postulación ha sido aceptada!");
@@ -518,6 +519,16 @@ const DashboardOferente: React.FC = () => {
           {/* Comunicación activa */}
           <div className="dashboard-section">
             <h3>💬 Solicitudes activas</h3>
+            <pre
+              style={{
+                background: "#eee",
+                padding: "0.5rem",
+                fontSize: "0.8rem",
+              }}
+            >
+              {JSON.stringify(solicitudAceptada, null, 2)}
+            </pre>
+
             {solicitudAceptada ? (
               <>
                 <p>
