@@ -37,6 +37,9 @@ const DashboardOferente: React.FC = () => {
   );
   const [usuario, setUsuario] = useState<UsuarioExtendido | null>(null);
   const [cargandoUsuario, setCargandoUsuario] = useState(true); // 👈 nuevo estado
+  const [clienteDesplegado, setClienteDesplegado] = useState<string | null>(
+    null
+  );
 
   async function registrarCategoria(usuarioId: string, nombre: string) {
     const nombreNormalizado = nombre.trim().toLowerCase();
@@ -355,6 +358,18 @@ const DashboardOferente: React.FC = () => {
       )
       .subscribe();
 
+    // Agrupa solicitudes por cliente_id
+    const solicitudesPorCliente = solicitudesAceptadas.reduce((acc, sol) => {
+      if (!acc[sol.cliente_id]) {
+        acc[sol.cliente_id] = {
+          cliente_nombre: sol.cliente_nombre,
+          solicitudes: [],
+        };
+      }
+      acc[sol.cliente_id].solicitudes.push(sol);
+      return acc;
+    }, {} as Record<string, { cliente_nombre: string; solicitudes: typeof solicitudesAceptadas }>);
+
     return () => {
       supabase.removeChannel(canal);
     };
@@ -469,6 +484,17 @@ const DashboardOferente: React.FC = () => {
 
     cargarDatos();
   }, [usuario]);
+  // Agrupa solicitudes aceptadas por cliente
+  const solicitudesPorCliente = solicitudesAceptadas.reduce((acc, sol) => {
+    if (!acc[sol.cliente_id]) {
+      acc[sol.cliente_id] = {
+        cliente_nombre: sol.cliente_nombre,
+        solicitudes: [],
+      };
+    }
+    acc[sol.cliente_id].solicitudes.push(sol);
+    return acc;
+  }, {} as Record<string, { cliente_nombre: string; solicitudes: typeof solicitudesAceptadas }>);
 
   useEffect(() => {
     if (!usuario) return;
@@ -536,61 +562,104 @@ const DashboardOferente: React.FC = () => {
           {/* Comunicación activa */}
           <div className="dashboard-section">
             <h3>💬 Solicitudes activas</h3>
-            <pre
-              style={{
-                background: "#eee",
-                padding: "0.5rem",
-                fontSize: "0.8rem",
-              }}
-            >
-              {JSON.stringify(solicitudesAceptadas, null, 2)}
-            </pre>
-
-            {solicitudesAceptadas.length > 0 ? (
-              solicitudesAceptadas.map((sol) => (
-                <div key={sol.solicitud_id} style={{ marginBottom: "1.5rem" }}>
-                  <p>
-                    Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"}{" "}
-                    para una solicitud. Puedes contactar al cliente:
-                  </p>
-                  <button
-                    onClick={() =>
-                      (window.location.href = `/chat?cliente_id=${sol.cliente_id}&oferente_id=${usuario.id}&solicitud_id=${sol.solicitud_id}`)
-                    }
+            {Object.keys(solicitudesPorCliente).length > 0 ? (
+              Object.entries(solicitudesPorCliente).map(
+                ([cliente_id, { cliente_nombre, solicitudes }]) => (
+                  <div
+                    key={cliente_id}
                     style={{
-                      padding: "0.6rem 1.2rem",
-                      backgroundColor: "#007bff",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "5px",
-                      cursor: "pointer",
+                      marginBottom: "1.5rem",
+                      borderBottom: "1px solid #ccc",
                     }}
                   >
-                    💬 Acceder al chat con el cliente
-                  </button>
-                  {!reseñaEnviada && (
-                    <button
-                      onClick={() => {
-                        setMostrarReseña(true);
-                        setPuntuacion(0);
-                        setComentario("");
-                        setSolicitudParaReseña(sol.solicitud_id);
-                      }}
+                    <div
+                      onClick={() =>
+                        setClienteDesplegado(
+                          clienteDesplegado === cliente_id ? null : cliente_id
+                        )
+                      }
                       style={{
-                        marginTop: "1rem",
-                        padding: "0.6rem 1.2rem",
-                        backgroundColor: "#28a745",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "5px",
                         cursor: "pointer",
+                        fontWeight: "bold",
+                        fontSize: "1.1rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        padding: "0.5rem 0",
                       }}
                     >
-                      ✍️ Valorar al cliente
-                    </button>
-                  )}
-                </div>
-              ))
+                      👤 {cliente_nombre}{" "}
+                      <span
+                        style={{
+                          background: "#007bff",
+                          color: "white",
+                          borderRadius: "999px",
+                          fontSize: "0.9em",
+                          padding: "0.1em 0.7em",
+                          marginLeft: "0.7em",
+                        }}
+                      >
+                        {solicitudes.length} solicitud
+                        {solicitudes.length > 1 ? "es" : ""}
+                      </span>
+                      <span style={{ marginLeft: "auto" }}>
+                        {clienteDesplegado === cliente_id ? "▲" : "▼"}
+                      </span>
+                    </div>
+                    {clienteDesplegado === cliente_id && (
+                      <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+                        {solicitudes.map((sol) => (
+                          <li
+                            key={sol.solicitud_id}
+                            style={{ margin: "0.5em 0", paddingLeft: "1em" }}
+                          >
+                            <div>
+                              <strong>ID:</strong> {sol.solicitud_id}
+                            </div>
+                            {/* Puedes poner aquí más datos de la solicitud si tienes */}
+                            <button
+                              onClick={() =>
+                                (window.location.href = `/chat?cliente_id=${sol.cliente_id}&oferente_id=${usuario?.id}&solicitud_id=${sol.solicitud_id}`)
+                              }
+                              style={{
+                                margin: "0.3em 0.5em 0.3em 0",
+                                padding: "0.5em 1.2em",
+                                backgroundColor: "#007bff",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              💬 Acceder al chat
+                            </button>
+                            {!reseñaEnviada && (
+                              <button
+                                onClick={() => {
+                                  setMostrarReseña(true);
+                                  setPuntuacion(0);
+                                  setComentario("");
+                                  setSolicitudParaReseña(sol.solicitud_id);
+                                }}
+                                style={{
+                                  padding: "0.5em 1.2em",
+                                  backgroundColor: "#28a745",
+                                  color: "#fff",
+                                  border: "none",
+                                  borderRadius: "5px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                ✍️ Valorar al cliente
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )
+              )
             ) : (
               <p>No tienes solicitudes activas.</p>
             )}
