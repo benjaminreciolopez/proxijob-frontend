@@ -291,6 +291,49 @@ const DashboardOferente: React.FC = () => {
       supabase.removeChannel(canal);
     };
   }, [usuario, zonas]);
+  // 🔁 Listener realtime para detectar aceptación en postulaciones
+  useEffect(() => {
+    if (!usuario) return;
+
+    const canal = supabase
+      .channel("postulaciones_oferente_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "postulaciones",
+          filter: `oferente_id=eq.${usuario.id}`,
+        },
+        async (payload) => {
+          const actualizada = payload.new as {
+            estado: string;
+            solicitud_id: string;
+          };
+
+          if (actualizada.estado === "aceptado") {
+            // Buscar cliente_id relacionado a esa solicitud
+            const { data: solicitudRelacionada } = await supabase
+              .from("solicitudes")
+              .select("cliente_id")
+              .eq("id", actualizada.solicitud_id)
+              .single();
+
+            const cliente_id = solicitudRelacionada?.cliente_id ?? "";
+
+            setSolicitudAceptada({
+              solicitud_id: actualizada.solicitud_id,
+              cliente_id,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [usuario]);
 
   const postularse = async (solicitudId: string) => {
     if (!usuario?.id || !solicitudId) {
