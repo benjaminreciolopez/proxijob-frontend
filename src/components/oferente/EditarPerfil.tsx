@@ -69,11 +69,12 @@ const EditarPerfil: React.FC = () => {
 
     let especialidad = "";
     let nuevaId: string | null = null;
+    let idsFinal = [...seleccionadas.filter((id) => id !== "otras")];
 
-    // 1. Si se ha escrito una nueva categoría personalizada
-    if (nuevaCategoria.trim().length > 1) {
+    // 1. Si hay una categoría nueva, la añadimos en `categorias` (para postular YA)
+    if (mostrarCampoNueva && nuevaCategoria.trim().length > 1) {
       const nombreNormalizado = normalizarTextoCategoria(nuevaCategoria);
-
+      // Busca si existe (ya validada o aceptada)
       const { data: existente } = await supabase
         .from("categorias")
         .select("id")
@@ -83,39 +84,45 @@ const EditarPerfil: React.FC = () => {
       if (existente) {
         nuevaId = existente.id;
       } else {
-        const { error: errorPendiente } = await supabase
-          .from("categorias_pendientes")
+        const { data: nueva, error: errorInsert } = await supabase
+          .from("categorias")
           .insert([
             {
               nombre: nuevaCategoria.trim(),
               nombre_normalizado: nombreNormalizado,
-              sugerida_por: user.id,
             },
-          ]);
-
-        if (errorPendiente) {
-          toast.error("No se pudo registrar la nueva categoría (pendiente).");
-        } else {
-          toast.success("Tu categoría será revisada por el equipo.");
+          ])
+          .select()
+          .single();
+        if (errorInsert || !nueva) {
+          toast.error("No se pudo crear la nueva categoría.");
+          return;
         }
+        nuevaId = nueva.id;
+        toast.success("¡Categoría creada y añadida a tu perfil!");
+      }
+
+      if (nuevaId) {
+        idsFinal.push(nuevaId);
       }
     }
 
-    // 2. Preparar lista final (sin duplicados)
-    const finalSeleccionadas = Array.from(
-      new Set([
-        ...seleccionadas.filter((id) => id !== "otras"),
-        ...(nuevaId ? [nuevaId] : []),
-      ])
-    );
+    // Elimina duplicados por si acaso
+    idsFinal = Array.from(new Set(idsFinal));
 
-    // 3. Especialidad principal (la primera)
-    if (finalSeleccionadas.length > 0) {
-      const cat = todasCategorias.find((c) => c.id === finalSeleccionadas[0]);
+    // 🚩 **Límite de 3 categorías**
+    if (idsFinal.length > 3) {
+      toast.error("Solo puedes seleccionar un máximo de 3 categorías.");
+      return;
+    }
+
+    // 2. Especialidad principal
+    if (idsFinal.length > 0) {
+      const cat = todasCategorias.find((c) => c.id === idsFinal[0]);
       especialidad = cat?.nombre || nuevaCategoria.trim();
     }
 
-    // 4. Actualizar `usuarios` (descripcion + especialidad)
+    // 3. Actualizar usuario
     const { error: updateError } = await supabase
       .from("usuarios")
       .update({ descripcion, especialidad })
@@ -126,13 +133,14 @@ const EditarPerfil: React.FC = () => {
       return;
     }
 
-    // 5. Eliminar relaciones anteriores y registrar las nuevas
+    // 4. Eliminar y registrar nuevas relaciones
     await supabase
       .from("categorias_oferente")
       .delete()
       .eq("oferente_id", user.id);
 
-    const inserts = finalSeleccionadas.map((categoriaId) => ({
+    // Crea la relación por cada categoría seleccionada (incluida la nueva)
+    const inserts = idsFinal.map((categoriaId) => ({
       oferente_id: user.id,
       categoria_id: categoriaId,
     }));
@@ -175,6 +183,10 @@ const EditarPerfil: React.FC = () => {
                 type="checkbox"
                 value={cat.id}
                 checked={seleccionadas.includes(cat.id)}
+                disabled={
+                  !seleccionadas.includes(cat.id) &&
+                  seleccionadas.filter((id) => id !== "otras").length >= 3
+                }
                 onChange={(e) => {
                   const id = e.target.value;
                   const nuevaLista = e.target.checked
