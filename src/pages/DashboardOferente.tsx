@@ -303,16 +303,19 @@ const DashboardOferente: React.FC = () => {
           event: "UPDATE",
           schema: "public",
           table: "postulaciones",
-          filter: `oferente_id=eq.${usuario.id}`,
         },
         async (payload) => {
           const actualizada = payload.new as {
             estado: string;
             solicitud_id: string;
+            oferente_id: string;
           };
 
-          if (actualizada.estado === "aceptado") {
-            // Buscar cliente_id relacionado a esa solicitud
+          // Solo reaccionar si es para este oferente y es aceptación
+          if (
+            actualizada.estado === "aceptado" &&
+            actualizada.oferente_id === usuario.id
+          ) {
             const { data: solicitudRelacionada } = await supabase
               .from("solicitudes")
               .select("cliente_id")
@@ -325,6 +328,8 @@ const DashboardOferente: React.FC = () => {
               solicitud_id: actualizada.solicitud_id,
               cliente_id,
             });
+
+            toast.success("🎉 ¡Tu postulación ha sido aceptada!");
           }
         }
       )
