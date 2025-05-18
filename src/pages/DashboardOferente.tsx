@@ -303,15 +303,17 @@ const DashboardOferente: React.FC = () => {
           event: "UPDATE",
           schema: "public",
           table: "postulaciones",
+          filter: `oferente_id=eq.${usuario.id}`, // este filtro es válido si oferente_id es una columna directa
         },
         async (payload) => {
+          console.log("📡 Cambio realtime recibido:", payload);
+
           const actualizada = payload.new as {
             estado: string;
             solicitud_id: string;
             oferente_id: string;
           };
 
-          // Solo reaccionar si es para este oferente y es aceptación
           if (
             actualizada.estado === "aceptado" &&
             actualizada.oferente_id === usuario.id
