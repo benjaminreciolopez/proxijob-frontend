@@ -68,18 +68,9 @@ const EditarPerfil: React.FC = () => {
     }
 
     let especialidad = "";
-
-    if (seleccionadas.length > 0 && seleccionadas[0] !== "otras") {
-      const primeraCategoria = todasCategorias.find(
-        (cat) => cat.id === seleccionadas[0]
-      );
-      if (primeraCategoria) {
-        especialidad = primeraCategoria.nombre;
-      }
-    }
-
     let nuevaId: string | null = null;
 
+    // 1. Si se ha escrito una nueva categoría personalizada
     if (nuevaCategoria.trim().length > 1) {
       const nombreNormalizado = normalizarTextoCategoria(nuevaCategoria);
 
@@ -87,7 +78,7 @@ const EditarPerfil: React.FC = () => {
         .from("categorias")
         .select("id")
         .eq("nombre_normalizado", nombreNormalizado)
-        .single();
+        .maybeSingle();
 
       if (existente) {
         nuevaId = existente.id;
@@ -108,34 +99,23 @@ const EditarPerfil: React.FC = () => {
           toast.success("Tu categoría será revisada por el equipo.");
         }
       }
-
-      if (nuevaId) {
-        seleccionadas.push(nuevaId);
-        especialidad = nuevaCategoria.trim();
-      }
     }
 
-    // 🔁 Elimina duplicados
-    const relacionesFinales = Array.from(
-      new Set(seleccionadas.filter((id) => id !== "otras"))
+    // 2. Preparar lista final (sin duplicados)
+    const finalSeleccionadas = Array.from(
+      new Set([
+        ...seleccionadas.filter((id) => id !== "otras"),
+        ...(nuevaId ? [nuevaId] : []),
+      ])
     );
 
-    const inserts = relacionesFinales.map((categoriaId) => ({
-      oferente_id: user.id,
-      categoria_id: categoriaId,
-    }));
-
-    if (inserts.length > 0) {
-      const { error: errorUpsert } = await supabase
-        .from("categorias_oferente")
-        .upsert(inserts, { onConflict: "oferente_id,categoria_id" });
-
-      if (errorUpsert) {
-        console.error("❌ Error al insertar categorías:", errorUpsert);
-        toast.error("❌ No se han podido asociar las categorías.");
-      }
+    // 3. Especialidad principal (la primera)
+    if (finalSeleccionadas.length > 0) {
+      const cat = todasCategorias.find((c) => c.id === finalSeleccionadas[0]);
+      especialidad = cat?.nombre || nuevaCategoria.trim();
     }
 
+    // 4. Actualizar `usuarios` (descripcion + especialidad)
     const { error: updateError } = await supabase
       .from("usuarios")
       .update({ descripcion, especialidad })
@@ -144,6 +124,28 @@ const EditarPerfil: React.FC = () => {
     if (updateError) {
       toast.error("Error al guardar los cambios.");
       return;
+    }
+
+    // 5. Eliminar relaciones anteriores y registrar las nuevas
+    await supabase
+      .from("categorias_oferente")
+      .delete()
+      .eq("oferente_id", user.id);
+
+    const inserts = finalSeleccionadas.map((categoriaId) => ({
+      oferente_id: user.id,
+      categoria_id: categoriaId,
+    }));
+
+    if (inserts.length > 0) {
+      const { error: errorInsert } = await supabase
+        .from("categorias_oferente")
+        .insert(inserts);
+
+      if (errorInsert) {
+        toast.error("❌ Error al guardar las categorías.");
+        return;
+      }
     }
 
     toast.success("Perfil actualizado.");
@@ -175,6 +177,32 @@ const EditarPerfil: React.FC = () => {
           ))}
           <option value="otras">🆕 Otra (especificar)</option>
         </select>
+
+        {/* Visualización de chips */}
+        <div style={{ marginBottom: "1rem" }}>
+          {seleccionadas
+            .filter((id) => id !== "otras")
+            .map((id) => {
+              const nombre =
+                todasCategorias.find((c) => c.id === id)?.nombre || id;
+              return (
+                <span
+                  key={id}
+                  style={{
+                    display: "inline-block",
+                    background: "#e0e0e0",
+                    borderRadius: "12px",
+                    padding: "0.4rem 0.8rem",
+                    margin: "0.2rem",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  {nombre}
+                </span>
+              );
+            })}
+        </div>
+
         {mostrarCampoNueva && (
           <input
             type="text"
