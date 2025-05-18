@@ -222,8 +222,8 @@ const DashboardOferente: React.FC = () => {
 
           console.log(`📡 Evento realtime [${tipoEvento}]`, payload);
 
+          // ✅ INSERT
           if (tipoEvento === "INSERT" && nuevaSolicitud) {
-            // Normalizar cliente
             if (Array.isArray(nuevaSolicitud.cliente)) {
               nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
             }
@@ -250,6 +250,7 @@ const DashboardOferente: React.FC = () => {
             }
           }
 
+          // ✅ DELETE
           if (tipoEvento === "DELETE" && solicitudAnterior) {
             const eliminadaId = solicitudAnterior.id;
             setSolicitudes((prev) => prev.filter((s) => s.id !== eliminadaId));
@@ -258,13 +259,16 @@ const DashboardOferente: React.FC = () => {
             );
           }
 
+          // ✅ UPDATE
           if (tipoEvento === "UPDATE" && nuevaSolicitud) {
             if (Array.isArray(nuevaSolicitud.cliente)) {
               nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
             }
 
             setSolicitudes((prev) =>
-              prev.map((s) => (s.id === nuevaSolicitud.id ? nuevaSolicitud : s))
+              prev
+                .map((s) => (s.id === nuevaSolicitud.id ? nuevaSolicitud : s))
+                .filter((s): s is Solicitud => s !== null)
             );
 
             const visibles = filtrarSolicitudesPorZonas(
@@ -272,16 +276,14 @@ const DashboardOferente: React.FC = () => {
               zonas
             );
 
-            if (visibles.length > 0) {
-              setSolicitudesFiltradas((prev) => [
-                ...prev.filter((s) => s.id !== nuevaSolicitud.id),
-                nuevaSolicitud,
-              ]);
-            } else {
-              setSolicitudesFiltradas((prev) =>
-                prev.filter((s) => s.id !== nuevaSolicitud.id)
-              );
-            }
+            setSolicitudesFiltradas((prev) =>
+              visibles.length > 0
+                ? [
+                    ...prev.filter((s) => s.id !== nuevaSolicitud.id),
+                    nuevaSolicitud,
+                  ]
+                : prev.filter((s) => s.id !== nuevaSolicitud.id)
+            );
           }
         }
       )
@@ -291,6 +293,7 @@ const DashboardOferente: React.FC = () => {
       supabase.removeChannel(canal);
     };
   }, [usuario, zonas]);
+
   // 🔁 Listener realtime para detectar aceptación en postulaciones
   useEffect(() => {
     if (!usuario) return;
