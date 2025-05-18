@@ -513,6 +513,30 @@ const DashboardOferente: React.FC = () => {
 
     cargarPostulaciones();
   }, [usuario]);
+  const idsAceptadas = new Set(solicitudesAceptadas.map((s) => s.solicitud_id));
+  const solicitudesDisponibles = solicitudesFiltradas.filter(
+    (s) => !idsAceptadas.has(s.id)
+  );
+  const [postulacionesEstado, setPostulacionesEstado] = useState<
+    Record<string, string>
+  >({});
+  useEffect(() => {
+    if (!usuario) return;
+    const cargarEstados = async () => {
+      const { data } = await supabase
+        .from("postulaciones")
+        .select("solicitud_id, estado")
+        .eq("oferente_id", usuario.id);
+      if (data) {
+        const estadoMap: Record<string, string> = {};
+        data.forEach((p) => {
+          estadoMap[p.solicitud_id] = p.estado;
+        });
+        setPostulacionesEstado(estadoMap);
+      }
+    };
+    cargarEstados();
+  }, [usuario]);
 
   return (
     <div className="dashboard">
@@ -608,53 +632,71 @@ const DashboardOferente: React.FC = () => {
                     </div>
                     {clienteDesplegado === cliente_id && (
                       <ul style={{ listStyle: "none", paddingLeft: 0 }}>
-                        {solicitudes.map((sol) => (
-                          <li
-                            key={sol.solicitud_id}
-                            style={{ margin: "0.5em 0", paddingLeft: "1em" }}
-                          >
-                            <div>
-                              <strong>ID:</strong> {sol.solicitud_id}
-                            </div>
-                            {/* Puedes poner aquí más datos de la solicitud si tienes */}
-                            <button
-                              onClick={() =>
-                                (window.location.href = `/chat?cliente_id=${sol.cliente_id}&oferente_id=${usuario?.id}&solicitud_id=${sol.solicitud_id}`)
-                              }
-                              style={{
-                                margin: "0.3em 0.5em 0.3em 0",
-                                padding: "0.5em 1.2em",
-                                backgroundColor: "#007bff",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                              }}
+                        {solicitudes.map((sol) => {
+                          // Buscar datos extendidos de la solicitud:
+                          const datosSolicitud = solicitudesFiltradas.find(
+                            (sf) => sf.id === sol.solicitud_id
+                          );
+                          return (
+                            <li
+                              key={sol.solicitud_id}
+                              style={{ margin: "0.5em 0", paddingLeft: "1em" }}
                             >
-                              💬 Acceder al chat
-                            </button>
-                            {!reseñaEnviada && (
+                              <div>
+                                <strong>Categoría:</strong>{" "}
+                                {datosSolicitud?.categoria ?? "Sin especificar"}
+                              </div>
+                              <div>
+                                <strong>Descripción:</strong>{" "}
+                                {datosSolicitud?.descripcion ?? "-"}
+                              </div>
+                              <div>
+                                <strong>Ubicación:</strong>{" "}
+                                {datosSolicitud?.ubicacion ?? "-"}
+                                {datosSolicitud?.radio_km &&
+                                  ` (${datosSolicitud.radio_km} km)`}
+                              </div>
+                              {/* Si tienes fecha en datosSolicitud, la puedes poner aquí */}
+                              {/* <div><strong>Fecha:</strong> {datosSolicitud?.fecha}</div> */}
                               <button
-                                onClick={() => {
-                                  setMostrarReseña(true);
-                                  setPuntuacion(0);
-                                  setComentario("");
-                                  setSolicitudParaReseña(sol.solicitud_id);
-                                }}
+                                onClick={() =>
+                                  (window.location.href = `/chat?cliente_id=${sol.cliente_id}&oferente_id=${usuario?.id}&solicitud_id=${sol.solicitud_id}`)
+                                }
                                 style={{
+                                  margin: "0.3em 0.5em 0.3em 0",
                                   padding: "0.5em 1.2em",
-                                  backgroundColor: "#28a745",
+                                  backgroundColor: "#007bff",
                                   color: "#fff",
                                   border: "none",
                                   borderRadius: "5px",
                                   cursor: "pointer",
                                 }}
                               >
-                                ✍️ Valorar al cliente
+                                💬 Acceder al chat
                               </button>
-                            )}
-                          </li>
-                        ))}
+                              {!reseñaEnviada && (
+                                <button
+                                  onClick={() => {
+                                    setMostrarReseña(true);
+                                    setPuntuacion(0);
+                                    setComentario("");
+                                    setSolicitudParaReseña(sol.solicitud_id);
+                                  }}
+                                  style={{
+                                    padding: "0.5em 1.2em",
+                                    backgroundColor: "#28a745",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  ✍️ Valorar al cliente
+                                </button>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                   </div>
@@ -665,7 +707,7 @@ const DashboardOferente: React.FC = () => {
             )}
           </div>
 
-          {/* Botón para mostrar solicitudes disponibles */}
+          {/* Solicitudes disponibles */}
           <div className="dashboard-section">
             <button
               onClick={() => setMostrarTodas((prev) => !prev)}
@@ -686,11 +728,11 @@ const DashboardOferente: React.FC = () => {
 
             {mostrarTodas && (
               <>
-                {solicitudesFiltradas.length === 0 ? (
+                {solicitudesDisponibles.length === 0 ? (
                   <p>No hay solicitudes cercanas.</p>
                 ) : (
                   <ul style={{ listStyle: "none", padding: 0 }}>
-                    {solicitudesFiltradas.map((s) => (
+                    {solicitudesDisponibles.map((s) => (
                       <li
                         key={s.id}
                         onClick={() =>
@@ -712,7 +754,8 @@ const DashboardOferente: React.FC = () => {
                         <br />
                         👤 Cliente: {s.cliente?.nombre || "Desconocido"}
                         <br />
-                        {!postulacionesIds.has(s.id) && (
+                        {/* 👇 Solo mostramos el botón si NO existe ninguna postulación */}
+                        {!postulacionesEstado[s.id] && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -788,11 +831,20 @@ const DashboardOferente: React.FC = () => {
                   style={{ display: "block", width: "100%" }}
                 >
                   <option value="">Elige una solicitud</option>
-                  {solicitudesAceptadas.map((sol) => (
-                    <option key={sol.solicitud_id} value={sol.solicitud_id}>
-                      {sol.cliente_nombre} ({sol.solicitud_id.slice(0, 6)}…)
-                    </option>
-                  ))}
+                  {solicitudesAceptadas.map((sol) => {
+                    // Buscar los datos extendidos para mostrar la categoría (opcional)
+                    const datosSolicitud = solicitudesFiltradas.find(
+                      (sf) => sf.id === sol.solicitud_id
+                    );
+                    return (
+                      <option key={sol.solicitud_id} value={sol.solicitud_id}>
+                        {sol.cliente_nombre}
+                        {datosSolicitud?.categoria
+                          ? ` — ${datosSolicitud.categoria}`
+                          : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             )}
