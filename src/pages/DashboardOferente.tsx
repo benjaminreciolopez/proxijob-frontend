@@ -295,6 +295,7 @@ const DashboardOferente: React.FC = () => {
   }, [usuario, zonas]);
 
   // 🔁 Listener realtime para detectar aceptación en postulaciones
+  // 🔁 Listener realtime para detectar aceptación en postulaciones
   useEffect(() => {
     if (!usuario) return;
 
@@ -308,25 +309,26 @@ const DashboardOferente: React.FC = () => {
           table: "postulaciones",
         },
         async (payload) => {
+          console.log("🔄 Payload realtime recibido:", payload); // <--- Añade esto para depuración
+
           const actualizada = payload.new as {
             estado: string;
             solicitud_id: string;
             oferente_id: string;
           };
 
+          // 🔍 Validación manual del oferente
           if (
             actualizada.estado === "aceptado" &&
             actualizada.oferente_id === usuario.id
           ) {
-            console.log("🟢 Postulación aceptada por cliente:", actualizada);
-
             const { data: solicitudRelacionada, error } = await supabase
               .from("solicitudes")
               .select("cliente_id")
               .eq("id", actualizada.solicitud_id)
-              .maybeSingle();
+              .single();
 
-            if (error || !solicitudRelacionada?.cliente_id) {
+            if (error || !solicitudRelacionada) {
               toast.error("❌ No se pudo obtener el cliente.");
               return;
             }
