@@ -306,7 +306,6 @@ const DashboardOferente: React.FC = () => {
           event: "UPDATE",
           schema: "public",
           table: "postulaciones",
-          filter: `oferente_id=eq.${usuario.id}`, // Asegúrate de que este filtro funciona
         },
         async (payload) => {
           const actualizada = payload.new as {
@@ -319,13 +318,15 @@ const DashboardOferente: React.FC = () => {
             actualizada.estado === "aceptado" &&
             actualizada.oferente_id === usuario.id
           ) {
+            console.log("🟢 Postulación aceptada por cliente:", actualizada);
+
             const { data: solicitudRelacionada, error } = await supabase
               .from("solicitudes")
               .select("cliente_id")
               .eq("id", actualizada.solicitud_id)
-              .single();
+              .maybeSingle();
 
-            if (error || !solicitudRelacionada) {
+            if (error || !solicitudRelacionada?.cliente_id) {
               toast.error("❌ No se pudo obtener el cliente.");
               return;
             }
