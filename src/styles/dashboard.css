@@ -141,6 +141,41 @@
   padding: 4px 8px;
   cursor: pointer;
 }
+select[multiple] {
+  min-height: 120px; /* 👈 Necesario para mostrar las opciones */
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+.campo-multiple {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  min-height: 120px;
+  background: white;
+}
+
+.campo-texto {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+.campo-texto textarea {
+  min-height: 100px;
+  resize: vertical; /* Permite redimensionar solo verticalmente */
+}
 
 /* 📱 Responsive para móviles */
 @media (max-width: 600px) {

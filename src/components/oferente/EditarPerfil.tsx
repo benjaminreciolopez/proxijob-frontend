@@ -153,9 +153,10 @@ const EditarPerfil: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+    <div className="dashboard">
       <h2>✏️ Editar perfil profesional</h2>
-      <div style={{ marginTop: "1rem" }}>
+
+      <div className="dashboard-section">
         <label>Categorías seleccionadas:</label>
         <select
           multiple
@@ -168,7 +169,7 @@ const EditarPerfil: React.FC = () => {
             setSeleccionadas(valores);
             setMostrarCampoNueva(valores.includes("otras"));
           }}
-          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+          className="campo-multiple"
         >
           {todasCategorias.map((cat) => (
             <option key={cat.id} value={cat.id}>
@@ -178,8 +179,15 @@ const EditarPerfil: React.FC = () => {
           <option value="otras">🆕 Otra (especificar)</option>
         </select>
 
-        {/* Visualización de chips */}
-        <div style={{ marginBottom: "1rem" }}>
+        {/* Chips visuales */}
+        <div
+          style={{
+            marginBottom: "1rem",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0.5rem",
+          }}
+        >
           {seleccionadas
             .filter((id) => id !== "otras")
             .map((id) => {
@@ -189,11 +197,9 @@ const EditarPerfil: React.FC = () => {
                 <span
                   key={id}
                   style={{
-                    display: "inline-block",
                     background: "#e0e0e0",
                     borderRadius: "12px",
                     padding: "0.4rem 0.8rem",
-                    margin: "0.2rem",
                     fontSize: "0.9rem",
                   }}
                 >
@@ -209,7 +215,7 @@ const EditarPerfil: React.FC = () => {
             value={nuevaCategoria}
             onChange={(e) => setNuevaCategoria(e.target.value)}
             placeholder="Escribe tu categoría personalizada"
-            style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+            className="campo-texto"
           />
         )}
 
@@ -219,37 +225,21 @@ const EditarPerfil: React.FC = () => {
           onChange={(e) => setDescripcion(e.target.value)}
           placeholder="Describe tu experiencia, habilidades o proyectos destacados."
           rows={5}
-          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+          className="campo-texto"
         />
 
-        <button
-          onClick={guardarPerfil}
-          style={{
-            padding: "0.6rem 1.2rem",
-            backgroundColor: "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          💾 Guardar
-        </button>
-
-        <button
-          onClick={() => navigate("/dashboard/oferente")}
-          style={{
-            marginLeft: "1rem",
-            padding: "0.6rem 1.2rem",
-            backgroundColor: "#ccc",
-            color: "#333",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          ⬅️ Cancelar
-        </button>
+        <div style={{ marginTop: "1rem" }}>
+          <button className="zonas-boton" onClick={guardarPerfil}>
+            💾 Guardar
+          </button>
+          <button
+            className="zonas-boton-secundario"
+            onClick={() => navigate("/dashboard/oferente")}
+            style={{ marginLeft: "0.5rem" }}
+          >
+            ⬅️ Cancelar
+          </button>
+        </div>
       </div>
     </div>
   );
