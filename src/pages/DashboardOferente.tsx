@@ -116,7 +116,6 @@ const DashboardOferente: React.FC = () => {
   interface ClienteEnSolicitud {
     nombre: string;
   }
-
   interface SolicitudConCliente {
     cliente_id: string;
     cliente: ClienteEnSolicitud | ClienteEnSolicitud[] | null;
@@ -137,15 +136,31 @@ const DashboardOferente: React.FC = () => {
       } = await supabase.auth.getUser();
 
       if (error || !user) {
-        toast.error("No estás autenticado.");
+        toast.error("No estás autenticado (auth.getUser falló).");
         setUsuario(null);
         setCargandoUsuario(false);
         return;
       }
 
-      // ... (cargar datos del perfil del usuario)
+      // 2. Cargar perfil en la tabla usuarios (DEBUG EXTRA)
+      const { data: perfil, error: errorPerfil } = await supabase
+        .from("usuarios")
+        .select("*")
+        .eq("id", user.id)
+        .single();
 
-      // 2. Buscar TODAS las solicitudes aceptadas
+      if (errorPerfil || !perfil) {
+        toast.error(
+          "No tienes perfil en la tabla usuarios (no coincide el id)."
+        );
+        setUsuario(null);
+        setCargandoUsuario(false);
+        return;
+      }
+
+      setUsuario(perfil);
+
+      // 3. Buscar TODAS las solicitudes aceptadas
       const { data: aceptadas, error: errorAceptadas } = await supabase
         .from("postulaciones")
         .select("solicitud_id")
@@ -158,7 +173,7 @@ const DashboardOferente: React.FC = () => {
         return;
       }
 
-      // 3. Obtener el cliente_id y nombre de cada solicitud aceptada
+      // 4. Obtener el cliente_id y nombre de cada solicitud aceptada
       const solicitudesConCliente = await Promise.all(
         aceptadas.map(async (p: any) => {
           const { data: solicitudRelacionada } = await supabase
