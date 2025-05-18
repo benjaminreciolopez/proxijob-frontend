@@ -175,6 +175,8 @@ const DashboardOferente: React.FC = () => {
         return;
       }
 
+      console.warn("⚠️ No hay solicitud aceptada");
+
       const solicitud_id = aceptada.solicitud_id;
 
       // 4. Obtener cliente_id relacionado
@@ -374,35 +376,12 @@ const DashboardOferente: React.FC = () => {
 
       if (!zonasData) return;
 
-      // 2. Obtener IDs de categorías asociadas
-      const { data: categorias } = await supabase
-        .from("categorias_oferente")
-        .select("categoria_id")
-        .eq("oferente_id", usuario.id);
-
-      if (!categorias || categorias.length === 0) {
-        toast.error("No tienes categorías asociadas.");
-        return;
-      }
-
-      const idsCategoria = categorias
-        .map((c) => c.categoria_id)
-        .filter((id) => typeof id === "string" && id.trim() !== "");
-
-      if (idsCategoria.length === 0) {
-        toast.error("No tienes categorías válidas asociadas.");
-        return;
-      }
-      console.log("idsCategoria:", idsCategoria);
-      console.log("Consulta IN:", `(${idsCategoria.join(",")})`);
-
-      const { data: solicitudesCompatibles, error: errorSolicitudes } =
-        await supabase
-          .from("solicitudes")
-          .select(
-            "*, cliente:cliente_id(nombre), categoria, ubicacion, radio_km, descripcion"
-          )
-          .filter("categoria", "in", `(${idsCategoria.join(",")})`);
+      // 2. Obtener todas las solicitudes (sin filtrar por categoría)
+      const { data: solicitudesTodas, error: errorSolicitudes } = await supabase
+        .from("solicitudes")
+        .select(
+          "*, cliente:cliente_id(nombre), categoria, ubicacion, radio_km, descripcion"
+        );
 
       if (errorSolicitudes) {
         console.error("❌ Error al cargar solicitudes:", errorSolicitudes);
@@ -410,11 +389,11 @@ const DashboardOferente: React.FC = () => {
         return;
       }
 
-      // 4. Filtrar por zona
+      // 3. Filtrar solo por zona
       setZonas(zonasData);
-      setSolicitudes(solicitudesCompatibles);
+      setSolicitudes(solicitudesTodas || []);
       const visibles = filtrarSolicitudesPorZonas(
-        solicitudesCompatibles,
+        solicitudesTodas || [],
         zonasData
       );
       setSolicitudesFiltradas(visibles);
@@ -508,49 +487,51 @@ const DashboardOferente: React.FC = () => {
             )}
 
             <ul style={{ listStyle: "none", padding: 0 }}>
-              {(mostrarTodas ? solicitudes : solicitudesFiltradas).map((s) => (
-                <li
-                  key={s.id}
-                  onClick={() =>
-                    setSeleccionada(seleccionada === s.id ? null : s.id)
-                  }
-                  style={{
-                    marginBottom: "1rem",
-                    border: "1px solid #ccc",
-                    padding: "1rem",
-                    borderRadius: "8px",
-                    backgroundColor:
-                      seleccionada === s.id ? "#f1f1f1" : "transparent",
-                    cursor: "pointer",
-                  }}
-                >
-                  <strong>{s.categoria}</strong> — {s.descripcion}
-                  <br />
-                  📍 {s.ubicacion} | {s.radio_km} km
-                  <br />
-                  👤 Cliente: {s.cliente?.nombre || "Desconocido"}
-                  <br />
-                  {!postulacionesIds.has(s.id) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        postularse(s.id);
-                      }}
-                      style={{
-                        marginTop: "0.5rem",
-                        padding: "0.4rem 0.8rem",
-                        backgroundColor: "#28a745",
-                        color: "white",
-                        border: "1px solid #ccc",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      ✅ Postularme
-                    </button>
-                  )}
-                </li>
-              ))}
+              {(mostrarTodas ? solicitudes : solicitudesFiltradas)
+                .filter(Boolean)
+                .map((s) => (
+                  <li
+                    key={s.id}
+                    onClick={() =>
+                      setSeleccionada(seleccionada === s.id ? null : s.id)
+                    }
+                    style={{
+                      marginBottom: "1rem",
+                      border: "1px solid #ccc",
+                      padding: "1rem",
+                      borderRadius: "8px",
+                      backgroundColor:
+                        seleccionada === s.id ? "#f1f1f1" : "transparent",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <strong>{s.categoria}</strong> — {s.descripcion}
+                    <br />
+                    📍 {s.ubicacion} | {s.radio_km} km
+                    <br />
+                    👤 Cliente: {s.cliente?.nombre || "Desconocido"}
+                    <br />
+                    {!postulacionesIds.has(s.id) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          postularse(s.id);
+                        }}
+                        style={{
+                          marginTop: "0.5rem",
+                          padding: "0.4rem 0.8rem",
+                          backgroundColor: "#28a745",
+                          color: "white",
+                          border: "1px solid #ccc",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        ✅ Postularme
+                      </button>
+                    )}
+                  </li>
+                ))}
             </ul>
 
             {solicitudAceptada && (
