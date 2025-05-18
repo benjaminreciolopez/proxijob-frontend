@@ -216,23 +216,23 @@ const DashboardOferente: React.FC = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "solicitudes" },
         async (payload) => {
-          const nuevaSolicitud = payload.new as Solicitud;
-          const solicitudAnterior = payload.old as Solicitud;
+          const tipoEvento = payload.eventType;
+          const nuevaSolicitud = payload.new as Solicitud | null;
+          const solicitudAnterior = payload.old as Solicitud | null;
 
-          // Normalizar cliente
-          if (
-            nuevaSolicitud?.cliente &&
-            Array.isArray(nuevaSolicitud.cliente)
-          ) {
-            nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
-          }
+          console.log(`📡 Evento realtime [${tipoEvento}]`, payload);
 
-          if (payload.eventType === "INSERT") {
+          if (tipoEvento === "INSERT" && nuevaSolicitud) {
+            // Normalizar cliente
+            if (Array.isArray(nuevaSolicitud.cliente)) {
+              nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
+            }
+
             const esCompatible =
               zonas.length > 0 &&
               filtrarSolicitudesPorZonas([nuevaSolicitud], zonas).length > 0;
 
-            const coincideCategoria = await supabase
+            const { data: categoriasCompatibles } = await supabase
               .from("categorias_oferente")
               .select("*")
               .eq("oferente_id", usuario.id)
@@ -240,8 +240,8 @@ const DashboardOferente: React.FC = () => {
 
             if (
               esCompatible &&
-              coincideCategoria.data &&
-              coincideCategoria.data.length > 0
+              Array.isArray(categoriasCompatibles) &&
+              categoriasCompatibles.length > 0
             ) {
               setSolicitudes((prev) => [...prev, nuevaSolicitud]);
               setSolicitudesFiltradas((prev) => [...prev, nuevaSolicitud]);
@@ -250,7 +250,7 @@ const DashboardOferente: React.FC = () => {
             }
           }
 
-          if (payload.eventType === "DELETE") {
+          if (tipoEvento === "DELETE" && solicitudAnterior) {
             const eliminadaId = solicitudAnterior.id;
             setSolicitudes((prev) => prev.filter((s) => s.id !== eliminadaId));
             setSolicitudesFiltradas((prev) =>
@@ -258,11 +258,8 @@ const DashboardOferente: React.FC = () => {
             );
           }
 
-          if (payload.eventType === "UPDATE") {
-            if (
-              nuevaSolicitud?.cliente &&
-              Array.isArray(nuevaSolicitud.cliente)
-            ) {
+          if (tipoEvento === "UPDATE" && nuevaSolicitud) {
+            if (Array.isArray(nuevaSolicitud.cliente)) {
               nuevaSolicitud.cliente = nuevaSolicitud.cliente[0];
             }
 
@@ -274,14 +271,17 @@ const DashboardOferente: React.FC = () => {
               [nuevaSolicitud],
               zonas
             );
-            setSolicitudesFiltradas((prev) =>
-              visibles.length > 0
-                ? [
-                    ...prev.filter((s) => s.id !== nuevaSolicitud.id),
-                    nuevaSolicitud,
-                  ]
-                : prev.filter((s) => s.id !== nuevaSolicitud.id)
-            );
+
+            if (visibles.length > 0) {
+              setSolicitudesFiltradas((prev) => [
+                ...prev.filter((s) => s.id !== nuevaSolicitud.id),
+                nuevaSolicitud,
+              ]);
+            } else {
+              setSolicitudesFiltradas((prev) =>
+                prev.filter((s) => s.id !== nuevaSolicitud.id)
+              );
+            }
           }
         }
       )
