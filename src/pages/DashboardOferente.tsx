@@ -465,78 +465,11 @@ const DashboardOferente: React.FC = () => {
             </button>
           </div>
 
+          {/* Comunicación activa */}
           <div className="dashboard-section">
-            <h3>🔔 Solicitudes disponibles en tu zona</h3>
-            {solicitudesFiltradas.length === 0 ? (
-              <p>No hay solicitudes cercanas.</p>
-            ) : (
-              <button
-                onClick={() => setMostrarTodas((prev) => !prev)}
-                style={{
-                  marginBottom: "1rem",
-                  padding: "0.4rem 0.8rem",
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                {mostrarTodas ? "🔽 Ver menos" : "🔼 Ver todas"}
-              </button>
-            )}
-
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {(mostrarTodas ? solicitudes : solicitudesFiltradas)
-                .filter(Boolean)
-                .map((s) => (
-                  <li
-                    key={s.id}
-                    onClick={() =>
-                      setSeleccionada(seleccionada === s.id ? null : s.id)
-                    }
-                    style={{
-                      marginBottom: "1rem",
-                      border: "1px solid #ccc",
-                      padding: "1rem",
-                      borderRadius: "8px",
-                      backgroundColor:
-                        seleccionada === s.id ? "#f1f1f1" : "transparent",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <strong>{s.categoria}</strong> — {s.descripcion}
-                    <br />
-                    📍 {s.ubicacion} | {s.radio_km} km
-                    <br />
-                    👤 Cliente: {s.cliente?.nombre || "Desconocido"}
-                    <br />
-                    {!postulacionesIds.has(s.id) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          postularse(s.id);
-                        }}
-                        style={{
-                          marginTop: "0.5rem",
-                          padding: "0.4rem 0.8rem",
-                          backgroundColor: "#28a745",
-                          color: "white",
-                          border: "1px solid #ccc",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        ✅ Postularme
-                      </button>
-                    )}
-                  </li>
-                ))}
-            </ul>
-
-            {solicitudAceptada && (
-              <div className="dashboard-section">
-                <h3>💬 Comunicación activa</h3>
+            <h3>💬 Solicitudes activas</h3>
+            {solicitudAceptada ? (
+              <>
                 <p>
                   Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"}{" "}
                   para una solicitud. Puedes contactar al cliente:
@@ -576,12 +509,89 @@ const DashboardOferente: React.FC = () => {
                     ✍️ Valorar al cliente
                   </button>
                 )}
-              </div>
+              </>
+            ) : (
+              <p>No tienes solicitudes activas.</p>
+            )}
+          </div>
+
+          {/* Botón para mostrar solicitudes disponibles */}
+          <div className="dashboard-section">
+            <button
+              onClick={() => setMostrarTodas((prev) => !prev)}
+              style={{
+                marginBottom: "1rem",
+                padding: "0.6rem 1rem",
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+              }}
+            >
+              {mostrarTodas
+                ? "🔽 Ocultar solicitudes disponibles"
+                : "🔼 Ver solicitudes disponibles"}
+            </button>
+
+            {mostrarTodas && (
+              <>
+                {solicitudesFiltradas.length === 0 ? (
+                  <p>No hay solicitudes cercanas.</p>
+                ) : (
+                  <ul style={{ listStyle: "none", padding: 0 }}>
+                    {solicitudesFiltradas.map((s) => (
+                      <li
+                        key={s.id}
+                        onClick={() =>
+                          setSeleccionada(seleccionada === s.id ? null : s.id)
+                        }
+                        style={{
+                          marginBottom: "1rem",
+                          border: "1px solid #ccc",
+                          padding: "1rem",
+                          borderRadius: "8px",
+                          backgroundColor:
+                            seleccionada === s.id ? "#f1f1f1" : "transparent",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <strong>{s.categoria}</strong> — {s.descripcion}
+                        <br />
+                        📍 {s.ubicacion} | {s.radio_km} km
+                        <br />
+                        👤 Cliente: {s.cliente?.nombre || "Desconocido"}
+                        <br />
+                        {!postulacionesIds.has(s.id) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              postularse(s.id);
+                            }}
+                            style={{
+                              marginTop: "0.5rem",
+                              padding: "0.4rem 0.8rem",
+                              backgroundColor: "#28a745",
+                              color: "white",
+                              border: "1px solid #ccc",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            ✅ Postularme
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
             )}
           </div>
         </>
       )}
 
+      {/* Notificación flotante */}
       <AnimatePresence>
         {notificacion && (
           <NotificacionFlotante
@@ -590,6 +600,8 @@ const DashboardOferente: React.FC = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* Modal de reseña */}
       {mostrarReseña && solicitudAceptada && (
         <div
           style={{
