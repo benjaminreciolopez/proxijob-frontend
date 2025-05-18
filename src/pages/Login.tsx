@@ -46,6 +46,7 @@ const Login: React.FC = () => {
 
     toast.success(saludo);
     localStorage.setItem("usuario", JSON.stringify(perfil));
+    localStorage.setItem("rol", perfil.rol); // 👈 nuevo
 
     if (perfil.rol === "cliente") {
       navigate("/dashboard/cliente");

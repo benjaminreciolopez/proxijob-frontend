@@ -28,17 +28,24 @@ const Chat: React.FC = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // ✅ Obtener usuario autenticado
+  // ✅ Intentar obtener tipoEmisor desde el usuario autenticado
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setEmisorId(user.id);
+
         if (user.id === clienteId) {
           setTipoEmisor("cliente");
         } else if (user.id === oferenteId) {
           setTipoEmisor("oferente");
         } else {
-          console.warn("⚠️ El usuario no coincide con cliente ni oferente");
+          // ⚠️ Fallback desde localStorage si no coincide
+          const rol = localStorage.getItem("rol");
+          if (rol === "cliente" || rol === "oferente") {
+            setTipoEmisor(rol);
+          } else {
+            console.warn("⚠️ Rol no identificado");
+          }
         }
       }
     });
@@ -133,6 +140,7 @@ const Chat: React.FC = () => {
               : "/dashboard/oferente"
           )
         }
+        disabled={!tipoEmisor}
         style={{
           marginBottom: "1rem",
           backgroundColor: "#ccc",
@@ -140,10 +148,11 @@ const Chat: React.FC = () => {
           border: "none",
           padding: "0.4rem 1rem",
           borderRadius: "6px",
-          cursor: "pointer",
+          cursor: tipoEmisor ? "pointer" : "not-allowed",
+          opacity: tipoEmisor ? 1 : 0.6,
         }}
       >
-        🔙 Volver al dashboard
+        {tipoEmisor ? "🔙 Volver al dashboard" : "Cargando..."}
       </button>
 
       <div

@@ -87,17 +87,28 @@ const Register: React.FC = () => {
         tratamiento: formData.tratamiento,
       },
     ]);
-
     if (errorInsert) {
       toast.error("Error al guardar datos del usuario.");
       console.error(errorInsert.message);
       return;
     }
 
+    // ✅ Guardar en localStorage para que funcione el chat después del registro
+    localStorage.setItem(
+      "usuario",
+      JSON.stringify({
+        id: data.user.id,
+        nombre: formData.nombre,
+        email: formData.email,
+        rol: role,
+        tratamiento: formData.tratamiento,
+      })
+    );
+    localStorage.setItem("rol", role || "");
+
     toast.success("¡Registro exitoso! Puedes iniciar sesión.");
     navigate("/login");
   };
-
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const rolParam = searchParams.get("rol");
