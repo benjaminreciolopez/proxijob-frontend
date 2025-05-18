@@ -463,7 +463,7 @@ const DashboardOferente: React.FC = () => {
       const { data: solicitudesTodas, error: errorSolicitudes } = await supabase
         .from("solicitudes")
         .select(
-          "*, cliente:cliente_id(nombre), categoria, ubicacion, radio_km, descripcion"
+          "*, cliente:cliente_id(nombre), categoria:categoria_id(nombre), ubicacion, radio_km, descripcion"
         );
 
       if (errorSolicitudes) {
@@ -644,7 +644,10 @@ const DashboardOferente: React.FC = () => {
                             >
                               <div>
                                 <strong>Categoría:</strong>{" "}
-                                {datosSolicitud?.categoria ?? "Sin especificar"}
+                                {Array.isArray(datosSolicitud?.categoria)
+                                  ? datosSolicitud.categoria[0]?.nombre
+                                  : datosSolicitud?.categoria?.nombre ||
+                                    "Sin especificar"}
                               </div>
                               <div>
                                 <strong>Descripción:</strong>{" "}
@@ -748,7 +751,13 @@ const DashboardOferente: React.FC = () => {
                           cursor: "pointer",
                         }}
                       >
-                        <strong>{s.categoria}</strong> — {s.descripcion}
+                        <strong>
+                          {Array.isArray(s.categoria)
+                            ? s.categoria[0]?.nombre
+                            : s.categoria?.nombre || "Sin especificar"}
+                        </strong>
+                        {" — "}
+                        {s.descripcion}
                         <br />
                         📍 {s.ubicacion} | {s.radio_km} km
                         <br />
@@ -839,6 +848,19 @@ const DashboardOferente: React.FC = () => {
                     return (
                       <option key={sol.solicitud_id} value={sol.solicitud_id}>
                         {sol.cliente_nombre}
+                        {(() => {
+                          const datosSolicitud = solicitudesFiltradas.find(
+                            (sf) => sf.id === sol.solicitud_id
+                          );
+                          if (!datosSolicitud) return "";
+                          return datosSolicitud.categoria
+                            ? " — " +
+                                (Array.isArray(datosSolicitud.categoria)
+                                  ? datosSolicitud.categoria[0]?.nombre
+                                  : datosSolicitud.categoria?.nombre ||
+                                    "Sin especificar")
+                            : "";
+                        })()}
                       </option>
                     );
                   })}
