@@ -838,8 +838,8 @@ const DashboardOferente: React.FC = () => {
                     );
                     return (
                       <option key={sol.solicitud_id} value={sol.solicitud_id}>
-                        {sol.cliente_nombre} —
-                        {usuario?.especialidad || "Sin especialidad"}
+                        {sol.cliente_nombre} —{" "}
+                        {datosSolicitud?.especialidad || "Sin especialidad"}
                       </option>
                     );
                   })}
