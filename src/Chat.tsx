@@ -10,6 +10,7 @@ interface Mensaje {
   tipo_emisor: "cliente" | "oferente";
   contenido: string;
   created_at: string;
+  nombre_emisor: string;
 }
 
 const Chat: React.FC = () => {
@@ -63,22 +64,30 @@ const Chat: React.FC = () => {
 
   // ✅ Cargar mensajes
   useEffect(() => {
-    if (!solicitudId) return;
+    if (!solicitudId || !clienteId || !oferenteId) return;
+
     const cargarMensajes = async () => {
       const { data, error } = await supabase
         .from("mensajes")
         .select("*")
         .eq("solicitud_id", solicitudId)
+        .eq("cliente_id", clienteId)
+        .eq("oferente_id", oferenteId)
         .order("created_at", { ascending: true });
 
-      if (!error && data) setMensajes(data);
+      if (!error && data) {
+        setMensajes(data);
+      } else {
+        console.error("❌ Error al cargar mensajes:", error?.message);
+      }
     };
+
     cargarMensajes();
-  }, [solicitudId]);
+  }, [solicitudId, clienteId, oferenteId]);
 
   // ✅ Realtime: escuchar nuevos mensajes
   useEffect(() => {
-    if (!solicitudId) return;
+    if (!solicitudId || !clienteId || !oferenteId) return;
 
     const canal = supabase
       .channel("chat_realtime")
@@ -88,12 +97,18 @@ const Chat: React.FC = () => {
           event: "INSERT",
           schema: "public",
           table: "mensajes",
-          filter: `solicitud_id=eq.${solicitudId}`,
         },
         (payload) => {
-          const nuevo = payload.new as Mensaje;
+          const nuevo = payload.new as any;
 
-          // ❌ Ignorar si ya existe
+          // Asegurarse de que el mensaje pertenece a esta conversación exacta
+          const coincide =
+            nuevo.solicitud_id === solicitudId &&
+            nuevo.cliente_id === clienteId &&
+            nuevo.oferente_id === oferenteId;
+
+          if (!coincide) return;
+
           setMensajes((prev) => {
             const yaExiste = prev.some((m) => m.id === nuevo.id);
             return yaExiste ? prev : [...prev, nuevo];
@@ -105,11 +120,12 @@ const Chat: React.FC = () => {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [solicitudId]);
+  }, [solicitudId, clienteId, oferenteId]);
 
   const enviarMensaje = async () => {
     if (!nuevoMensaje.trim() || !emisorId || !tipoEmisor || !solicitudId)
       return;
+    const perfil = JSON.parse(localStorage.getItem("usuario") || "{}");
 
     const { data, error } = await supabase
       .from("mensajes")
@@ -119,6 +135,9 @@ const Chat: React.FC = () => {
           emisor_id: emisorId,
           tipo_emisor: tipoEmisor,
           contenido: nuevoMensaje,
+          cliente_id: clienteId,
+          oferente_id: oferenteId,
+          nombre_emisor: perfil.nombre,
         },
       ])
       .select()
@@ -175,9 +194,8 @@ const Chat: React.FC = () => {
                 <div className="mensaje-emisor">
                   {esMio
                     ? "Tú"
-                    : msg.tipo_emisor === "cliente"
-                    ? "Cliente"
-                    : "Oferente"}
+                    : msg.nombre_emisor ||
+                      (msg.tipo_emisor === "cliente" ? "Cliente" : "Oferente")}
                 </div>
                 <div>{msg.contenido}</div>
               </div>
