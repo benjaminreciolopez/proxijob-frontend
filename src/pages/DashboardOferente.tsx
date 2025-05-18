@@ -24,6 +24,9 @@ const DashboardOferente: React.FC = () => {
   const [puntuacion, setPuntuacion] = useState(0);
   const [comentario, setComentario] = useState("");
   const [reseñaEnviada, setReseñaEnviada] = useState(false);
+  const [solicitudParaReseña, setSolicitudParaReseña] = useState<string | null>(
+    null
+  );
 
   const [solicitudesFiltradas, setSolicitudesFiltradas] = useState<Solicitud[]>(
     []
@@ -110,13 +113,21 @@ const DashboardOferente: React.FC = () => {
     descripcion: string;
     tratamiento: string;
   }
+  interface ClienteEnSolicitud {
+    nombre: string;
+  }
 
-  const [solicitudAceptada, setSolicitudAceptada] = useState<{
-    solicitud_id: string;
+  interface SolicitudConCliente {
     cliente_id: string;
-  } | null>(null);
+    cliente: ClienteEnSolicitud | ClienteEnSolicitud[] | null;
+  }
 
-  // ✅ 1. Obtener usuario
+  // Cambia solicitudAceptada a un array:
+  const [solicitudesAceptadas, setSolicitudesAceptadas] = useState<
+    { solicitud_id: string; cliente_id: string; cliente_nombre: string }[]
+  >([]);
+
+  // En tu useEffect:
   useEffect(() => {
     const obtenerUsuario = async () => {
       // 1. Obtener usuario autenticado
@@ -132,72 +143,41 @@ const DashboardOferente: React.FC = () => {
         return;
       }
 
-      // 2. Obtener datos del perfil del usuario
-      const { data: datosUsuario, error: errorUsuario } = await supabase
-        .from("usuarios")
-        .select("nombre, especialidad, tratamiento, descripcion")
-        .eq("id", user.id)
-        .single();
+      // ... (cargar datos del perfil del usuario)
 
-      if (errorUsuario || !datosUsuario) {
-        toast.error("Error al obtener datos del oferente.");
-        setUsuario(null);
-        setCargandoUsuario(false);
-        return;
-      }
-
-      const datosExtendidos: UsuarioExtendido = {
-        id: user.id,
-        email: user.email ?? "",
-        nombre: datosUsuario.nombre,
-        especialidad: datosUsuario.especialidad,
-        descripcion: datosUsuario.descripcion,
-        tratamiento: datosUsuario.tratamiento,
-      };
-
-      setUsuario(datosExtendidos);
-
-      if (datosUsuario.especialidad) {
-        registrarCategoria(user.id, datosUsuario.especialidad);
-      }
-
-      // 3. Consultar si tiene alguna postulación aceptada
-      const { data: aceptada, error: errorAceptada } = await supabase
+      // 2. Buscar TODAS las solicitudes aceptadas
+      const { data: aceptadas, error: errorAceptadas } = await supabase
         .from("postulaciones")
         .select("solicitud_id")
         .eq("oferente_id", user.id)
-        .eq("estado", "aceptado")
-        .maybeSingle();
+        .eq("estado", "aceptado");
 
-      if (errorAceptada || !aceptada?.solicitud_id) {
-        setSolicitudAceptada(null);
+      if (errorAceptadas || !aceptadas || aceptadas.length === 0) {
+        setSolicitudesAceptadas([]);
         setCargandoUsuario(false);
         return;
       }
 
-      console.warn("⚠️ No hay solicitud aceptada");
+      // 3. Obtener el cliente_id y nombre de cada solicitud aceptada
+      const solicitudesConCliente = await Promise.all(
+        aceptadas.map(async (p: any) => {
+          const { data: solicitudRelacionada } = await supabase
+            .from("solicitudes")
+            .select("cliente_id, cliente:cliente_id(nombre)")
+            .eq("id", p.solicitud_id)
+            .single<SolicitudConCliente>();
 
-      const solicitud_id = aceptada.solicitud_id;
+          return {
+            solicitud_id: p.solicitud_id,
+            cliente_id: solicitudRelacionada?.cliente_id ?? "",
+            cliente_nombre: Array.isArray(solicitudRelacionada?.cliente)
+              ? solicitudRelacionada.cliente[0]?.nombre ?? "Desconocido"
+              : solicitudRelacionada?.cliente?.nombre ?? "Desconocido",
+          };
+        })
+      );
 
-      // 4. Obtener cliente_id relacionado
-      const { data: solicitudRelacionada } = await supabase
-        .from("solicitudes")
-        .select("cliente_id")
-        .eq("id", solicitud_id)
-        .single();
-
-      const cliente_id = solicitudRelacionada?.cliente_id ?? "";
-      setSolicitudAceptada({ solicitud_id, cliente_id });
-
-      // 5. Verificar si ya se dejó reseña
-      const { data: yaReseñada } = await supabase
-        .from("reseñas")
-        .select("id")
-        .eq("usuario_id", user.id)
-        .eq("solicitud_id", solicitud_id)
-        .maybeSingle();
-
-      setReseñaEnviada(!!yaReseñada);
+      setSolicitudesAceptadas(solicitudesConCliente);
       setCargandoUsuario(false);
     };
 
@@ -294,6 +274,15 @@ const DashboardOferente: React.FC = () => {
     };
   }, [usuario, zonas]);
 
+  // Define los tipos arriba en tu archivo:
+  interface ClienteEnSolicitud {
+    nombre: string;
+  }
+  interface SolicitudConCliente {
+    cliente_id: string;
+    cliente: ClienteEnSolicitud | ClienteEnSolicitud[] | null;
+  }
+
   // 🔁 Listener realtime para detectar aceptación en postulaciones
   useEffect(() => {
     if (!usuario) return;
@@ -308,7 +297,7 @@ const DashboardOferente: React.FC = () => {
           table: "postulaciones",
         },
         async (payload) => {
-          console.log("🔄 Payload realtime recibido:", payload); // <--- Añade esto para depuración
+          console.log("🔄 Payload realtime recibido:", payload);
 
           const actualizada = payload.new as {
             estado: string;
@@ -323,19 +312,27 @@ const DashboardOferente: React.FC = () => {
           ) {
             const { data: solicitudRelacionada, error } = await supabase
               .from("solicitudes")
-              .select("cliente_id")
+              .select("cliente_id, cliente:cliente_id(nombre)")
               .eq("id", actualizada.solicitud_id)
-              .single();
+              .single<SolicitudConCliente>(); // 👈 INFIERE EL TIPO AQUÍ
 
             if (error || !solicitudRelacionada) {
               toast.error("❌ No se pudo obtener el cliente.");
               return;
             }
 
-            setSolicitudAceptada({
-              solicitud_id: actualizada.solicitud_id,
-              cliente_id: solicitudRelacionada.cliente_id,
-            });
+            setSolicitudesAceptadas((prev) => [
+              ...prev,
+              {
+                solicitud_id: actualizada.solicitud_id,
+                cliente_id: solicitudRelacionada?.cliente_id ?? "",
+                cliente_nombre: Array.isArray(solicitudRelacionada?.cliente)
+                  ? solicitudRelacionada.cliente.length > 0
+                    ? solicitudRelacionada.cliente[0].nombre
+                    : "Desconocido"
+                  : solicitudRelacionada?.cliente?.nombre ?? "Desconocido",
+              },
+            ]);
 
             toast.success("🎉 ¡Tu postulación ha sido aceptada!");
           }
@@ -531,51 +528,54 @@ const DashboardOferente: React.FC = () => {
                 fontSize: "0.8rem",
               }}
             >
-              {JSON.stringify(solicitudAceptada, null, 2)}
+              {JSON.stringify(solicitudesAceptadas, null, 2)}
             </pre>
 
-            {solicitudAceptada ? (
-              <>
-                <p>
-                  Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"}{" "}
-                  para una solicitud. Puedes contactar al cliente:
-                </p>
-                <button
-                  onClick={() =>
-                    (window.location.href = `/chat?cliente_id=${solicitudAceptada.cliente_id}&oferente_id=${usuario.id}&solicitud_id=${solicitudAceptada.solicitud_id}`)
-                  }
-                  style={{
-                    padding: "0.6rem 1.2rem",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                  }}
-                >
-                  💬 Acceder al chat con el cliente
-                </button>
-                {!reseñaEnviada && (
+            {solicitudesAceptadas.length > 0 ? (
+              solicitudesAceptadas.map((sol) => (
+                <div key={sol.solicitud_id} style={{ marginBottom: "1.5rem" }}>
+                  <p>
+                    Has sido aceptad{usuario.tratamiento === "Sra" ? "a" : "o"}{" "}
+                    para una solicitud. Puedes contactar al cliente:
+                  </p>
                   <button
-                    onClick={() => {
-                      setMostrarReseña(true);
-                      setPuntuacion(0);
-                      setComentario("");
-                    }}
+                    onClick={() =>
+                      (window.location.href = `/chat?cliente_id=${sol.cliente_id}&oferente_id=${usuario.id}&solicitud_id=${sol.solicitud_id}`)
+                    }
                     style={{
-                      marginTop: "1rem",
                       padding: "0.6rem 1.2rem",
-                      backgroundColor: "#28a745",
+                      backgroundColor: "#007bff",
                       color: "#fff",
                       border: "none",
                       borderRadius: "5px",
                       cursor: "pointer",
                     }}
                   >
-                    ✍️ Valorar al cliente
+                    💬 Acceder al chat con el cliente
                   </button>
-                )}
-              </>
+                  {!reseñaEnviada && (
+                    <button
+                      onClick={() => {
+                        setMostrarReseña(true);
+                        setPuntuacion(0);
+                        setComentario("");
+                        setSolicitudParaReseña(sol.solicitud_id);
+                      }}
+                      style={{
+                        marginTop: "1rem",
+                        padding: "0.6rem 1.2rem",
+                        backgroundColor: "#28a745",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✍️ Valorar al cliente
+                    </button>
+                  )}
+                </div>
+              ))
             ) : (
               <p>No tienes solicitudes activas.</p>
             )}
@@ -668,7 +668,7 @@ const DashboardOferente: React.FC = () => {
       </AnimatePresence>
 
       {/* Modal de reseña */}
-      {mostrarReseña && solicitudAceptada && (
+      {mostrarReseña && solicitudesAceptadas.length > 0 && (
         <div
           style={{
             position: "fixed",
@@ -694,6 +694,25 @@ const DashboardOferente: React.FC = () => {
           >
             <h3>✍️ Deja una reseña para el cliente</h3>
 
+            {/* Si hay varias solicitudes, mostrar selector */}
+            {solicitudesAceptadas.length > 1 && (
+              <div style={{ marginBottom: "1rem" }}>
+                <label>Selecciona solicitud:</label>
+                <select
+                  value={solicitudParaReseña ?? ""}
+                  onChange={(e) => setSolicitudParaReseña(e.target.value)}
+                  style={{ display: "block", width: "100%" }}
+                >
+                  <option value="">Elige una solicitud</option>
+                  {solicitudesAceptadas.map((sol) => (
+                    <option key={sol.solicitud_id} value={sol.solicitud_id}>
+                      {sol.cliente_nombre} ({sol.solicitud_id.slice(0, 6)}…)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <label>Puntuación:</label>
             <select
               value={puntuacion}
@@ -707,7 +726,6 @@ const DashboardOferente: React.FC = () => {
                 </option>
               ))}
             </select>
-
             <textarea
               placeholder="Comentario (obligatorio si das 4 o 5 estrellas)"
               value={comentario}
@@ -715,41 +733,39 @@ const DashboardOferente: React.FC = () => {
               rows={4}
               style={{ width: "100%", padding: "0.5rem" }}
             />
-
             <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
               <button
                 onClick={async () => {
-                  if (!usuario || !solicitudAceptada) return;
+                  const idSeleccionado =
+                    solicitudParaReseña ||
+                    (solicitudesAceptadas[0]?.solicitud_id ?? null);
+                  if (!usuario || !idSeleccionado) return;
                   if (puntuacion >= 4 && comentario.trim() === "") {
                     toast.error(
                       "Añade un comentario si la puntuación es alta."
                     );
                     return;
                   }
-
                   const { data: existente } = await supabase
                     .from("reseñas")
                     .select("id")
                     .eq("usuario_id", usuario.id)
-                    .eq("solicitud_id", solicitudAceptada.solicitud_id)
+                    .eq("solicitud_id", idSeleccionado)
                     .maybeSingle();
-
                   if (existente) {
                     toast.error("Ya has enviado una reseña.");
                     setMostrarReseña(false);
                     return;
                   }
-
                   const { error } = await supabase.from("reseñas").insert([
                     {
                       usuario_id: usuario.id,
-                      solicitud_id: solicitudAceptada.solicitud_id,
+                      solicitud_id: idSeleccionado,
                       puntuacion,
                       comentario,
                       nombre: usuario.nombre,
                     },
                   ]);
-
                   if (error) {
                     toast.error("Error al guardar reseña.");
                   } else {
@@ -758,6 +774,7 @@ const DashboardOferente: React.FC = () => {
                     setReseñaEnviada(true);
                     setPuntuacion(0);
                     setComentario("");
+                    setSolicitudParaReseña(null);
                   }
                 }}
                 style={{
