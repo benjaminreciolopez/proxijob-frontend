@@ -295,7 +295,6 @@ const DashboardOferente: React.FC = () => {
   }, [usuario, zonas]);
 
   // 🔁 Listener realtime para detectar aceptación en postulaciones
-  // 🔁 Listener realtime para detectar aceptación en postulaciones
   useEffect(() => {
     if (!usuario) return;
 
