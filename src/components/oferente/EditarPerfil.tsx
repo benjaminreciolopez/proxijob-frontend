@@ -158,26 +158,37 @@ const EditarPerfil: React.FC = () => {
 
       <div className="dashboard-section">
         <label>Categorías seleccionadas:</label>
-        <select
-          multiple
-          value={seleccionadas}
-          onChange={(e) => {
-            const valores = Array.from(
-              e.target.selectedOptions,
-              (opt) => opt.value
-            );
-            setSeleccionadas(valores);
-            setMostrarCampoNueva(valores.includes("otras"));
-          }}
-          className="campo-multiple"
-        >
-          {todasCategorias.map((cat) => (
-            <option key={cat.id} value={cat.id}>
+        <div className="lista-categorias" style={{ marginBottom: "1rem" }}>
+          {[
+            ...todasCategorias,
+            { id: "otras", nombre: "🆕 Otra (especificar)" },
+          ].map((cat) => (
+            <label
+              key={cat.id}
+              style={{
+                display: "block",
+                marginBottom: "0.3rem",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                value={cat.id}
+                checked={seleccionadas.includes(cat.id)}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  const nuevaLista = e.target.checked
+                    ? [...seleccionadas, id]
+                    : seleccionadas.filter((x) => x !== id);
+                  setSeleccionadas(nuevaLista);
+                  setMostrarCampoNueva(nuevaLista.includes("otras"));
+                }}
+                style={{ marginRight: "0.5rem" }}
+              />
               {cat.nombre}
-            </option>
+            </label>
           ))}
-          <option value="otras">🆕 Otra (especificar)</option>
-        </select>
+        </div>
 
         {/* Chips visuales */}
         <div
