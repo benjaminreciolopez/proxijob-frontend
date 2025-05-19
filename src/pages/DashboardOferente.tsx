@@ -760,12 +760,6 @@ const DashboardOferente: React.FC = () => {
                                           width: "100%",
                                           maxWidth: 420,
                                         }}
-                                        onClick={() => {
-                                          setMostrarReseña(false);
-                                          setPuntuacion(0);
-                                          setComentario("");
-                                          setSolicitudParaReseña(null);
-                                        }}
                                       >
                                         ✍️ Valorar al cliente
                                       </button>
