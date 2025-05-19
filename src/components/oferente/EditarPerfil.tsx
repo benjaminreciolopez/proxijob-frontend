@@ -183,17 +183,25 @@ const EditarPerfil: React.FC = () => {
                 type="checkbox"
                 value={cat.id}
                 checked={seleccionadas.includes(cat.id)}
-                disabled={
-                  !seleccionadas.includes(cat.id) &&
-                  seleccionadas.filter((id) => id !== "otras").length >= 3
-                }
                 onChange={(e) => {
                   const id = e.target.value;
-                  const nuevaLista = e.target.checked
-                    ? [...seleccionadas, id]
-                    : seleccionadas.filter((x) => x !== id);
-                  setSeleccionadas(nuevaLista);
-                  setMostrarCampoNueva(nuevaLista.includes("otras"));
+                  const yaSeleccionadas = seleccionadas.filter(
+                    (x) => x !== "otras"
+                  );
+                  const seleccionando = e.target.checked;
+
+                  if (seleccionando) {
+                    // Máximo 3 categorías distintas de "otras"
+                    if (yaSeleccionadas.length >= 3 && id !== "otras") {
+                      toast.error("Máximo 3 categorías.");
+                      return;
+                    }
+                    setSeleccionadas([...seleccionadas, id]);
+                    if (id === "otras") setMostrarCampoNueva(true);
+                  } else {
+                    setSeleccionadas(seleccionadas.filter((x) => x !== id));
+                    if (id === "otras") setMostrarCampoNueva(false);
+                  }
                 }}
                 style={{ marginRight: "0.5rem" }}
               />

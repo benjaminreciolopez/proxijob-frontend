@@ -545,4 +545,60 @@ select[multiple] {
       margin-top: 0.3rem;
     }
   }
+  @media (max-width: 600px) {
+    .lista-categorias label {
+      font-size: 1rem;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .lista-categorias {
+      gap: 0.2rem;
+    }
+    .dashboard .lista-categorias {
+      padding-left: 0;
+    }
+    .dashboard .lista-categorias label {
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+    .dashboard .lista-categorias input[type="checkbox"] {
+      flex-shrink: 0;
+    }
+    .dashboard .lista-categorias input[type="checkbox"] + span {
+      flex: 1 1 auto;
+    }
+    /* Ajuste de chips */
+    .dashboard .lista-categorias span {
+      font-size: 0.98rem;
+      padding: 0.35rem 0.75rem;
+      margin-bottom: 0.3rem;
+      word-break: break-all;
+    }
+    .dashboard .lista-categorias {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem 0.7rem;
+    }
+
+    .dashboard .lista-categorias span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+  }
+  @media (max-width: 600px) {
+    .zonas-boton,
+    .zonas-boton-secundario {
+      width: 100%;
+      margin-bottom: 0.7rem;
+      font-size: 1.09rem;
+    }
+  }
+  .dashboard input[type="text"],
+  .dashboard textarea,
+  .dashboard .campo-texto {
+    margin-bottom: 1.2rem;
+  }
 }
