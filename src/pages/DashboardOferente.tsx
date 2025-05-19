@@ -985,25 +985,37 @@ const DashboardOferente: React.FC = () => {
                   }
 
                   // Obtén datos del destinatario (cliente)
+                  // Obtén datos del destinatario (cliente)
                   const datosSolicitud = solicitudesFiltradas.find(
                     (sf) => sf.id === idSeleccionado
                   );
-                  const destinatarioId = datosSolicitud?.cliente?.id ?? "";
+                  const destinatarioId =
+                    datosSolicitud?.cliente?.id || undefined;
                   const destinatarioNombre =
-                    datosSolicitud?.cliente?.nombre ?? "";
+                    datosSolicitud?.cliente?.nombre || undefined;
+                  const solicitudUUID = idSeleccionado || undefined;
 
-                  const { error } = await supabase.from("reseñas").insert([
-                    {
-                      tipo: "cliente", // o "oferente", según caso
-                      autor_id: usuario.id,
-                      autor_nombre: usuario.nombre,
-                      destinatario_id: destinatarioId,
-                      destinatario_n: destinatarioNombre,
-                      solicitud_id: idSeleccionado,
-                      puntuacion,
-                      comentario,
-                    },
-                  ]);
+                  // Construye el objeto SIN campos vacíos/undefined
+                  const reseñaData: any = {
+                    tipo: "cliente",
+                    autor_id: usuario.id,
+                    autor_nombre: usuario.nombre,
+                    puntuacion,
+                    comentario,
+                  };
+
+                  if (destinatarioId)
+                    reseñaData.destinatario_id = destinatarioId;
+                  if (destinatarioNombre)
+                    reseñaData.destinatario_n = destinatarioNombre;
+                  if (solicitudUUID) reseñaData.solicitud_id = solicitudUUID;
+
+                  // Debug para asegurarte de que no hay campos vacíos
+                  console.log("reseñaData a guardar:", reseñaData);
+
+                  const { error } = await supabase
+                    .from("reseñas")
+                    .insert([reseñaData]);
                   if (error) {
                     toast.error("Error al guardar reseña.");
                   } else {
