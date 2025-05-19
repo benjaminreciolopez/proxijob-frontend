@@ -482,15 +482,16 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
 
     // 👇 Evita undefined, pon siempre un string válido
     const reseñaData = {
-      tipo: "oferente", // o "cliente"
+      tipo: "oferente",
       autor_id,
       autor_nombre: autor_nombre || "Sin nombre",
       destinatario_id,
-      destinatario_n: destinatario_n || "Sin nombre",
+      destinatario_n,
       solicitud_id,
       puntuacion,
       comentario,
     };
+
     // Debug opcional
     console.log("reseñaData a guardar:", reseñaData);
 
