@@ -41,6 +41,9 @@ const DashboardOferente: React.FC = () => {
     null
   );
   const [mostrarActivas, setMostrarActivas] = useState(true);
+  const [solicitudesYaReseñadas, setSolicitudesYaReseñadas] = useState<
+    Set<string>
+  >(new Set());
 
   async function registrarCategoria(usuarioId: string, nombre: string) {
     const nombreNormalizado = nombre.trim().toLowerCase();
@@ -421,7 +424,7 @@ const DashboardOferente: React.FC = () => {
     const { data: docs } = await supabase
       .from("documentos")
       .select("tipo, titulo, url")
-      .eq("usuario_id", usuario.id);
+      .eq("oferente_id", usuario.id);
 
     if (docs && docs.length > 0) {
       const docsAInsertar = docs.map((d) => ({
@@ -456,7 +459,7 @@ const DashboardOferente: React.FC = () => {
       const { data: zonasData } = await supabase
         .from("zonas_trabajo")
         .select("*")
-        .eq("usuario_id", usuario.id);
+        .eq("oferente_id", usuario.id);
 
       if (!zonasData) return;
 
@@ -537,6 +540,24 @@ const DashboardOferente: React.FC = () => {
       }
     };
     cargarEstados();
+  }, [usuario]);
+  useEffect(() => {
+    if (!usuario) return;
+
+    // Cargar solicitudes ya reseñadas por el oferente
+    const cargarReseñas = async () => {
+      const { data, error } = await supabase
+        .from("reseñas")
+        .select("solicitud_id")
+        .eq("oferente_id", usuario.id);
+
+      if (!error && data) {
+        const ids = new Set(data.map((r) => r.solicitud_id));
+        setSolicitudesYaReseñadas(ids);
+      }
+    };
+
+    cargarReseñas();
   }, [usuario]);
 
   return (
@@ -717,7 +738,9 @@ const DashboardOferente: React.FC = () => {
                                     >
                                       💬 Acceder al chat
                                     </button>
-                                    {!reseñaEnviada && (
+                                    {!solicitudesYaReseñadas.has(
+                                      sol.solicitud_id
+                                    ) && (
                                       <button
                                         onClick={() => {
                                           setMostrarReseña(true);
@@ -736,6 +759,12 @@ const DashboardOferente: React.FC = () => {
                                           cursor: "pointer",
                                           width: "100%",
                                           maxWidth: 420,
+                                        }}
+                                        onClick={() => {
+                                          setMostrarReseña(false);
+                                          setPuntuacion(0);
+                                          setComentario("");
+                                          setSolicitudParaReseña(null);
                                         }}
                                       >
                                         ✍️ Valorar al cliente
@@ -937,6 +966,7 @@ const DashboardOferente: React.FC = () => {
             />
             <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
               <button
+                disabled={!puntuacion}
                 onClick={async () => {
                   const idSeleccionado =
                     solicitudParaReseña ||
@@ -951,7 +981,7 @@ const DashboardOferente: React.FC = () => {
                   const { data: existente } = await supabase
                     .from("reseñas")
                     .select("id")
-                    .eq("usuario_id", usuario.id)
+                    .eq("oferente_id", usuario.id) // 👈 debe ser oferente_id, no usuario_id
                     .eq("solicitud_id", idSeleccionado)
                     .maybeSingle();
                   if (existente) {
@@ -961,7 +991,7 @@ const DashboardOferente: React.FC = () => {
                   }
                   const { error } = await supabase.from("reseñas").insert([
                     {
-                      usuario_id: usuario.id,
+                      oferente_id: usuario.id, // 👈 usa oferente_id
                       solicitud_id: idSeleccionado,
                       puntuacion,
                       comentario,
@@ -977,6 +1007,9 @@ const DashboardOferente: React.FC = () => {
                     setPuntuacion(0);
                     setComentario("");
                     setSolicitudParaReseña(null);
+                    setSolicitudesYaReseñadas((prev) =>
+                      new Set(prev).add(idSeleccionado)
+                    ); // 👈 Actualiza el estado
                   }
                 }}
                 style={{

@@ -511,6 +511,7 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       setSolicitudesReseñadas((prev) => [...prev, solicitud_id]);
       setPuntuacion(0);
       setComentario("");
+      setPostulacionSeleccionada(null);
     }
   };
 
@@ -683,12 +684,21 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
             />
 
             <div className="modal-reseña-buttons">
-              <button className="enviar" onClick={enviarReseñaDesdeModal}>
+              <button
+                className="enviar"
+                onClick={enviarReseñaDesdeModal}
+                disabled={!puntuacion}
+              >
                 Enviar reseña
               </button>
               <button
                 className="cancelar"
-                onClick={() => setMostrarReseñas(false)}
+                onClick={() => {
+                  setMostrarReseñas(false);
+                  setPuntuacion(0);
+                  setComentario("");
+                  setPostulacionSeleccionada(null);
+                }}
               >
                 Cancelar
               </button>
