@@ -1,8 +1,17 @@
+:root {
+  --color-primary: #007bff;
+  --color-success: #28a745;
+  --color-error: #dc3545;
+  --color-grey: #f1f0f0;
+  --color-bg: #fff;
+}
+
 .dashboard {
   font-family: sans-serif;
   padding: 1rem;
   max-width: 900px;
   margin: 0 auto;
+  background: var(--color-bg);
 }
 
 .dashboard-section {
@@ -11,603 +20,687 @@
   padding-top: 1.5rem;
 }
 
-/* 💬 Mensajes del chat */
-.mensaje-burbuja {
-  display: flex;
-  margin-bottom: 0.5rem;
-  padding: 0 0.5rem;
+.dashboard h2,
+.dashboard h3,
+.dashboard h4,
+.dashboard h5 {
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-bottom: 0.7rem;
+  color: #222;
 }
-
-.mensaje-burbuja.mio {
-  justify-content: flex-end;
-}
-
-.mensaje-burbuja.otro {
-  justify-content: flex-start;
-}
-
-.mensaje-contenido {
-  max-width: 80%;
-  padding: 0.6rem 1rem;
-  border-radius: 16px;
-  font-size: 1rem;
-  line-height: 1.4;
-  background-color: #f1f0f0;
-  position: relative;
-}
-
-.mensaje-burbuja.mio .mensaje-contenido {
-  background-color: #dcf8c6;
-  border-bottom-right-radius: 2px;
-}
-
-.mensaje-burbuja.otro .mensaje-contenido {
-  border-bottom-left-radius: 2px;
-}
-
-.mensaje-emisor {
-  font-size: 0.75rem;
-  color: #777;
-  margin-bottom: 0.25rem;
-}
-
-.chat-input-container {
-  display: flex;
-  gap: 0.5rem;
+/* Botón principal */
+.zonas-boton {
   margin-top: 1rem;
+  background: var(--color-success);
+  color: #fff;
+  padding: 0.5rem 1.1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.zonas-boton:hover {
+  background: #0a7a0a;
 }
 
-/* 🌍 Zonas */
-.zonas-container {
-  margin-top: 2rem;
-  padding: 1rem;
+/* Botón secundario */
+.zonas-boton-secundario {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  transition: background 0.2s;
+}
+.zonas-boton-secundario:hover {
+  background: #004996;
+}
+
+/* Chips visuales */
+.dashboard .lista-categorias span,
+.chip-categoria {
+  background: #e0e0e0;
+  border-radius: 12px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.96rem;
+  display: inline-block;
+  margin-right: 0.4rem;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+
+/* Listas limpias */
+.dashboard ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dashboard li {
+  margin-bottom: 0.85rem;
+  background: #fff;
+  border-radius: 8px;
+}
+/* Inputs de texto y campos grandes */
+.campo-texto,
+.dashboard input[type="text"],
+.dashboard textarea {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+.campo-texto:focus,
+.dashboard input[type="text"]:focus,
+.dashboard textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Textarea grande */
+.dashboard textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Responsive general para móvil */
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 0.5rem;
+    max-width: 100vw;
+  }
+  .dashboard-section {
+    padding-top: 1rem;
+    border-top: none;
+  }
+  .dashboard h2 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+  .dashboard p,
+  .dashboard h3,
+  .dashboard h4 {
+    font-size: 1rem;
+    text-align: center;
+  }
+  .dashboard ul {
+    padding: 0;
+  }
+  .dashboard li {
+    font-size: 0.97rem;
+    line-height: 1.5;
+    padding: 0.8rem;
+  }
+  /* Botones en listas ocupan todo el ancho */
+  .dashboard li button {
+    width: 100%;
+    font-size: 1rem;
+    margin-top: 0.3rem;
+    padding: 0.6rem;
+  }
+  /* Chips de categorías */
+  .dashboard .lista-categorias span {
+    font-size: 0.98rem;
+    padding: 0.32rem 0.7rem;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+/* Lista de categorías: estilo vertical y ajustado */
+.lista-categorias {
+  margin-bottom: 1rem;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lista-categorias label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 0.3rem;
+  width: 100%;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.lista-categorias input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 1.1em;
+  height: 1.1em;
+  accent-color: #007bff;
+  margin-right: 0.6rem;
+}
+
+.lista-categorias span {
+  flex: 1 1 auto;
+  font-size: 1rem;
+  word-break: break-all;
+}
+
+/* Responsive: lista de categorías y chips en móvil */
+@media (max-width: 600px) {
+  .lista-categorias {
+    gap: 0.2rem;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .lista-categorias label {
+    font-size: 0.99rem;
+    width: 100%;
+    margin-bottom: 0.18rem;
+    line-height: 1.28;
+    gap: 0.45rem;
+  }
+  .lista-categorias span {
+    font-size: 0.97rem;
+    padding: 0.3rem 0.65rem;
+    max-width: 135px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+/* Botones principales */
+.dashboard button,
+.zonas-boton,
+.zonas-boton-secundario {
+  padding: 0.5rem 1.1rem;
+  font-size: 1.05rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 0.6rem;
+  transition: background 0.14s;
 }
 
 .zonas-boton {
-  margin-top: 1rem;
   background: green;
   color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+}
+.zonas-boton:hover {
+  background: #109710;
 }
 
 .zonas-boton-secundario {
   background: #007bff;
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
+}
+.zonas-boton-secundario:hover {
+  background: #0256ac;
 }
 
-.zonas-lista {
-  margin-top: 1rem;
-  padding: 0;
-  list-style: none;
+.dashboard-section button {
+  width: auto;
+  min-width: 110px;
+  margin-right: 0.5rem;
 }
 
-.zonas-item {
-  margin-bottom: 0.8rem;
+.dashboard li button {
+  margin-top: 0.4rem;
+  min-width: 110px;
+}
+
+/* Chips visuales para categorías seleccionadas */
+.dashboard .chips-categorias,
+.chips-categorias {
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.zonas-item button {
-  width: 100%;
-}
-
-/* 🗺️ Inputs de búsqueda en mapa */
-.mapa-input {
-  width: 100%;
-  padding: 0.5rem;
-  font-size: 1rem;
-  margin-top: 0.5rem;
-  box-sizing: border-box;
-}
-
-.mapa-sugerencias {
-  list-style: none;
-  margin: 0;
-  padding: 0.5rem;
-  background: white;
-  border: 1px solid #ccc;
-  max-height: 150px;
-  overflow-y: auto;
-  position: absolute;
-  z-index: 1000;
-  width: 100%;
-}
-
-.mapa-sugerencias li {
-  padding: 0.3rem 0;
-  cursor: pointer;
-}
-
-.mapa-sugerencias li:hover {
-  background-color: #f1f1f1;
-}
-
-.boton-ubicacion {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-select[multiple] {
-  min-height: 120px; /* 👈 Necesario para mostrar las opciones */
-  padding: 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: white;
-  cursor: pointer;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-.campo-multiple {
-  display: block;
-  width: 100%;
+  flex-wrap: wrap;
+  gap: 0.45rem;
   margin-bottom: 1rem;
-  padding: 0.6rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  min-height: 120px;
-  background: white;
 }
 
-.campo-texto {
+.dashboard .chips-categorias span,
+.chips-categorias span {
+  background: #e0e0e0;
+  border-radius: 12px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.96rem;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive: botones y chips en móvil */
+@media (max-width: 600px) {
+  .dashboard-section button,
+  .zonas-boton,
+  .zonas-boton-secundario {
+    width: 100%;
+    min-width: 0;
+    font-size: 1rem;
+    box-sizing: border-box;
+    margin-right: 0;
+    margin-bottom: 0.7rem;
+  }
+  .dashboard li button {
+    width: 100%;
+    min-width: 0;
+  }
+  .dashboard .chips-categorias span,
+  .chips-categorias span {
+    font-size: 0.93rem;
+    padding: 0.32rem 0.7rem;
+    max-width: 145px;
+  }
+}
+/* Inputs generales y campo de texto personalizado */
+.dashboard input[type="text"],
+.dashboard textarea,
+.dashboard .campo-texto {
   width: 100%;
   padding: 0.6rem;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   box-sizing: border-box;
 }
+
+/* Área de texto autoajustable */
+.dashboard textarea,
 .campo-texto textarea {
   min-height: 100px;
   resize: vertical; /* Permite redimensionar solo verticalmente */
 }
 
-/* 📱 Responsive para móviles */
+/* Selectores múltiples */
+select[multiple],
+.campo-multiple {
+  min-height: 120px;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  font-size: 1rem;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+/* Listas de categorías y checkboxes */
+.lista-categorias {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+.lista-categorias label {
+  display: block;
+  margin-bottom: 0.3rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.3;
+  word-break: break-word;
+}
+.lista-categorias input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+/* Responsive: inputs, listas y selectores en móvil */
 @media (max-width: 600px) {
-  .dashboard {
-    padding: 0.5rem;
-  }
-
-  .dashboard-section {
-    padding-top: 1rem;
-  }
-
-  .dashboard button {
-    width: 100%;
+  .dashboard input[type="text"],
+  .dashboard textarea,
+  .dashboard .campo-texto,
+  select[multiple],
+  .campo-multiple {
     font-size: 1rem;
     padding: 0.6rem;
+    min-width: 0;
+    margin-bottom: 1rem;
   }
-
-  .dashboard li {
-    padding: 0.8rem;
-  }
-
-  .dashboard h2 {
-    font-size: 1.4rem;
-  }
-
-  .dashboard p,
-  .dashboard h3,
-  .dashboard h4,
-  .dashboard h5 {
-    font-size: 1rem;
-  }
-
-  .chat-input-container {
-    flex-direction: column;
-  }
-
-  .chat-input-container input,
-  .chat-input-container button {
+  .lista-categorias label {
     width: 100%;
-    font-size: 1rem;
-  }
-
-  .zonas-container {
-    padding: 0.5rem;
-  }
-
-  .zonas-boton,
-  .zonas-boton-secundario,
-  .zonas-item button {
-    width: 100%;
-    font-size: 1rem;
-  }
-  .formulario-nueva-solicitud {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    font-family: sans-serif;
-  }
-
-  .formulario-nueva-solicitud input[type="text"],
-  .formulario-nueva-solicitud input[type="checkbox"],
-  .formulario-nueva-solicitud textarea {
-    padding: 0.6rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box;
-    width: 100%;
-  }
-
-  .formulario-nueva-solicitud label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     font-size: 1rem;
-    flex-wrap: wrap; /* 👈 Permite que el texto se divida en varias líneas */
-    word-break: break-word; /* 👈 Evita que palabras largas rompan el diseño */
-    line-height: 1.4;
+    margin-bottom: 0.18rem;
   }
-
-  .formulario-nueva-solicitud button[type="submit"] {
-    padding: 0.6rem 1rem;
-    font-size: 1rem;
-    border: none;
-    border-radius: 6px;
-    background-color: green;
-    color: white;
-    cursor: pointer;
+  .lista-categorias input[type="checkbox"] {
+    flex-shrink: 0;
   }
-
-  .formulario-nueva-solicitud button[type="submit"]:hover {
-    background-color: #0a7a0a;
+  .lista-categorias span {
+    flex: 1 1 auto;
   }
-
-  .formulario-nueva-solicitud ul {
-    margin-top: 0.3rem;
-    padding: 0.4rem;
-    list-style: none;
-    background: white;
-    border: 1px solid #ccc;
-    max-height: 150px;
-    overflow-y: auto;
-    position: absolute;
-    z-index: 10;
-    width: 100%;
+  .dashboard .lista-categorias {
+    padding-left: 0;
   }
+}
+/* Secciones principales del dashboard */
+.dashboard-section {
+  margin-top: 2rem;
+  border-top: 1px solid #ddd;
+  padding-top: 1.5rem;
+}
 
-  .formulario-nueva-solicitud ul li {
-    padding: 0.5rem;
-    cursor: pointer;
-  }
+/* Listas (ul) y elementos de lista (li) */
+.dashboard ul {
+  padding: 0;
+  margin: 0;
+}
+.dashboard li {
+  font-size: 0.98rem;
+  line-height: 1.5;
+  list-style: none;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+}
+.dashboard li:last-child {
+  border-bottom: none;
+}
+.dashboard li button {
+  margin-top: 0.4rem;
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.6rem;
+  box-sizing: border-box;
+  display: block;
+  border-radius: 6px;
+}
 
-  .formulario-nueva-solicitud ul li:hover {
-    background-color: #f0f0f0;
+/* Tarjetas de postulaciones o bloques individuales */
+.postulacion-card {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  background: #fff;
+}
+
+/* Cabecera de la tarjeta de postulación */
+.postulacion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.categoria {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: bold;
+}
+.descripcion {
+  margin: 0.2rem 0 0;
+  color: #666;
+}
+
+/* Estados visuales de postulaciones */
+.estado {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  text-transform: capitalize;
+  margin-top: 0.2rem;
+  display: inline-block;
+}
+.estado-pendiente {
+  background: #ffeeba;
+  color: #856404;
+}
+.estado-preseleccionado {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+.estado-aceptado {
+  background: #c3e6cb;
+  color: #155724;
+}
+.estado-rechazado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Detalles dentro de una postulación */
+.postulacion-detalles p {
+  margin: 0.2rem 0;
+}
+
+/* Acciones y botones en las tarjetas */
+.postulacion-acciones {
+  margin-top: 1rem;
+}
+.postulacion-acciones select,
+.postulacion-acciones button {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  margin-bottom: 0.4rem;
+}
+.postulacion-acciones button {
+  background: #28a745;
+  color: white;
+  border: none;
+}
+.postulacion-docs summary {
+  margin-top: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Responsive: Ajustes para listas y tarjetas en móvil */
+@media (max-width: 600px) {
+  .dashboard-section {
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: none;
   }
   .dashboard h2,
   .dashboard p {
     text-align: center;
   }
-
-  .dashboard-section {
-    border-top: none;
-    margin-top: 1rem;
-  }
-
-  .dashboard-section:first-of-type {
-    margin-top: 0;
-  }
-
-  /* Espaciado extra para evitar solapamientos con el teclado móvil */
-  .dashboard input,
-  .dashboard textarea {
-    margin-bottom: 1rem;
-  }
-
-  /* Ajustes de botones en las listas */
-  .dashboard li button {
-    font-size: 1rem;
-    padding: 0.6rem;
-    margin-top: 0.4rem;
-  }
-
-  /* Historial y postulaciones */
   .dashboard ul {
     padding: 0;
   }
-
   .dashboard li {
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.97rem;
+    padding: 0.8rem;
   }
-
-  /* Que los botones dentro de li ocupen todo el ancho en móviles */
   .dashboard li button {
     width: 100%;
+    min-width: 0;
     box-sizing: border-box;
+    display: block;
+    font-size: 1rem;
   }
   .postulacion-card {
-    border: 1px solid #ddd;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    background: #fff;
+    padding: 0.85rem;
+    border-radius: 7px;
+    margin-bottom: 1.1rem;
   }
+}
+/* ✍️ Modal de reseña */
+.modal-reseña-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
-  .postulacion-header {
+.modal-reseña {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+}
+
+.modal-reseña h3 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.modal-reseña select,
+.modal-reseña textarea {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.modal-reseña-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-reseña button {
+  flex: 1;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-reseña button.enviar {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-reseña button.cancelar {
+  background-color: #ccc;
+  color: black;
+}
+
+/* Notificación flotante */
+.notificacion-flotante {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #007bff;
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  animation: aparecer-notificacion 0.3s;
+}
+@keyframes aparecer-notificacion {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Chips visuales para categorías */
+.dashboard .lista-categorias span {
+  background: #e0e0e0;
+  border-radius: 12px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.97rem;
+  margin-bottom: 0.3rem;
+  word-break: break-all;
+  display: inline-block;
+}
+
+/* Responsive: chips y checkbox en móvil */
+@media (max-width: 600px) {
+  .lista-categorias label {
+    font-size: 1rem;
+    line-height: 1.3;
+    word-break: break-word;
+    width: 100%;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+  }
+  .lista-categorias {
+    gap: 0.2rem;
+    padding-left: 0;
+    display: flex;
     flex-wrap: wrap;
+    gap: 0.3rem 0.7rem;
   }
+  .dashboard .lista-categorias input[type="checkbox"] {
+    flex-shrink: 0;
+  }
+  .dashboard .lista-categorias input[type="checkbox"] + span {
+    flex: 1 1 auto;
+  }
+  .dashboard .lista-categorias span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    font-size: 0.96rem;
+  }
+}
 
-  .categoria {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: bold;
-  }
-
-  .descripcion {
-    margin: 0.2rem 0 0;
-    color: #666;
-  }
-
-  .estado {
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    text-transform: capitalize;
-  }
-
-  .estado-pendiente {
-    background: #ffeeba;
-    color: #856404;
-  }
-
-  .estado-preseleccionado {
-    background: #d1ecf1;
-    color: #0c5460;
-  }
-
-  .estado-aceptado {
-    background: #c3e6cb;
-    color: #155724;
-  }
-
-  .estado-rechazado {
-    background: #f8d7da;
-    color: #721c24;
-  }
-
-  .postulacion-detalles p {
-    margin: 0.2rem 0;
-  }
-
-  .postulacion-acciones {
-    margin-top: 1rem;
-  }
-
-  .postulacion-acciones select,
-  .postulacion-acciones button {
-    width: 100%;
-    padding: 0.6rem;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-  }
-
-  .postulacion-acciones button {
-    background: #28a745;
-    color: white;
-    border: none;
-  }
-
-  .postulacion-docs summary {
-    margin-top: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  .leaflet-control-ubicacion {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-    transition: background 0.3s;
-  }
-
-  .leaflet-control-ubicacion:hover {
-    background: #f0f0f0;
-  }
-  .leaflet-control-attribution a {
-    pointer-events: none;
-    cursor: default;
-    text-decoration: none;
-    color: inherit;
-  }
-  /* ✍️ Modal de reseña */
-  .modal-reseña-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-
-  .modal-reseña {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
-  }
-
-  .modal-reseña h3 {
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-    text-align: center;
-  }
-
-  .modal-reseña select,
-  .modal-reseña textarea {
-    width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-  }
-
-  .modal-reseña-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .modal-reseña button {
-    flex: 1;
-    padding: 0.7rem 1.2rem;
-    font-size: 1rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  .modal-reseña button.enviar {
-    background-color: #28a745;
-    color: white;
-  }
-
-  .modal-reseña button.cancelar {
-    background-color: #ccc;
-    color: black;
-  }
+/* Mejoras para checkbox visuales */
+.campoCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.2rem 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.campoCheckbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #007bff;
+}
+.campoCheckbox span {
+  cursor: pointer;
+  color: #333;
+}
+/* Responsive checkboxes en móvil */
+@media (max-width: 480px) {
   .campoCheckbox {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 1.2rem 0;
-    font-size: 1rem;
-    line-height: 1.4;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
   }
-
   .campoCheckbox input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #007bff;
+    width: 22px;
+    height: 22px;
   }
-
   .campoCheckbox span {
-    cursor: pointer;
-    color: #333;
+    margin-top: 0.3rem;
   }
-
-  /* Estilo responsive para pantallas pequeñas */
-  @media (max-width: 480px) {
-    .campoCheckbox {
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      align-items: flex-start;
-    }
-
-    .campoCheckbox input[type="checkbox"] {
-      width: 22px;
-      height: 22px;
-    }
-
-    .campoCheckbox span {
-      margin-top: 0.3rem;
-    }
-  }
-  @media (max-width: 600px) {
-    .lista-categorias label {
-      font-size: 1rem;
-      line-height: 1.3;
-      word-break: break-word;
-    }
-    .lista-categorias {
-      gap: 0.2rem;
-    }
-    .dashboard .lista-categorias {
-      padding-left: 0;
-    }
-    .dashboard .lista-categorias label {
-      width: 100%;
-      display: flex;
-      align-items: center;
-    }
-    .dashboard .lista-categorias input[type="checkbox"] {
-      flex-shrink: 0;
-    }
-    .dashboard .lista-categorias input[type="checkbox"] + span {
-      flex: 1 1 auto;
-    }
-    /* Ajuste de chips */
-    .dashboard .lista-categorias span {
-      font-size: 0.98rem;
-      padding: 0.35rem 0.75rem;
-      margin-bottom: 0.3rem;
-      word-break: break-all;
-    }
-    .dashboard .lista-categorias {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem 0.7rem;
-    }
-
-    .dashboard .lista-categorias span {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 150px;
-    }
-  }
-  @media (max-width: 600px) {
-    .zonas-boton,
-    .zonas-boton-secundario {
-      width: 100%;
-      margin-bottom: 0.7rem;
-      font-size: 1.09rem;
-    }
-  }
-  .dashboard input[type="text"],
-  .dashboard textarea,
-  .dashboard .campo-texto {
-    margin-bottom: 1.2rem;
-  }
-  @media (max-width: 600px) {
-    .dashboard li button,
-    .dashboard-section button {
-      width: 100% !important;
-      min-width: 0 !important;
-      box-sizing: border-box;
-      display: block;
-    }
+  .dashboard input:focus,
+  .dashboard textarea:focus {
+    box-shadow: 0 0 0 2px #007bff33;
   }
 }
