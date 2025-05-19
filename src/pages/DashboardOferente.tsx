@@ -965,6 +965,7 @@ const DashboardOferente: React.FC = () => {
                   const idSeleccionado =
                     solicitudParaReseña ||
                     (solicitudesAceptadas[0]?.solicitud_id ?? null);
+
                   if (!usuario || !idSeleccionado) return;
                   if (puntuacion >= 4 && comentario.trim() === "") {
                     toast.error(
@@ -972,6 +973,8 @@ const DashboardOferente: React.FC = () => {
                     );
                     return;
                   }
+
+                  // Prevenir doble reseña
                   const { data: existente } = await supabase
                     .from("reseñas")
                     .select("id")
@@ -984,33 +987,32 @@ const DashboardOferente: React.FC = () => {
                     return;
                   }
 
-                  // Obtén datos del destinatario (cliente)
-                  // Obtén datos del destinatario (cliente)
+                  // Buscar datos del destinatario (cliente)
                   const datosSolicitud = solicitudesFiltradas.find(
                     (sf) => sf.id === idSeleccionado
                   );
-                  const destinatarioId =
-                    datosSolicitud?.cliente?.id || undefined;
+                  const destinatarioId = datosSolicitud?.cliente?.id || "";
                   const destinatarioNombre =
-                    datosSolicitud?.cliente?.nombre || undefined;
-                  const solicitudUUID = idSeleccionado || undefined;
+                    datosSolicitud?.cliente?.nombre || "";
 
-                  // Construye el objeto SIN campos vacíos/undefined
-                  const reseñaData: any = {
+                  // *** Validación robusta ***
+                  if (!destinatarioId || !destinatarioNombre) {
+                    toast.error("No se ha encontrado el cliente a valorar.");
+                    return;
+                  }
+
+                  const reseñaData = {
                     tipo: "cliente",
                     autor_id: usuario.id,
                     autor_nombre: usuario.nombre,
+                    destinatario_id: destinatarioId,
+                    destinatario_n: destinatarioNombre,
+                    solicitud_id: idSeleccionado,
                     puntuacion,
                     comentario,
                   };
 
-                  if (destinatarioId)
-                    reseñaData.destinatario_id = destinatarioId;
-                  if (destinatarioNombre)
-                    reseñaData.destinatario_n = destinatarioNombre;
-                  if (solicitudUUID) reseñaData.solicitud_id = solicitudUUID;
-
-                  // Debug para asegurarte de que no hay campos vacíos
+                  // Debug opcional
                   console.log("reseñaData a guardar:", reseñaData);
 
                   const { error } = await supabase
