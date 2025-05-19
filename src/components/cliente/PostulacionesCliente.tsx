@@ -444,10 +444,12 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
     if (!postulacionSeleccionada) return;
 
     const solicitud_id = postulacionSeleccionada.solicitud.id;
-    const autor_id = clienteId; // el que emite la reseña (cliente)
-    const autor_nombre = postulacionSeleccionada.solicitud.cliente.nombre; // nombre del cliente
+    const autor_id = clienteId;
+    const autor_nombre = postulacionSeleccionada.solicitud.cliente.nombre;
     const destinatario_id = postulacionSeleccionada.oferente_id;
-    const destinatario_n = postulacionSeleccionada.oferente?.nombre || "";
+    // Si faltara el nombre, ponlo como "Sin nombre"
+    const destinatario_n =
+      postulacionSeleccionada.oferente?.nombre || "Sin nombre";
 
     if (!puntuacion || !autor_id || !solicitud_id || !destinatario_id) {
       toast.error("Faltan datos para enviar la reseña.");
@@ -478,19 +480,21 @@ const PostulacionesCliente: React.FC<Props> = ({ clienteId }) => {
       return;
     }
 
-    // Inserta la reseña con todos los datos
-    const { error } = await supabase.from("reseñas").insert([
-      {
-        tipo: "oferente", // el cliente valora al oferente
-        autor_id, // cliente que valora
-        autor_nombre, // nombre del cliente
-        destinatario_id, // oferente valorado
-        destinatario_n, // nombre del oferente
-        solicitud_id,
-        puntuacion,
-        comentario,
-      },
-    ]);
+    // 👇 Evita undefined, pon siempre un string válido
+    const reseñaData = {
+      tipo: "oferente", // o "cliente"
+      autor_id,
+      autor_nombre: autor_nombre || "Sin nombre",
+      destinatario_id,
+      destinatario_n: destinatario_n || "Sin nombre",
+      solicitud_id,
+      puntuacion,
+      comentario,
+    };
+    // Debug opcional
+    console.log("reseñaData a guardar:", reseñaData);
+
+    const { error } = await supabase.from("reseñas").insert([reseñaData]);
 
     if (error) {
       toast.error("Error al guardar la reseña.");
