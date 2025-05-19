@@ -965,8 +965,8 @@ const DashboardOferente: React.FC = () => {
                   const idSeleccionado =
                     solicitudParaReseña ||
                     (solicitudesAceptadas[0]?.solicitud_id ?? null);
-
                   if (!usuario || !idSeleccionado) return;
+
                   if (puntuacion >= 4 && comentario.trim() === "") {
                     toast.error(
                       "Añade un comentario si la puntuación es alta."
@@ -974,46 +974,67 @@ const DashboardOferente: React.FC = () => {
                     return;
                   }
 
-                  // Prevenir doble reseña
+                  // Busca primero en solicitudesFiltradas
+                  let datosSolicitud = solicitudesFiltradas.find(
+                    (sf) => sf.id === idSeleccionado
+                  );
+
+                  // Si no la encuentra, busca en solicitudesAceptadas (puedes adaptar según estructura)
+                  if (!datosSolicitud) {
+                    const aceptada = solicitudesAceptadas.find(
+                      (sa) => sa.solicitud_id === idSeleccionado
+                    );
+                    if (aceptada) {
+                      // Crea objeto mínimo para la reseña
+                      datosSolicitud = {
+                        id: aceptada.solicitud_id,
+                        latitud: 0,
+                        longitud: 0,
+                        cliente: {
+                          id: aceptada.cliente_id,
+                          nombre: aceptada.cliente_nombre,
+                        },
+                      };
+                    }
+                  }
+
+                  console.log("datosSolicitud para reseña:", datosSolicitud);
+
+                  if (
+                    !datosSolicitud ||
+                    !datosSolicitud.cliente ||
+                    !datosSolicitud.cliente.id
+                  ) {
+                    toast.error("No se ha encontrado el cliente a valorar.");
+                    return;
+                  }
+
+                  // Comprueba si ya existe una reseña
                   const { data: existente } = await supabase
                     .from("reseñas")
                     .select("id")
                     .eq("autor_id", usuario.id)
                     .eq("solicitud_id", idSeleccionado)
                     .maybeSingle();
+
                   if (existente) {
                     toast.error("Ya has enviado una reseña.");
                     setMostrarReseña(false);
                     return;
                   }
 
-                  // Buscar datos del destinatario (cliente)
-                  const datosSolicitud = solicitudesFiltradas.find(
-                    (sf) => sf.id === idSeleccionado
-                  );
-                  const destinatarioId = datosSolicitud?.cliente?.id || "";
-                  const destinatarioNombre =
-                    datosSolicitud?.cliente?.nombre || "";
-                  console.log("datosSolicitud", datosSolicitud);
-
-                  // *** Validación robusta ***
-                  if (!destinatarioId || !destinatarioNombre) {
-                    toast.error("No se ha encontrado el cliente a valorar.");
-                    return;
-                  }
-
+                  // Prepara datos completos (usa "Sin nombre" si falta algo)
                   const reseñaData = {
                     tipo: "cliente",
                     autor_id: usuario.id,
-                    autor_nombre: usuario.nombre,
-                    destinatario_id: destinatarioId,
-                    destinatario_n: destinatarioNombre,
+                    autor_nombre: usuario.nombre || "Sin nombre",
+                    destinatario_id: datosSolicitud.cliente.id || "",
+                    destinatario_n:
+                      datosSolicitud.cliente.nombre || "Sin nombre",
                     solicitud_id: idSeleccionado,
                     puntuacion,
                     comentario,
                   };
-
-                  // Debug opcional
                   console.log("reseñaData a guardar:", reseñaData);
 
                   const { error } = await supabase
