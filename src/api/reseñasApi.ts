@@ -15,6 +15,5 @@ export async function obtenerReseñasPositivas(limit = 3) {
   return (data ?? []).map((r) => ({
     comentario: r.comentario,
     puntuacion: r.puntuacion,
-    nombre: r.destinatario_n || r.autor_nombre || "Usuario anónimo",
   }));
 }
