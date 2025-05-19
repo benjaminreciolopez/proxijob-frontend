@@ -63,16 +63,17 @@ const CrearReseña: React.FC = () => {
       return;
     }
 
-    // Estructura general y flexible
+    // Estructura universal y coherente con tus otros formularios:
     const nuevaReseña: any = {
       tipo, // "cliente" | "oferente" | "plataforma"
       autor_id, // El que valora
+      autor_nombre: searchParams.get("autor_nombre") || "", // si lo tienes disponible
       solicitud_id: solicitud_id || null, // Solo si aplica
-      destinatario_id: destinatario_id || null, // cliente_id u oferente_id, según tipo
-      nombre_destinatario,
+      destinatario_id: destinatario_id || null,
+      destinatario_n: nombre_destinatario || "",
       puntuacion,
       comentario,
-      fecha: new Date().toISOString(),
+      // NO pongas fecha aquí si el campo ya es default now() en Postgres
     };
 
     const { error } = await supabase.from("reseñas").insert([nuevaReseña]);

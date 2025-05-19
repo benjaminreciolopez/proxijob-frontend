@@ -975,7 +975,7 @@ const DashboardOferente: React.FC = () => {
                   const { data: existente } = await supabase
                     .from("reseñas")
                     .select("id")
-                    .eq("oferente_id", usuario.id) // 👈 debe ser oferente_id, no usuario_id
+                    .eq("autor_id", usuario.id)
                     .eq("solicitud_id", idSeleccionado)
                     .maybeSingle();
                   if (existente) {
@@ -983,13 +983,25 @@ const DashboardOferente: React.FC = () => {
                     setMostrarReseña(false);
                     return;
                   }
+
+                  // Obtén datos del destinatario (cliente)
+                  const datosSolicitud = solicitudesFiltradas.find(
+                    (sf) => sf.id === idSeleccionado
+                  );
+                  const destinatarioId = datosSolicitud?.cliente?.id ?? "";
+                  const destinatarioNombre =
+                    datosSolicitud?.cliente?.nombre ?? "";
+
                   const { error } = await supabase.from("reseñas").insert([
                     {
-                      oferente_id: usuario.id, // 👈 usa oferente_id
+                      tipo: "cliente", // o "oferente", según caso
+                      autor_id: usuario.id,
+                      autor_nombre: usuario.nombre,
+                      destinatario_id: destinatarioId,
+                      destinatario_n: destinatarioNombre,
                       solicitud_id: idSeleccionado,
                       puntuacion,
                       comentario,
-                      nombre: usuario.nombre,
                     },
                   ]);
                   if (error) {
@@ -1003,7 +1015,7 @@ const DashboardOferente: React.FC = () => {
                     setSolicitudParaReseña(null);
                     setSolicitudesYaReseñadas((prev) =>
                       new Set(prev).add(idSeleccionado)
-                    ); // 👈 Actualiza el estado
+                    );
                   }
                 }}
                 style={{
