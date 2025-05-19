@@ -153,7 +153,8 @@ const LandingPage: React.FC = () => {
                     color: "#555",
                   }}
                 >
-                  — {r.nombre || "Usuario anónimo"}
+                  — {r.autor_nombre || "Usuario anónimo"}
+                  {r.destinatario_n ? ` (a ${r.destinatario_n})` : ""}
                 </cite>
               </blockquote>
             ))}
