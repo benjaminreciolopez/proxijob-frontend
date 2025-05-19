@@ -994,6 +994,7 @@ const DashboardOferente: React.FC = () => {
                   const destinatarioId = datosSolicitud?.cliente?.id || "";
                   const destinatarioNombre =
                     datosSolicitud?.cliente?.nombre || "";
+                  console.log("datosSolicitud", datosSolicitud);
 
                   // *** Validación robusta ***
                   if (!destinatarioId || !destinatarioNombre) {
