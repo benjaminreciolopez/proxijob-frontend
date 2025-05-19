@@ -40,6 +40,7 @@ const DashboardOferente: React.FC = () => {
   const [clienteDesplegado, setClienteDesplegado] = useState<string | null>(
     null
   );
+  const [mostrarActivas, setMostrarActivas] = useState(true);
 
   async function registrarCategoria(usuarioId: string, nombre: string) {
     const nombreNormalizado = nombre.trim().toLowerCase();
@@ -584,129 +585,175 @@ const DashboardOferente: React.FC = () => {
           </div>
 
           {/* Comunicación activa */}
+          {/* ------ NUEVO BLOQUE: Solicitudes activas con botón para mostrar/ocultar ------ */}
           <div className="dashboard-section">
-            <h3>💬 Solicitudes activas</h3>
-            {Object.keys(solicitudesPorCliente).length > 0 ? (
-              Object.entries(solicitudesPorCliente).map(
-                ([cliente_id, { cliente_nombre, solicitudes }]) => (
-                  <div
-                    key={cliente_id}
-                    style={{
-                      marginBottom: "1.5rem",
-                      borderBottom: "1px solid #ccc",
-                    }}
-                  >
-                    <div
-                      onClick={() =>
-                        setClienteDesplegado(
-                          clienteDesplegado === cliente_id ? null : cliente_id
-                        )
-                      }
-                      style={{
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                        fontSize: "1.1rem",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        padding: "0.5rem 0",
-                      }}
-                    >
-                      👤 {cliente_nombre}{" "}
-                      <span
+            <button
+              onClick={() =>
+                setClienteDesplegado(clienteDesplegado ? null : "all")
+              }
+              style={{
+                marginBottom: "1rem",
+                padding: "0.6rem 1rem",
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
+              {clienteDesplegado
+                ? "🔽 Ocultar solicitudes activas"
+                : "🔼 Ver solicitudes activas"}
+            </button>
+
+            {clienteDesplegado && (
+              <>
+                <h3>💬 Solicitudes activas</h3>
+                {Object.keys(solicitudesPorCliente).length > 0 ? (
+                  Object.entries(solicitudesPorCliente).map(
+                    ([cliente_id, { cliente_nombre, solicitudes }]) => (
+                      <div
+                        key={cliente_id}
                         style={{
-                          background: "#007bff",
-                          color: "white",
-                          borderRadius: "999px",
-                          fontSize: "0.9em",
-                          padding: "0.1em 0.7em",
-                          marginLeft: "0.7em",
+                          marginBottom: "1.5rem",
+                          borderBottom: "1px solid #ccc",
                         }}
                       >
-                        {solicitudes.length} solicitud
-                        {solicitudes.length > 1 ? "es" : ""}
-                      </span>
-                      <span style={{ marginLeft: "auto" }}>
-                        {clienteDesplegado === cliente_id ? "▲" : "▼"}
-                      </span>
-                    </div>
-                    {clienteDesplegado === cliente_id && (
-                      <ul style={{ listStyle: "none", paddingLeft: 0 }}>
-                        {solicitudes.map((sol) => {
-                          // Buscar datos extendidos de la solicitud:
-                          const datosSolicitud = solicitudesFiltradas.find(
-                            (sf) => sf.id === sol.solicitud_id
-                          );
-                          return (
-                            <li
-                              key={sol.solicitud_id}
-                              style={{ margin: "0.5em 0", paddingLeft: "1em" }}
-                            >
-                              <div>
-                                <strong>Categoría:</strong>{" "}
-                                {Array.isArray(datosSolicitud?.categoria)
-                                  ? datosSolicitud.categoria[0]?.nombre
-                                  : datosSolicitud?.categoria?.nombre ||
-                                    "Sin especificar"}
-                              </div>
-                              <div>
-                                <strong>Descripción:</strong>{" "}
-                                {datosSolicitud?.descripcion ?? "-"}
-                              </div>
-                              <div>
-                                <strong>Ubicación:</strong>{" "}
-                                {datosSolicitud?.ubicacion ?? "-"}
-                                {datosSolicitud?.radio_km &&
-                                  ` (${datosSolicitud.radio_km} km)`}
-                              </div>
-                              {/* Si tienes fecha en datosSolicitud, la puedes poner aquí */}
-                              {/* <div><strong>Fecha:</strong> {datosSolicitud?.fecha}</div> */}
-                              <button
-                                onClick={() =>
-                                  (window.location.href = `/chat?cliente_id=${sol.cliente_id}&oferente_id=${usuario?.id}&solicitud_id=${sol.solicitud_id}`)
-                                }
-                                style={{
-                                  margin: "0.3em 0.5em 0.3em 0",
-                                  padding: "0.5em 1.2em",
-                                  backgroundColor: "#007bff",
-                                  color: "#fff",
-                                  border: "none",
-                                  borderRadius: "5px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                💬 Acceder al chat
-                              </button>
-                              {!reseñaEnviada && (
-                                <button
-                                  onClick={() => {
-                                    setMostrarReseña(true);
-                                    setPuntuacion(0);
-                                    setComentario("");
-                                    setSolicitudParaReseña(sol.solicitud_id);
-                                  }}
+                        <div
+                          onClick={() =>
+                            setClienteDesplegado(
+                              clienteDesplegado === cliente_id
+                                ? null
+                                : cliente_id
+                            )
+                          }
+                          style={{
+                            cursor: "pointer",
+                            fontWeight: "bold",
+                            fontSize: "1.1rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            padding: "0.5rem 0",
+                          }}
+                        >
+                          👤 {cliente_nombre}{" "}
+                          <span
+                            style={{
+                              background: "#007bff",
+                              color: "white",
+                              borderRadius: "999px",
+                              fontSize: "0.9em",
+                              padding: "0.1em 0.7em",
+                              marginLeft: "0.7em",
+                            }}
+                          >
+                            {solicitudes.length} solicitud
+                            {solicitudes.length > 1 ? "es" : ""}
+                          </span>
+                          <span style={{ marginLeft: "auto" }}>
+                            {clienteDesplegado === cliente_id ? "▲" : "▼"}
+                          </span>
+                        </div>
+                        {clienteDesplegado === cliente_id && (
+                          <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+                            {solicitudes.map((sol) => {
+                              // Buscar datos extendidos de la solicitud:
+                              const datosSolicitud = solicitudesFiltradas.find(
+                                (sf) => sf.id === sol.solicitud_id
+                              );
+                              return (
+                                <li
+                                  key={sol.solicitud_id}
                                   style={{
-                                    padding: "0.5em 1.2em",
-                                    backgroundColor: "#28a745",
-                                    color: "#fff",
-                                    border: "none",
-                                    borderRadius: "5px",
-                                    cursor: "pointer",
+                                    margin: "0.5em 0",
+                                    paddingLeft: "1em",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.6em",
                                   }}
                                 >
-                                  ✍️ Valorar al cliente
-                                </button>
-                              )}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </div>
-                )
-              )
-            ) : (
-              <p>No tienes solicitudes activas.</p>
+                                  <div>
+                                    <strong>Categoría:</strong>{" "}
+                                    {Array.isArray(datosSolicitud?.categoria)
+                                      ? datosSolicitud.categoria[0]?.nombre
+                                      : datosSolicitud?.categoria?.nombre ||
+                                        "Sin especificar"}
+                                  </div>
+                                  <div>
+                                    <strong>Descripción:</strong>{" "}
+                                    {datosSolicitud?.descripcion ?? "-"}
+                                  </div>
+                                  <div>
+                                    <strong>Ubicación:</strong>{" "}
+                                    {datosSolicitud?.ubicacion ?? "-"}
+                                    {datosSolicitud?.radio_km &&
+                                      ` (${datosSolicitud.radio_km} km)`}
+                                  </div>
+                                  {/* Botones SIEMPRE visibles y ocupando todo el ancho en móvil */}
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      gap: "0.5em",
+                                    }}
+                                  >
+                                    <button
+                                      onClick={() =>
+                                        (window.location.href = `/chat?cliente_id=${sol.cliente_id}&oferente_id=${usuario?.id}&solicitud_id=${sol.solicitud_id}`)
+                                      }
+                                      style={{
+                                        margin: 0,
+                                        padding: "0.5em 1.2em",
+                                        backgroundColor: "#007bff",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "5px",
+                                        cursor: "pointer",
+                                        width: "100%",
+                                        maxWidth: 420,
+                                      }}
+                                    >
+                                      💬 Acceder al chat
+                                    </button>
+                                    {!reseñaEnviada && (
+                                      <button
+                                        onClick={() => {
+                                          setMostrarReseña(true);
+                                          setPuntuacion(0);
+                                          setComentario("");
+                                          setSolicitudParaReseña(
+                                            sol.solicitud_id
+                                          );
+                                        }}
+                                        style={{
+                                          padding: "0.5em 1.2em",
+                                          backgroundColor: "#28a745",
+                                          color: "#fff",
+                                          border: "none",
+                                          borderRadius: "5px",
+                                          cursor: "pointer",
+                                          width: "100%",
+                                          maxWidth: 420,
+                                        }}
+                                      >
+                                        ✍️ Valorar al cliente
+                                      </button>
+                                    )}
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    )
+                  )
+                ) : (
+                  <p>No tienes solicitudes activas.</p>
+                )}
+              </>
             )}
           </div>
 

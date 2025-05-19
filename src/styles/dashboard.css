@@ -601,4 +601,13 @@ select[multiple] {
   .dashboard .campo-texto {
     margin-bottom: 1.2rem;
   }
+  @media (max-width: 600px) {
+    .dashboard li button,
+    .dashboard-section button {
+      width: 100% !important;
+      min-width: 0 !important;
+      box-sizing: border-box;
+      display: block;
+    }
+  }
 }
