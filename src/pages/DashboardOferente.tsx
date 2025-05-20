@@ -27,6 +27,13 @@ const DashboardOferente: React.FC = () => {
   const [solicitudParaReseña, setSolicitudParaReseña] = useState<string | null>(
     null
   );
+  const [todasCategorias, setTodasCategorias] = useState<
+    { id: string; nombre: string }[]
+  >([]);
+  const [categoriasUsuario, setCategoriasUsuario] = useState<
+    { id: string; nombre: string }[]
+  >([]);
+  const [seleccionadas, setSeleccionadas] = useState<string[]>([]);
 
   const [solicitudesFiltradas, setSolicitudesFiltradas] = useState<Solicitud[]>(
     []
@@ -290,6 +297,36 @@ const DashboardOferente: React.FC = () => {
         }
       )
       .subscribe();
+
+    useEffect(() => {
+      const cargarCategoriasUsuario = async () => {
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+        if (error || !user) return;
+
+        // 1. Traer todas las categorías
+        const { data: todas } = await supabase.from("categorias").select("*");
+
+        // 2. Traer relaciones usuario-categoría
+        const { data: asociadas } = await supabase
+          .from("categorias_oferente")
+          .select("categoria_id")
+          .eq("oferente_id", user.id);
+
+        // 3. Buscar los objetos completos de las seleccionadas
+        const seleccionadas = asociadas
+          ?.map((c) => todas?.find((cat) => cat.id === c.categoria_id))
+          .filter(Boolean) as { id: string; nombre: string }[];
+
+        setCategoriasUsuario(
+          seleccionadas.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
+        );
+      };
+
+      cargarCategoriasUsuario();
+    }, []);
 
     return () => {
       supabase.removeChannel(canal);
@@ -582,13 +619,18 @@ const DashboardOferente: React.FC = () => {
           <div style={{ marginTop: "1.5rem" }}>
             <h4>📄 Sobre mí</h4>
             <p>
-              <strong>Especialidad:</strong>{" "}
-              {usuario.especialidad || "No especificada"}
+              <strong>Especialidades:</strong>{" "}
+              {categoriasUsuario.length > 0
+                ? categoriasUsuario
+                    .map((cat) => cat.nombre)
+                    .sort((a, b) => a.localeCompare(b, "es"))
+                    .join(", ")
+                : "No seleccionadas"}
             </p>
             <p>
               <strong>Descripción:</strong>{" "}
               {usuario.descripcion || "No has escrito aún tu presentación."}
-            </p>
+            </p>{" "}
             <button
               onClick={() => navigate("/editar-perfil")}
               style={{

@@ -1,4 +1,3 @@
-// src/api/categoriasApi.ts
 import { supabase } from "../supabaseClient";
 
 export async function buscarCategoriasSimilares(termino: string) {
@@ -6,6 +5,7 @@ export async function buscarCategoriasSimilares(termino: string) {
     .from("categorias")
     .select("nombre")
     .ilike("nombre", `%${termino.trim().toLowerCase()}%`)
+    .order("nombre", { ascending: true }) // <-- Ordena alfabéticamente
     .limit(5);
 
   if (error) {
