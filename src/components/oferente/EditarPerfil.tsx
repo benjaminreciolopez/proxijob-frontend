@@ -40,7 +40,11 @@ const EditarPerfil: React.FC = () => {
         .from("categorias")
         .select("*");
 
-      setTodasCategorias(categoriasData || []);
+      setTodasCategorias(
+        (categoriasData || []).sort((a, b) =>
+          a.nombre.localeCompare(b.nombre, "es")
+        )
+      );
 
       const { data: asociadas } = await supabase
         .from("categorias_oferente")
@@ -221,23 +225,22 @@ const EditarPerfil: React.FC = () => {
         >
           {seleccionadas
             .filter((id) => id !== "otras")
-            .map((id) => {
-              const nombre =
-                todasCategorias.find((c) => c.id === id)?.nombre || id;
-              return (
-                <span
-                  key={id}
-                  style={{
-                    background: "#e0e0e0",
-                    borderRadius: "12px",
-                    padding: "0.4rem 0.8rem",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  {nombre}
-                </span>
-              );
-            })}
+            .map((id) => todasCategorias.find((c) => c.id === id))
+            .filter(Boolean)
+            .sort((a, b) => a!.nombre.localeCompare(b!.nombre, "es"))
+            .map((cat) => (
+              <span
+                key={cat!.id}
+                style={{
+                  background: "#e0e0e0",
+                  borderRadius: "12px",
+                  padding: "0.4rem 0.8rem",
+                  fontSize: "0.9rem",
+                }}
+              >
+                {cat!.nombre}
+              </span>
+            ))}
         </div>
 
         {mostrarCampoNueva && (
