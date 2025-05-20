@@ -7,9 +7,7 @@ import { supabase } from "../supabaseClient";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState<
-    "oferente" | "cliente" | null
-  >(null);
+  const [showRoleOptions, setShowRoleOptions] = useState(false);
   const [reseñas, setReseñas] = useState<any[]>([]);
 
   const cargarReseñas = async () => {
@@ -37,7 +35,6 @@ const LandingPage: React.FC = () => {
   }, []);
 
   const handleRoleClick = (rol: "oferente" | "cliente") => {
-    setSelectedRole(rol);
     navigate(`/registro?rol=${rol}`);
   };
 
@@ -46,28 +43,43 @@ const LandingPage: React.FC = () => {
       <header className={styles.header}>
         <h1 className={styles.logo}>ProxiJob</h1>
         <div className={styles.nav}>
-          <button
-            className={`${styles.navButton} ${
-              selectedRole === "oferente" ? styles.active : ""
-            }`}
-            onClick={() => handleRoleClick("oferente")}
-          >
-            Quiero ofrecer mis servicios
-          </button>
-          <button
-            className={`${styles.navButton} ${
-              selectedRole === "cliente" ? styles.active : ""
-            }`}
-            onClick={() => handleRoleClick("cliente")}
-          >
-            Busco a alguien para un trabajo
-          </button>
-          <button
-            className={styles.loginButton}
-            onClick={() => navigate("/login")}
-          >
-            Acceder
-          </button>
+          {!showRoleOptions ? (
+            <>
+              <button
+                className={styles.navButton}
+                onClick={() => setShowRoleOptions(true)}
+              >
+                Registrarse
+              </button>
+              <button
+                className={styles.loginButton}
+                onClick={() => navigate("/login")}
+              >
+                Acceder
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className={styles.roleButton}
+                onClick={() => handleRoleClick("oferente")}
+              >
+                Quiero ofrecer mis servicios
+              </button>
+              <button
+                className={styles.roleButton}
+                onClick={() => handleRoleClick("cliente")}
+              >
+                Busco a alguien para un trabajo
+              </button>
+              <button
+                className={styles.volverButton}
+                onClick={() => setShowRoleOptions(false)}
+              >
+                ← Volver
+              </button>
+            </>
+          )}
         </div>
       </header>
 
