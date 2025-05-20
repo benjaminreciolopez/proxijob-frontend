@@ -298,40 +298,40 @@ const DashboardOferente: React.FC = () => {
       )
       .subscribe();
 
-    useEffect(() => {
-      const cargarCategoriasUsuario = async () => {
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser();
-        if (error || !user) return;
-
-        // 1. Traer todas las categorías
-        const { data: todas } = await supabase.from("categorias").select("*");
-
-        // 2. Traer relaciones usuario-categoría
-        const { data: asociadas } = await supabase
-          .from("categorias_oferente")
-          .select("categoria_id")
-          .eq("oferente_id", user.id);
-
-        // 3. Buscar los objetos completos de las seleccionadas
-        const seleccionadas = asociadas
-          ?.map((c) => todas?.find((cat) => cat.id === c.categoria_id))
-          .filter(Boolean) as { id: string; nombre: string }[];
-
-        setCategoriasUsuario(
-          seleccionadas.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
-        );
-      };
-
-      cargarCategoriasUsuario();
-    }, []);
-
     return () => {
       supabase.removeChannel(canal);
     };
   }, [usuario, zonas]);
+
+  useEffect(() => {
+    const cargarCategoriasUsuario = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (error || !user) return;
+
+      // 1. Traer todas las categorías
+      const { data: todas } = await supabase.from("categorias").select("*");
+
+      // 2. Traer relaciones usuario-categoría
+      const { data: asociadas } = await supabase
+        .from("categorias_oferente")
+        .select("categoria_id")
+        .eq("oferente_id", user.id);
+
+      // 3. Buscar los objetos completos de las seleccionadas
+      const seleccionadas = asociadas
+        ?.map((c) => todas?.find((cat) => cat.id === c.categoria_id))
+        .filter(Boolean) as { id: string; nombre: string }[];
+
+      setCategoriasUsuario(
+        seleccionadas.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
+      );
+    };
+
+    cargarCategoriasUsuario();
+  }, []);
 
   // Define los tipos arriba en tu archivo:
   interface ClienteEnSolicitud {
