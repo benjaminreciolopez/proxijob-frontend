@@ -3,33 +3,61 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
 
-// Soporta reseñas a cliente, oferente, o incluso a la app/plataforma si lo amplías
 const CrearReseña: React.FC = () => {
   const [searchParams] = useSearchParams();
   const solicitud_id = searchParams.get("solicitud_id");
   const autor_id = searchParams.get("usuario_id");
-  const destinatario_id = searchParams.get("destinatario_id"); // <- usa este parámetro para saber a quién va dirigida
-  const nombre_destinatario = searchParams.get("nombre");
-  const tipo = searchParams.get("tipo"); // "cliente", "oferente", "plataforma", etc.
+  const destinatario_id = searchParams.get("destinatario_id");
+  const nombre_destinatario =
+    searchParams.get("nombre") || "Usuario desconocido";
+  const tipo = searchParams.get("tipo"); // "cliente", "oferente", etc.
+  const autor_nombre = searchParams.get("autor_nombre") || ""; // puede venir vacío
 
   const [puntuacion, setPuntuacion] = useState<number>(0);
   const [comentario, setComentario] = useState("");
   const [enviada, setEnviada] = useState(false);
+  const [yaExiste, setYaExiste] = useState(false);
   const navigate = useNavigate();
 
-  // 1. Comprobación: ¿ya existe reseña?
-  const [yaExiste, setYaExiste] = useState(false);
+  // Comprobación: ¿faltan parámetros críticos?
+  if (!tipo || !autor_id || !destinatario_id) {
+    return (
+      <div
+        style={{
+          padding: "2rem",
+          maxWidth: "500px",
+          margin: "0 auto",
+          textAlign: "center",
+        }}
+      >
+        <h2>Error</h2>
+        <p>
+          Faltan datos para dejar una reseña. Vuelve a intentarlo desde la
+          plataforma.
+        </p>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            marginTop: "1rem",
+            padding: "0.7rem 1.5rem",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          Volver atrás
+        </button>
+      </div>
+    );
+  }
 
+  // ¿Ya existe reseña?
   useEffect(() => {
-    if (!tipo || !autor_id) return;
-    // Construye el filtro según el tipo
-    let filtro: any = { autor_id, tipo };
-    if (tipo === "plataforma") {
-      // solo existe uno por usuario
-    } else if (tipo === "cliente" || tipo === "oferente") {
-      filtro.solicitud_id = solicitud_id;
-      filtro.destinatario_id = destinatario_id;
-    }
+    if (!tipo || !autor_id || !destinatario_id) return;
+    let filtro: any = { autor_id, tipo, destinatario_id };
+    if (solicitud_id) filtro.solicitud_id = solicitud_id;
     async function checkExistente() {
       const { data } = await supabase
         .from("reseñas")
@@ -40,18 +68,11 @@ const CrearReseña: React.FC = () => {
     }
     checkExistente();
     // eslint-disable-next-line
-  }, [tipo, autor_id, solicitud_id, destinatario_id]);
+  }, [tipo, autor_id, destinatario_id, solicitud_id]);
 
   const handleEnviar = async () => {
-    if (!puntuacion || !autor_id || !tipo) {
-      toast.error("Faltan datos para enviar la reseña.");
-      return;
-    }
-    if (
-      (tipo === "cliente" || tipo === "oferente") &&
-      (!solicitud_id || !destinatario_id)
-    ) {
-      toast.error("No se reconoce la solicitud o destinatario.");
+    if (!puntuacion) {
+      toast.error("Selecciona una puntuación.");
       return;
     }
     if (puntuacion >= 4 && comentario.trim() === "") {
@@ -63,17 +84,15 @@ const CrearReseña: React.FC = () => {
       return;
     }
 
-    // Estructura universal y coherente con tus otros formularios:
     const nuevaReseña: any = {
-      tipo, // "cliente" | "oferente" | "plataforma"
-      autor_id, // El que valora
-      autor_nombre: searchParams.get("autor_nombre") || "", // si lo tienes disponible
-      solicitud_id: solicitud_id || null, // Solo si aplica
-      destinatario_id: destinatario_id || null,
-      destinatario_n: nombre_destinatario || "",
+      tipo,
+      autor_id,
+      autor_nombre,
+      solicitud_id: solicitud_id || null,
+      destinatario_id,
+      destinatario_n: nombre_destinatario,
       puntuacion,
       comentario,
-      // NO pongas fecha aquí si el campo ya es default now() en Postgres
     };
 
     const { error } = await supabase.from("reseñas").insert([nuevaReseña]);

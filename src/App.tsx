@@ -4,14 +4,13 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
-import DashboardCliente from "./pages/DashboardCliente";
-import DashboardOferente from "./pages/DashboardOferente";
+import DashboardUniversal from "./pages/DashboardUniversal";
 import Chat from "./Chat";
 import { Toaster } from "react-hot-toast";
-import EditarPerfil from "./components/oferente/EditarPerfil";
-import AdminLogin from "./pages/AdminLogin"; // o la ruta correspondiente
+import AdminLogin from "./pages/AdminLogin";
 import RutaProtegida from "./components/RutaProtegida";
 import CrearReseña from "./pages/CrearReseña";
+
 const modoMantenimiento = import.meta.env.VITE_MODO_MANTENIMIENTO === "true";
 const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
 
@@ -38,7 +37,6 @@ const App: React.FC = () => {
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/registro" element={<Register />} />
         <Route path="/login" element={<Login />} />
-
         <Route
           path="/"
           element={
@@ -51,7 +49,15 @@ const App: React.FC = () => {
             )
           }
         />
-        {/* Rutas protegidas por mantenimiento */}
+        {/* Rutas protegidas */}
+        <Route
+          path="/dashboard"
+          element={
+            <RutasProtegidas>
+              <DashboardUniversal />
+            </RutasProtegidas>
+          }
+        />
         <Route
           path="/crear-reseña"
           element={
@@ -60,22 +66,6 @@ const App: React.FC = () => {
             ) : (
               <CrearReseña />
             )
-          }
-        />
-        <Route
-          path="/dashboard/cliente"
-          element={
-            <RutasProtegidas>
-              <DashboardCliente />
-            </RutasProtegidas>
-          }
-        />
-        <Route
-          path="/dashboard/oferente"
-          element={
-            <RutasProtegidas>
-              <DashboardOferente />
-            </RutasProtegidas>
           }
         />
         <Route
@@ -88,14 +78,8 @@ const App: React.FC = () => {
             )
           }
         />
-        <Route
-          path="/editar-perfil"
-          element={
-            <RutasProtegidas>
-              <EditarPerfil />
-            </RutasProtegidas>
-          }
-        />
+        {/* Redirección catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

@@ -34,10 +34,6 @@ const LandingPage: React.FC = () => {
     };
   }, []);
 
-  const handleRoleClick = (rol: "oferente" | "cliente") => {
-    navigate(`/registro?rol=${rol}`);
-  };
-
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -62,15 +58,9 @@ const LandingPage: React.FC = () => {
             <>
               <button
                 className={styles.roleButton}
-                onClick={() => handleRoleClick("oferente")}
+                onClick={() => navigate("/registro")}
               >
-                Quiero ofrecer mis servicios
-              </button>
-              <button
-                className={styles.roleButton}
-                onClick={() => handleRoleClick("cliente")}
-              >
-                Busco a alguien para un trabajo
+                Quiero registrarme como usuario
               </button>
               <button
                 className={styles.volverButton}
@@ -89,7 +79,6 @@ const LandingPage: React.FC = () => {
           <p>Encuentra y contrata en minutos. 100% local, 100% confiable.</p>
           <p>Trabajo local geolocalizado.</p>
         </div>
-
         <img
           src="/ilustracion.svg"
           className={styles.heroImage}
@@ -100,7 +89,7 @@ const LandingPage: React.FC = () => {
       <section className={styles.steps}>
         <h3>¿Cómo funciona?</h3>
         <ol>
-          <li>1️⃣ Regístrate como Profesional o Cliente</li>
+          <li>1️⃣ Regístrate</li>
           <li>2️⃣ Crea tu perfil o publica tu necesidad</li>
           <li>3️⃣ ¡Recibe propuestas en minutos!</li>
         </ol>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import MapaZona from "../common/MapaZona";
-import { supabase } from "../../supabaseClient";
+import MapaZona from "./common/MapaZona";
+import { supabase } from "./../supabaseClient";
 import toast from "react-hot-toast";
 
 interface Props {
-  clienteId: string;
+  usuarioId: string;
 }
 
 async function obtenerCiudad(lat: number, lng: number): Promise<string> {
@@ -25,7 +25,7 @@ async function obtenerCiudad(lat: number, lng: number): Promise<string> {
   }
 }
 
-const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
+const ZonasTrabajo: React.FC<Props> = ({ usuarioId }) => {
   const [zonaActivaId, setZonaActivaId] = useState<string | null>(null);
   const [modoEdicion, setModoEdicion] = useState(true);
   const [zonas, setZonas] = useState<any[]>([]);
@@ -39,9 +39,9 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
 
   const cargarZonas = async () => {
     const { data, error } = await supabase
-      .from("zonas_trabajo_clientes")
+      .from("zonas_trabajo")
       .select("*")
-      .eq("cliente_id", clienteId);
+      .eq("usuario_id", usuarioId);
 
     if (error) {
       toast.error("Error al cargar zonas");
@@ -59,7 +59,7 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
 
   useEffect(() => {
     cargarZonas();
-  }, [clienteId]);
+  }, [usuarioId]);
 
   useEffect(() => {
     if (zonaActivaId) {
@@ -69,7 +69,7 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
 
   const eliminarZona = async (id: string) => {
     const { error } = await supabase
-      .from("zonas_trabajo_clientes")
+      .from("zonas_trabajo")
       .delete()
       .eq("id", id);
     if (error) {
@@ -86,7 +86,7 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
 
     const { lat, lng, radioKm } = zonaSeleccionada;
 
-    // Verificar duplicados aproximados (±0.0001 en coordenadas y ±1 km en radio)
+    // Verificar duplicados aproximados
     const yaExiste = zonas.some((zona) => {
       const mismaLat = Math.abs(zona.latitud - lat) < 0.0001;
       const mismaLng = Math.abs(zona.longitud - lng) < 0.0001;
@@ -99,9 +99,9 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
       return;
     }
 
-    const { error } = await supabase.from("zonas_trabajo_clientes").insert([
+    const { error } = await supabase.from("zonas_trabajo").insert([
       {
-        cliente_id: clienteId,
+        usuario_id: usuarioId,
         latitud: lat,
         longitud: lng,
         radio_km: radioKm,
@@ -119,7 +119,7 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
 
   return (
     <div className="zonas-container">
-      <h3>📍 Zonas de interés del cliente</h3>
+      <h3>📍 Mis zonas de trabajo</h3>
 
       <MapaZona
         onChange={setZonaSeleccionada}
@@ -136,7 +136,7 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
       />
 
       {modoEdicion && zonaSeleccionada && (
-        <button className="zonas-boton" onClick={guardarZona}>
+        <button className="zonas-boton" type="button" onClick={guardarZona}>
           💾 Guardar esta zona
         </button>
       )}
@@ -144,6 +144,7 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
       <div style={{ marginTop: "1rem" }}>
         <button
           className="zonas-boton-secundario"
+          type="button"
           onClick={() => {
             setZonaActivaId(null);
             setModoEdicion(true);
@@ -183,4 +184,4 @@ const ZonasCliente: React.FC<Props> = ({ clienteId }) => {
   );
 };
 
-export default ZonasCliente;
+export default ZonasTrabajo;

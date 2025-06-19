@@ -46,15 +46,10 @@ const Login: React.FC = () => {
 
     toast.success(saludo);
     localStorage.setItem("usuario", JSON.stringify(perfil));
-    localStorage.setItem("rol", perfil.rol); // 👈 nuevo
+    // 🚫 No guardes más el "rol"
 
-    if (perfil.rol === "cliente") {
-      navigate("/dashboard/cliente");
-    } else if (perfil.rol === "oferente") {
-      navigate("/dashboard/oferente");
-    } else {
-      toast.error("Rol no reconocido.");
-    }
+    // Siempre a dashboard único
+    navigate("/dashboard");
   };
 
   return (

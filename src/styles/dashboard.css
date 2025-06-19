@@ -936,4 +936,67 @@ select[multiple],
       padding-bottom: 0.2em;
     }
   }
+  .autocomplete-zonas {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    background: #fff;
+    border: 2px solid var(--color-primary, #007bff);
+    border-top: none;
+    max-height: 190px;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 1400;
+    width: 100%;
+    left: 0;
+    top: 100%;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+  }
+
+  .autocomplete-zonas li {
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #234;
+    border-bottom: 1px solid #f2f3fa;
+    background: #f7fbff;
+    transition: background 0.16s;
+    outline: none;
+  }
+  .autocomplete-zonas li:last-child {
+    border-bottom: none;
+  }
+  .autocomplete-zonas li:hover,
+  .autocomplete-zonas li:focus {
+    background: #d8ebff;
+    color: #007bff;
+  }
+  @media (max-width: 600px) {
+    .autocomplete-zonas {
+      max-height: 140px;
+      font-size: 0.98rem;
+      border-radius: 0 0 7px 7px;
+    }
+    .autocomplete-zonas li {
+      padding: 0.45rem 0.7rem;
+      font-size: 0.98rem;
+    }
+  }
+  .leaflet-control-ubicacion {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 0.4rem 1rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px #007be544;
+    cursor: pointer;
+    margin: 0.5rem;
+    font-size: 1.04rem;
+    transition: background 0.18s;
+  }
+  .leaflet-control-ubicacion:hover {
+    background: #0059b3;
+  }
 }

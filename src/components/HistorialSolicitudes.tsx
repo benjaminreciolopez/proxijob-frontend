@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
 
 interface Props {
-  clienteId: string;
+  usuarioId: string;
   actualizar: number;
 }
 
@@ -17,7 +17,7 @@ interface Solicitud {
   estado: string;
 }
 
-const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
+const HistorialSolicitudes: React.FC<Props> = ({ usuarioId, actualizar }) => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
@@ -28,32 +28,34 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
     ubicacion: "",
     requiere_profesional: false,
   });
+  const [cargando, setCargando] = useState(false);
 
   const fetchSolicitudes = async () => {
     const { data, error } = await supabase
       .from("solicitudes")
       .select("*")
-      .eq("cliente_id", clienteId)
+      .eq("usuario_id", usuarioId)
       .order("created_at", { ascending: false });
 
     if (error) {
       toast.error("Error al cargar el historial.");
       console.error(error.message);
     } else {
-      console.log("Solicitudes recibidas del backend:", data); // <--- AÑADE ESTO
       setSolicitudes(data || []);
     }
   };
 
   useEffect(() => {
     fetchSolicitudes();
-  }, [clienteId, actualizar]);
+    // eslint-disable-next-line
+  }, [usuarioId, actualizar]);
 
   const eliminarSolicitud = async (id: string) => {
     const confirmar = confirm("¿Seguro que quieres eliminar esta solicitud?");
     if (!confirmar) return;
-
+    setCargando(true);
     const { error } = await supabase.from("solicitudes").delete().eq("id", id);
+    setCargando(false);
 
     if (error) {
       toast.error("No se pudo eliminar.");
@@ -85,6 +87,15 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
 
   const guardarCambios = async () => {
     if (!editandoId) return;
+    setCargando(true);
+
+    const solicitudActual = solicitudes.find((s) => s.id === editandoId);
+    if (solicitudActual?.estado === "aceptado") {
+      toast.error("No puedes editar una solicitud aceptada.");
+      setCargando(false);
+      cancelarEdicion();
+      return;
+    }
 
     const { error } = await supabase
       .from("solicitudes")
@@ -96,6 +107,8 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
       })
       .eq("id", editandoId);
 
+    setCargando(false);
+
     if (error) {
       toast.error("No se pudo actualizar.");
     } else {
@@ -104,6 +117,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
       fetchSolicitudes();
     }
   };
+
   useEffect(() => {
     const canal = supabase
       .channel("solicitudes_historial")
@@ -113,10 +127,10 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
           event: "*",
           schema: "public",
           table: "solicitudes",
-          filter: `cliente_id=eq.${clienteId}`,
+          filter: `usuario_id=eq.${usuarioId}`,
         },
-        (payload) => {
-          fetchSolicitudes(); // Actualiza el historial ante cualquier cambio
+        () => {
+          fetchSolicitudes();
         }
       )
       .subscribe();
@@ -124,13 +138,14 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [clienteId]);
+  }, [usuarioId]);
 
   return (
     <div style={{ marginTop: "2rem" }}>
       <button
         onClick={() => setMostrarHistorial(!mostrarHistorial)}
         style={{ marginBottom: "1rem" }}
+        disabled={cargando}
       >
         {mostrarHistorial
           ? "🔽 Ocultar historial"
@@ -157,6 +172,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
                     borderRadius: "8px",
                     cursor: "pointer",
                     backgroundColor: seleccionada === s.id ? "#f9f9f9" : "#fff",
+                    opacity: cargando && editandoId === s.id ? 0.7 : 1,
                   }}
                 >
                   {editandoId === s.id ? (
@@ -171,6 +187,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
                           })
                         }
                         placeholder="Descripción"
+                        disabled={cargando}
                       />
                       <input
                         type="text"
@@ -182,6 +199,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
                           })
                         }
                         placeholder="Categoría"
+                        disabled={cargando}
                       />
                       <input
                         type="text"
@@ -193,6 +211,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
                           })
                         }
                         placeholder="Ubicación"
+                        disabled={cargando}
                       />
                       <label>
                         <input
@@ -204,12 +223,17 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
                               requiere_profesional: e.target.checked,
                             })
                           }
+                          disabled={cargando}
                         />
                         ¿Requiere título?
                       </label>
                       <br />
-                      <button onClick={guardarCambios}>💾 Guardar</button>
-                      <button onClick={cancelarEdicion}>❌ Cancelar</button>
+                      <button onClick={guardarCambios} disabled={cargando}>
+                        💾 Guardar
+                      </button>
+                      <button onClick={cancelarEdicion} disabled={cargando}>
+                        ❌ Cancelar
+                      </button>
                     </>
                   ) : (
                     <>
@@ -228,10 +252,16 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
                             </p>
                           ) : (
                             <>
-                              <button onClick={() => iniciarEdicion(s)}>
+                              <button
+                                onClick={() => iniciarEdicion(s)}
+                                disabled={cargando}
+                              >
                                 ✏️ Editar
                               </button>
-                              <button onClick={() => eliminarSolicitud(s.id)}>
+                              <button
+                                onClick={() => eliminarSolicitud(s.id)}
+                                disabled={cargando}
+                              >
                                 🗑️ Eliminar
                               </button>
                             </>
@@ -249,4 +279,5 @@ const HistorialSolicitudes: React.FC<Props> = ({ clienteId, actualizar }) => {
     </div>
   );
 };
+
 export default HistorialSolicitudes;

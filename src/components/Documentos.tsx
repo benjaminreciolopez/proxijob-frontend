@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 
@@ -16,7 +16,7 @@ interface Props {
   usuarioId: string;
 }
 
-const DocumentosOferente: React.FC<Props> = ({ usuarioId }) => {
+const Documentos: React.FC<Props> = ({ usuarioId }) => {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -33,13 +33,14 @@ const DocumentosOferente: React.FC<Props> = ({ usuarioId }) => {
     if (usuarioId && usuarioId.length > 0) {
       fetchDocs();
     }
+    // eslint-disable-next-line
   }, [usuarioId]);
 
   const fetchDocs = async () => {
     const { data, error } = await supabase
       .from("documentos")
       .select("*")
-      .eq("usuario_id", usuarioId) // ✅ IMPORTANTE
+      .eq("usuario_id", usuarioId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -117,8 +118,7 @@ const DocumentosOferente: React.FC<Props> = ({ usuarioId }) => {
   const eliminarDocumento = async (id: string, url: string) => {
     const confirmar = confirm("¿Eliminar este documento?");
     if (!confirmar) return;
-    console.log("🗑️ Eliminando documento con id:", id);
-
+    // Sacar el nombre real del archivo desde la url pública:
     const parts = url.split("/");
     const nombreArchivo = decodeURIComponent(parts.slice(-2).join("/"));
 
@@ -135,8 +135,8 @@ const DocumentosOferente: React.FC<Props> = ({ usuarioId }) => {
       toast.error("No se pudo eliminar de la base de datos.");
     } else {
       toast.success("Documento eliminado.");
-      setDocumentos((prev) => prev.filter((doc) => doc.id !== id)); // ✅ actualización inmediata
-      await fetchDocs(); // ✅ sincronización completa
+      setDocumentos((prev) => prev.filter((doc) => doc.id !== id));
+      await fetchDocs();
     }
   };
 
@@ -281,7 +281,7 @@ const DocumentosOferente: React.FC<Props> = ({ usuarioId }) => {
       </div>
 
       <ul style={{ listStyle: "none", padding: 0 }}>
-        {/* 🔽 Titulaciones y Certificados */}
+        {/* Titulaciones y Certificados */}
         {documentos.some((d) =>
           ["título", "certificado", "licencia", "curso"].includes(d.tipo)
         ) && (
@@ -331,7 +331,7 @@ const DocumentosOferente: React.FC<Props> = ({ usuarioId }) => {
           </>
         )}
 
-        {/* 🔽 Experiencia y Otros */}
+        {/* Experiencia y Otros */}
         {documentos.some((d) =>
           ["experiencia", "proyecto", "otro"].includes(d.tipo)
         ) && (
@@ -380,4 +380,5 @@ const DocumentosOferente: React.FC<Props> = ({ usuarioId }) => {
     </div>
   );
 };
-export default DocumentosOferente;
+
+export default Documentos;

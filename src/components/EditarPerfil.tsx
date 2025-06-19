@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { normalizarTextoCategoria } from "../../utils/normalizarTextoCategoria";
+import { normalizarTextoCategoria } from "../utils/normalizarTextoCategoria";
 
-const EditarPerfil: React.FC = () => {
+interface Props {
+  usuario: { id: string };
+}
+
+const EditarPerfil: React.FC<Props> = ({ usuario }) => {
   const navigate = useNavigate();
   const [descripcion, setDescripcion] = useState("");
   const [todasCategorias, setTodasCategorias] = useState<
@@ -17,12 +21,7 @@ const EditarPerfil: React.FC = () => {
 
   useEffect(() => {
     const cargarDatos = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error || !user) {
+      if (!usuario?.id) {
         toast.error("No se pudo obtener el usuario.");
         navigate("/");
         return;
@@ -31,7 +30,7 @@ const EditarPerfil: React.FC = () => {
       const { data: datosUsuario } = await supabase
         .from("usuarios")
         .select("descripcion")
-        .eq("id", user.id)
+        .eq("id", usuario.id)
         .single();
 
       setDescripcion(datosUsuario?.descripcion || "");
@@ -46,10 +45,11 @@ const EditarPerfil: React.FC = () => {
         )
       );
 
+      // 👉 Relación unificada: categorias_usuario
       const { data: asociadas } = await supabase
-        .from("categorias_oferente")
+        .from("categorias_usuario")
         .select("categoria_id")
-        .eq("oferente_id", user.id);
+        .eq("usuario_id", usuario.id);
 
       const ids = asociadas?.map((c) => c.categoria_id) || [];
       setSeleccionadas(ids);
@@ -58,15 +58,11 @@ const EditarPerfil: React.FC = () => {
     };
 
     cargarDatos();
-  }, [navigate]);
+    // eslint-disable-next-line
+  }, [usuario, navigate]);
 
   const guardarPerfil = async () => {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
+    if (!usuario?.id) {
       toast.error("No se pudo obtener el usuario.");
       return;
     }
@@ -75,10 +71,9 @@ const EditarPerfil: React.FC = () => {
     let nuevaId: string | null = null;
     let idsFinal = [...seleccionadas.filter((id) => id !== "otras")];
 
-    // 1. Si hay una categoría nueva, la añadimos en `categorias` (para postular YA)
+    // 1. Si hay una categoría nueva, añádela
     if (mostrarCampoNueva && nuevaCategoria.trim().length > 1) {
       const nombreNormalizado = normalizarTextoCategoria(nuevaCategoria);
-      // Busca si existe (ya validada o aceptada)
       const { data: existente } = await supabase
         .from("categorias")
         .select("id")
@@ -105,53 +100,48 @@ const EditarPerfil: React.FC = () => {
         nuevaId = nueva.id;
         toast.success("¡Categoría creada y añadida a tu perfil!");
       }
-
       if (nuevaId) {
         idsFinal.push(nuevaId);
       }
     }
 
-    // Elimina duplicados por si acaso
+    // Elimina duplicados
     idsFinal = Array.from(new Set(idsFinal));
-
-    // 🚩 **Límite de 3 categorías**
     if (idsFinal.length > 3) {
       toast.error("Solo puedes seleccionar un máximo de 3 categorías.");
       return;
     }
 
-    // 2. Especialidad principal
     if (idsFinal.length > 0) {
       const cat = todasCategorias.find((c) => c.id === idsFinal[0]);
       especialidad = cat?.nombre || nuevaCategoria.trim();
     }
 
-    // 3. Actualizar usuario
+    // 2. Actualizar usuario
     const { error: updateError } = await supabase
       .from("usuarios")
       .update({ descripcion, especialidad })
-      .eq("id", user.id);
+      .eq("id", usuario.id);
 
     if (updateError) {
       toast.error("Error al guardar los cambios.");
       return;
     }
 
-    // 4. Eliminar y registrar nuevas relaciones
+    // 3. Eliminar y registrar nuevas relaciones
     await supabase
-      .from("categorias_oferente")
+      .from("categorias_usuario")
       .delete()
-      .eq("oferente_id", user.id);
+      .eq("usuario_id", usuario.id);
 
-    // Crea la relación por cada categoría seleccionada (incluida la nueva)
     const inserts = idsFinal.map((categoriaId) => ({
-      oferente_id: user.id,
+      usuario_id: usuario.id,
       categoria_id: categoriaId,
     }));
 
     if (inserts.length > 0) {
       const { error: errorInsert } = await supabase
-        .from("categorias_oferente")
+        .from("categorias_usuario")
         .insert(inserts);
 
       if (errorInsert) {
@@ -161,7 +151,7 @@ const EditarPerfil: React.FC = () => {
     }
 
     toast.success("Perfil actualizado.");
-    navigate("/dashboard/oferente");
+    navigate("/dashboard");
   };
 
   return (
@@ -195,7 +185,6 @@ const EditarPerfil: React.FC = () => {
                   const seleccionando = e.target.checked;
 
                   if (seleccionando) {
-                    // Máximo 3 categorías distintas de "otras"
                     if (yaSeleccionadas.length >= 3 && id !== "otras") {
                       toast.error("Máximo 3 categorías.");
                       return;
@@ -268,7 +257,7 @@ const EditarPerfil: React.FC = () => {
           </button>
           <button
             className="zonas-boton-secundario"
-            onClick={() => navigate("/dashboard/oferente")}
+            onClick={() => navigate("/dashboard")}
             style={{ marginLeft: "0.5rem" }}
           >
             ⬅️ Cancelar

@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "./Register.module.css";
 import { supabase } from "../supabaseClient";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const Register: React.FC = () => {
-  const [role, setRole] = useState<"oferente" | "cliente" | null>(null);
-  const [verPassword, setVerPassword] = useState(false); // 👈 visibilidad
-
+  const [verPassword, setVerPassword] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
     email: "",
@@ -15,6 +13,7 @@ const Register: React.FC = () => {
     confirmPassword: "",
     tratamiento: "",
   });
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -81,7 +80,6 @@ const Register: React.FC = () => {
         id: data.user.id,
         nombre: formData.nombre,
         email: formData.email,
-        rol: role,
         descripcion: "",
         especialidad: "",
         tratamiento: formData.tratamiento,
@@ -93,33 +91,20 @@ const Register: React.FC = () => {
       return;
     }
 
-    // ✅ Guardar en localStorage para que funcione el chat después del registro
+    // Guarda en localStorage solo lo necesario
     localStorage.setItem(
       "usuario",
       JSON.stringify({
         id: data.user.id,
         nombre: formData.nombre,
         email: formData.email,
-        rol: role,
         tratamiento: formData.tratamiento,
       })
     );
-    localStorage.setItem("rol", role || "");
 
     toast.success("¡Registro exitoso! Puedes iniciar sesión.");
     navigate("/login");
   };
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const rolParam = searchParams.get("rol");
-
-  useEffect(() => {
-    if (rolParam === "oferente" || rolParam === "cliente") {
-      setRole(rolParam);
-    } else {
-      navigate("/");
-    }
-  }, [rolParam]);
 
   return (
     <div
@@ -130,175 +115,106 @@ const Register: React.FC = () => {
         textAlign: "center",
       }}
     >
-      {!role ? (
-        <>
-          <h2>¿Cómo quieres registrarte?</h2>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "1rem",
-              marginTop: "1rem",
-            }}
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+          maxWidth: "400px",
+          margin: "0 auto",
+          padding: "2rem",
+        }}
+      >
+        <h2 style={{ textAlign: "center" }}>Registro de usuario</h2>
+
+        <label>
+          Tratamiento:
+          <select
+            name="tratamiento"
+            value={formData.tratamiento}
+            onChange={handleSelectChange}
+            required
           >
-            <button
-              style={{
-                padding: "0.7rem 1.5rem",
-                fontSize: "1rem",
-                border: "none",
-                borderRadius: "6px",
-                backgroundColor: "#007bff",
-                color: "white",
-                cursor: "pointer",
-              }}
-              onClick={() => setRole("oferente")}
-            >
-              Quiero ofrecer mis servicios
-            </button>
-            <button
-              style={{
-                padding: "0.7rem 1.5rem",
-                fontSize: "1rem",
-                border: "none",
-                borderRadius: "6px",
-                backgroundColor: "#007bff",
-                color: "white",
-                cursor: "pointer",
-              }}
-              onClick={() => setRole("cliente")}
-            >
-              Busco a alguien para un trabajo
-            </button>
-          </div>
-        </>
-      ) : (
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            maxWidth: "400px",
-            margin: "0 auto",
-            padding: "2rem",
-          }}
-        >
-          <h2 style={{ textAlign: "center" }}>
-            Registro como {role === "oferente" ? "Oferente" : "Cliente"}
-          </h2>
+            <option value="">Selecciona</option>
+            <option value="Sr">Sr</option>
+            <option value="Sra">Sra</option>
+          </select>
+        </label>
 
-          <label>
-            Tratamiento:
-            <select
-              name="tratamiento"
-              value={formData.tratamiento}
-              onChange={handleSelectChange}
-              required
-            >
-              <option value="">Selecciona</option>
-              <option value="Sr">Sr</option>
-              <option value="Sra">Sra</option>
-            </select>
-          </label>
+        <input
+          type="text"
+          name="nombre"
+          placeholder="Nombre completo"
+          value={formData.nombre}
+          onChange={handleChange}
+          required
+        />
 
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre completo"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-            style={{
-              padding: "0.5rem",
-              fontSize: "1rem",
-              width: "100%",
-              boxSizing: "border-box",
-            }}
-          />
+        <input
+          type="email"
+          name="email"
+          placeholder="Correo electrónico"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Correo electrónico"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={{
-              padding: "0.5rem",
-              fontSize: "1rem",
-              width: "100%",
-              boxSizing: "border-box",
-            }}
-          />
-
-          {/* Contraseña */}
-          <div style={{ position: "relative" }}>
-            <input
-              type={verPassword ? "text" : "password"}
-              name="password"
-              placeholder="Contraseña"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={{
-                padding: "0.5rem",
-                fontSize: "1rem",
-                width: "100%",
-                boxSizing: "border-box",
-                paddingRight: "2.5rem",
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => setVerPassword((v) => !v)}
-              style={{
-                position: "absolute",
-                right: "0.5rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "1.2rem",
-                padding: 0,
-                lineHeight: 1,
-              }}
-              aria-label="Mostrar u ocultar contraseña"
-            >
-              {verPassword ? "🙈" : "👁️"}
-            </button>
-          </div>
-
-          {/* Confirmar contraseña */}
+        {/* Contraseña */}
+        <div style={{ position: "relative" }}>
           <input
             type={verPassword ? "text" : "password"}
-            name="confirmPassword"
-            placeholder="Repetir contraseña"
-            value={formData.confirmPassword}
+            name="password"
+            placeholder="Contraseña"
+            value={formData.password}
             onChange={handleChange}
             required
-            style={{
-              padding: "0.5rem",
-              fontSize: "1rem",
-              width: "100%",
-              boxSizing: "border-box",
-            }}
+            style={{ paddingRight: "2.5rem" }}
           />
-
-          <button type="submit" style={{ padding: "0.5rem", fontSize: "1rem" }}>
-            Registrarme
-          </button>
-
           <button
             type="button"
-            onClick={() => navigate("/")}
-            style={{ padding: "0.5rem", fontSize: "1rem" }}
+            onClick={() => setVerPassword((v) => !v)}
+            style={{
+              position: "absolute",
+              right: "0.5rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "1.2rem",
+              padding: 0,
+              lineHeight: 1,
+            }}
+            aria-label="Mostrar u ocultar contraseña"
           >
-            Volver
+            {verPassword ? "🙈" : "👁️"}
           </button>
-        </form>
-      )}
+        </div>
+
+        {/* Confirmar contraseña */}
+        <input
+          type={verPassword ? "text" : "password"}
+          name="confirmPassword"
+          placeholder="Repetir contraseña"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          required
+        />
+
+        <button type="submit" style={{ padding: "0.5rem", fontSize: "1rem" }}>
+          Registrarme
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          style={{ padding: "0.5rem", fontSize: "1rem" }}
+        >
+          Volver
+        </button>
+      </form>
     </div>
   );
 };
+
 export default Register;

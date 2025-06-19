@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
-import { useNavigate } from "react-router-dom";
 import "./styles/dashboard.css";
 
 interface Mensaje {
   id: string;
+  solicitud_id: string;
   emisor_id: string;
-  tipo_emisor: "cliente" | "oferente";
+  receptor_id: string;
   contenido: string;
   created_at: string;
   nombre_emisor: string;
@@ -15,44 +15,24 @@ interface Mensaje {
 
 const Chat: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const clienteId = searchParams.get("cliente_id") ?? "";
-  const oferenteId = searchParams.get("oferente_id") ?? "";
+  const usuarioAId = searchParams.get("usuario_a_id") ?? "";
+  const usuarioBId = searchParams.get("usuario_b_id") ?? "";
   const solicitudId = searchParams.get("solicitud_id") ?? "";
 
-  const [emisorId, setEmisorId] = useState<string>("");
-  const [tipoEmisor, setTipoEmisor] = useState<"cliente" | "oferente" | null>(
-    null
-  );
-
+  const [usuarioActualId, setUsuarioActualId] = useState<string>("");
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // ✅ Intentar obtener tipoEmisor desde el usuario autenticado
+  // Identificar el usuario autenticado
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setEmisorId(user.id);
-
-        if (user.id === clienteId) {
-          setTipoEmisor("cliente");
-        } else if (user.id === oferenteId) {
-          setTipoEmisor("oferente");
-        } else {
-          // ⚠️ Fallback desde localStorage si no coincide
-          const rol = localStorage.getItem("rol");
-          if (rol === "cliente" || rol === "oferente") {
-            setTipoEmisor(rol);
-          } else {
-            console.warn("⚠️ Rol no identificado");
-          }
-        }
-      }
+      if (user) setUsuarioActualId(user.id);
     });
-  }, [clienteId, oferenteId]);
+  }, []);
 
-  // ✅ Scroll automático
+  // Scroll automático
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
@@ -62,33 +42,30 @@ const Chat: React.FC = () => {
     }
   }, [mensajes]);
 
-  // ✅ Cargar mensajes
+  // Cargar mensajes de la conversación
   useEffect(() => {
-    if (!solicitudId || !clienteId || !oferenteId) return;
-
+    if (!solicitudId || !usuarioAId || !usuarioBId) return;
     const cargarMensajes = async () => {
+      // Trae mensajes donde (usuarioA es emisor y usuarioB receptor) O (usuarioB es emisor y usuarioA receptor)
       const { data, error } = await supabase
         .from("mensajes")
         .select("*")
         .eq("solicitud_id", solicitudId)
-        .eq("cliente_id", clienteId)
-        .eq("oferente_id", oferenteId)
+        .or(
+          `(emisor_id.eq.${usuarioAId},receptor_id.eq.${usuarioBId}),` +
+            `(emisor_id.eq.${usuarioBId},receptor_id.eq.${usuarioAId})`
+        )
         .order("created_at", { ascending: true });
 
-      if (!error && data) {
-        setMensajes(data);
-      } else {
-        console.error("❌ Error al cargar mensajes:", error?.message);
-      }
+      if (!error && data) setMensajes(data as Mensaje[]);
+      else console.error("❌ Error al cargar mensajes:", error?.message);
     };
-
     cargarMensajes();
-  }, [solicitudId, clienteId, oferenteId]);
+  }, [solicitudId, usuarioAId, usuarioBId]);
 
-  // ✅ Realtime: escuchar nuevos mensajes
+  // Realtime: escuchar nuevos mensajes
   useEffect(() => {
-    if (!solicitudId || !clienteId || !oferenteId) return;
-
+    if (!solicitudId || !usuarioAId || !usuarioBId) return;
     const canal = supabase
       .channel("chat_realtime")
       .on(
@@ -99,15 +76,15 @@ const Chat: React.FC = () => {
           table: "mensajes",
         },
         (payload) => {
-          const nuevo = payload.new as any;
-
-          // Asegurarse de que el mensaje pertenece a esta conversación exacta
-          const coincide =
+          const nuevo = payload.new as Mensaje;
+          // Asegura que pertenece a esta conversación exacta
+          const valido =
             nuevo.solicitud_id === solicitudId &&
-            nuevo.cliente_id === clienteId &&
-            nuevo.oferente_id === oferenteId;
-
-          if (!coincide) return;
+            ((nuevo.emisor_id === usuarioAId &&
+              nuevo.receptor_id === usuarioBId) ||
+              (nuevo.emisor_id === usuarioBId &&
+                nuevo.receptor_id === usuarioAId));
+          if (!valido) return;
 
           setMensajes((prev) => {
             const yaExiste = prev.some((m) => m.id === nuevo.id);
@@ -120,11 +97,14 @@ const Chat: React.FC = () => {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [solicitudId, clienteId, oferenteId]);
+  }, [solicitudId, usuarioAId, usuarioBId]);
 
+  // Enviar mensaje
   const enviarMensaje = async () => {
-    if (!nuevoMensaje.trim() || !emisorId || !tipoEmisor || !solicitudId)
-      return;
+    if (!nuevoMensaje.trim() || !usuarioActualId || !solicitudId) return;
+
+    // Determina receptor: el otro usuario de la conversación
+    const receptorId = usuarioActualId === usuarioAId ? usuarioBId : usuarioAId;
     const perfil = JSON.parse(localStorage.getItem("usuario") || "{}");
 
     const { data, error } = await supabase
@@ -132,11 +112,9 @@ const Chat: React.FC = () => {
       .insert([
         {
           solicitud_id: solicitudId,
-          emisor_id: emisorId,
-          tipo_emisor: tipoEmisor,
+          emisor_id: usuarioActualId,
+          receptor_id: receptorId,
           contenido: nuevoMensaje,
-          cliente_id: clienteId,
-          oferente_id: oferenteId,
           nombre_emisor: perfil.nombre,
         },
       ])
@@ -152,14 +130,7 @@ const Chat: React.FC = () => {
   return (
     <div className="dashboard">
       <button
-        onClick={() =>
-          navigate(
-            tipoEmisor === "cliente"
-              ? "/dashboard/cliente"
-              : "/dashboard/oferente"
-          )
-        }
-        disabled={!tipoEmisor}
+        onClick={() => navigate("/")}
         style={{
           marginBottom: "1rem",
           backgroundColor: "#ccc",
@@ -167,11 +138,10 @@ const Chat: React.FC = () => {
           border: "none",
           padding: "0.4rem 1rem",
           borderRadius: "6px",
-          cursor: tipoEmisor ? "pointer" : "not-allowed",
-          opacity: tipoEmisor ? 1 : 0.6,
+          cursor: "pointer",
         }}
       >
-        {tipoEmisor ? "🔙 Volver al dashboard" : "Cargando..."}
+        🔙 Volver al dashboard
       </button>
 
       <div
@@ -184,7 +154,7 @@ const Chat: React.FC = () => {
         }}
       >
         {mensajes.map((msg) => {
-          const esMio = msg.emisor_id === emisorId;
+          const esMio = msg.emisor_id === usuarioActualId;
           return (
             <div
               key={msg.id}
@@ -192,10 +162,7 @@ const Chat: React.FC = () => {
             >
               <div className="mensaje-contenido">
                 <div className="mensaje-emisor">
-                  {esMio
-                    ? "Tú"
-                    : msg.nombre_emisor ||
-                      (msg.tipo_emisor === "cliente" ? "Cliente" : "Oferente")}
+                  {esMio ? "Tú" : msg.nombre_emisor || "Usuario"}
                 </div>
                 <div>{msg.contenido}</div>
               </div>

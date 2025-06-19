@@ -1,15 +1,15 @@
+// src/components/common/MapaZona.tsx
 import React, { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
   Circle,
+  Marker,
   useMapEvents,
   useMap,
 } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import { Marker, Icon } from "leaflet";
-import { Marker as RLMarker } from "react-leaflet";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import CustomControl from "react-leaflet-custom-control";
 
 const iconoCentro = new L.Icon({
@@ -33,58 +33,62 @@ const MapaZona: React.FC<Props> = ({
     lat: number;
     lng: number;
   } | null>(zonaActiva ? { lat: zonaActiva.lat, lng: zonaActiva.lng } : null);
-
   const [radioKm, setRadioKm] = useState(zonaActiva?.radioKm || 10);
-  const [volviendo, setVolviendo] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [sugerencias, setSugerencias] = useState<any[]>([]);
+  const [volviendo, setVolviendo] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
+  const autocompletarRef = useRef<HTMLDivElement | null>(null);
 
+  // Centrar al usuario (solo al cargar o con botón)
   const volverAMiUbicacion = () => {
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUbicacion(coords);
-        onChange({ ...coords, radioKm });
         setVolviendo(true);
+        onChange({ ...coords, radioKm });
       },
       (err) => {
-        console.error("Ubicación denegada:", err.message);
+        alert("No se pudo obtener tu ubicación: " + err.message);
       }
     );
   };
 
+  // Carga inicial: centra en usuario si no hay zona activa
   useEffect(() => {
-    if (!zonaActiva) {
-      volverAMiUbicacion();
-    }
+    if (!zonaActiva) volverAMiUbicacion();
+    // eslint-disable-next-line
   }, []);
 
-  const handleCentrarUbicacion = () => {
-    if (navigator.geolocation && mapRef.current) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        mapRef.current!.flyTo([latitude, longitude], 15); // o setView
-      });
-    }
-  };
-
+  // Cuando cambia el radio, notifica al padre
   useEffect(() => {
-    if (ubicacion) {
-      onChange({ ...ubicacion, radioKm });
-    }
+    if (ubicacion) onChange({ ...ubicacion, radioKm });
+    // eslint-disable-next-line
   }, [radioKm]);
 
+  // Cerrar autocompletar al hacer click fuera
   useEffect(() => {
-    const delay = setTimeout(() => {
-      if (busqueda.length < 3) {
+    const handleClick = (e: MouseEvent) => {
+      if (
+        autocompletarRef.current &&
+        !autocompletarRef.current.contains(e.target as Node)
+      ) {
         setSugerencias([]);
-        return;
       }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
+  // Buscar sugerencias por nombre
+  useEffect(() => {
+    if (busqueda.length < 3) {
+      setSugerencias([]);
+      return;
+    }
+    const delay = setTimeout(() => {
       fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
           busqueda
@@ -94,31 +98,34 @@ const MapaZona: React.FC<Props> = ({
         .then((data) => setSugerencias(data.slice(0, 5)))
         .catch(() => setSugerencias([]));
     }, 400);
-
     return () => clearTimeout(delay);
   }, [busqueda]);
 
+  // Selección de sugerencia
   const seleccionarSugerencia = (sug: any) => {
     const coords = { lat: parseFloat(sug.lat), lng: parseFloat(sug.lon) };
     setUbicacion(coords);
     setBusqueda(sug.display_name);
     setSugerencias([]);
-    onChange({ ...coords, radioKm });
     setVolviendo(true);
+    onChange({ ...coords, radioKm });
   };
 
+  // Click en el mapa
   const ClickHandler = () => {
     useMapEvents({
       click(e) {
         if (!editable) return;
         const coords = { lat: e.latlng.lat, lng: e.latlng.lng };
         setUbicacion(coords);
+        setBusqueda("");
         onChange({ ...coords, radioKm });
       },
     });
     return null;
   };
 
+  // Centrar con animación al cambiar ubicación
   const FlyToUbicacion = () => {
     const map = useMap();
     useEffect(() => {
@@ -130,63 +137,95 @@ const MapaZona: React.FC<Props> = ({
     return null;
   };
 
-  const centro: [number, number] = zonaActiva
-    ? [zonaActiva.lat, zonaActiva.lng]
-    : ubicacion
+  // Detección del centro de mapa
+  const centro: [number, number] = ubicacion
     ? [ubicacion.lat, ubicacion.lng]
-    : [0, 0];
+    : [37.18817, -3.60667]; // Granada por defecto si no hay ubicación
+
+  // ESTILO PROXIJOB:
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "0.7rem",
+    borderRadius: 8,
+    border: "1.5px solid #0095f6",
+    fontSize: 16,
+    marginBottom: 6,
+    boxSizing: "border-box",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontWeight: 600,
+    marginBottom: 4,
+    display: "block",
+    color: "#2a3856",
+  };
 
   return (
     <div style={{ marginTop: "1rem", position: "relative" }}>
-      <label>
+      <label style={labelStyle}>
         Radio de búsqueda: {radioKm} km
         <input
           type="range"
           min={1}
-          max={500}
+          max={50}
           value={radioKm}
-          onChange={(e) => setRadioKm(parseInt(e.target.value))}
+          onChange={(e) => setRadioKm(Number(e.target.value))}
           disabled={!editable}
+          style={{
+            marginLeft: 12,
+            verticalAlign: "middle",
+            accentColor: "#007be5",
+          }}
         />
       </label>
 
-      {busqueda && (
-        <p style={{ fontSize: "0.9rem", marginTop: "0.5rem", color: "#555" }}>
-          📍 Ubicación seleccionada: <strong>{busqueda}</strong>
-        </p>
-      )}
-
-      <div style={{ marginTop: "0.5rem", position: "relative" }}>
+      <div ref={autocompletarRef} style={{ position: "relative" }}>
         <input
           type="text"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar ciudad o calle..."
-          style={{ width: "100%", padding: "0.5rem" }}
+          style={inputStyle}
           disabled={!editable}
+          autoComplete="off"
         />
         {sugerencias.length > 0 && (
           <ul
+            className="autocomplete-zonas"
             style={{
               listStyle: "none",
               margin: 0,
               padding: "0.5rem",
               background: "white",
-              border: "1px solid #ccc",
-              maxHeight: "150px",
+              border: "1.5px solid #007be5",
+              borderTop: "none",
+              maxHeight: "180px",
               overflowY: "auto",
               position: "absolute",
               zIndex: 1000,
               width: "100%",
+              borderRadius: "0 0 8px 8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
             }}
           >
             {sugerencias.map((s, idx) => (
               <li
                 key={idx}
+                tabIndex={0}
                 onClick={() => seleccionarSugerencia(s)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    seleccionarSugerencia(s);
+                  }
+                }}
                 style={{
-                  padding: "0.3rem 0",
+                  padding: "0.45rem 0.8rem",
                   cursor: "pointer",
+                  fontSize: 15,
+                  color: "#234",
+                  borderBottom:
+                    idx < sugerencias.length - 1 ? "1px solid #eef" : "none",
+                  background: "#f8fbff",
                 }}
               >
                 {s.display_name}
@@ -202,7 +241,13 @@ const MapaZona: React.FC<Props> = ({
           zoom={13}
           scrollWheelZoom={true}
           dragging={editable}
-          style={{ height: "300px", width: "100%", marginTop: "1rem" }}
+          style={{
+            height: 300,
+            width: "100%",
+            marginTop: 14,
+            borderRadius: 12,
+            boxShadow: "0 2px 10px #0001",
+          }}
           ref={(mapInstance) => {
             if (mapInstance && !mapRef.current) {
               mapRef.current = mapInstance;
@@ -213,33 +258,34 @@ const MapaZona: React.FC<Props> = ({
           <Circle
             center={centro}
             radius={radioKm * 1000}
-            pathOptions={{ color: "blue" }}
+            pathOptions={{ color: "#007be5", fillOpacity: 0.18 }}
           />
-          <RLMarker
+          <Marker
             position={[ubicacion.lat, ubicacion.lng]}
             icon={iconoCentro}
           />
           <ClickHandler />
           <FlyToUbicacion />
 
-          {/* ✅ Control flotante dentro del mapa */}
+          {/* Botón para centrar en tu ubicación actual */}
           <CustomControl position="topright">
             <button
               onClick={volverAMiUbicacion}
-              className="leaflet-control-ubicacion"
-              aria-label="Centrar ubicación"
-              title="Volver a mi ubicación"
+              aria-label="Centrar en mi ubicación"
+              title="Centrar en mi ubicación"
+              style={{
+                background: "#007be5",
+                color: "white",
+                border: "none",
+                borderRadius: 7,
+                padding: "0.35rem 0.7rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                margin: "0.7rem 0.7rem 0 0",
+                boxShadow: "0 2px 6px #007be544",
+              }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="20"
-                width="20"
-                viewBox="0 0 24 24"
-                fill="#4285f4"
-              >
-                <path d="M0 0h24v24H0z" fill="none" />
-                <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-5c.6 0 1 .4 1 1v2.1c3.4.5 6 3.1 6.5 6.5H21c.6 0 1 .4 1 1s-.4 1-1 1h-2.1c-.5 3.4-3.1 6-6.5 6.5V21c0 .6-.4 1-1 1s-1-.4-1-1v-2.1c-3.4-.5-6-3.1-6.5-6.5H3c-.6 0-1-.4-1-1s.4-1 1-1h2.1c.5-3.4 3.1-6 6.5-6.5V4c0-.6.4-1 1-1z" />
-              </svg>
+              📍 Mi ubicación
             </button>
           </CustomControl>
         </MapContainer>

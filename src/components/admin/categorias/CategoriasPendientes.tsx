@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../supabaseClient";
 import toast from "react-hot-toast";
+import { normalizarTextoCategoria } from "../../../utils/normalizarTextoCategoria";
 
 interface CategoriaPendiente {
   id: string;
@@ -12,6 +13,7 @@ interface CategoriaPendiente {
 const CategoriasPendientes: React.FC = () => {
   const [categorias, setCategorias] = useState<CategoriaPendiente[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [procesando, setProcesando] = useState<string | null>(null);
 
   const cargarCategorias = async () => {
     setCargando(true);
@@ -23,6 +25,7 @@ const CategoriasPendientes: React.FC = () => {
 
     if (error) {
       toast.error("Error al cargar categorías");
+      setCargando(false);
       return;
     }
 
@@ -35,22 +38,26 @@ const CategoriasPendientes: React.FC = () => {
   }, []);
 
   const aprobarCategoria = async (cat: CategoriaPendiente) => {
-    // 1. Insertar en la tabla principal (si no existe)
-    const nombre = cat.nombre.trim().toLowerCase();
+    setProcesando(cat.id);
+
+    // 1. Normaliza y busca por nombre_normalizado
+    const nombre = cat.nombre.trim();
+    const nombre_normalizado = normalizarTextoCategoria(nombre);
 
     const { data: yaExiste } = await supabase
       .from("categorias")
       .select("id")
-      .eq("nombre", nombre)
-      .single();
+      .eq("nombre_normalizado", nombre_normalizado)
+      .maybeSingle();
 
     if (!yaExiste) {
       const { error: errorInsert } = await supabase
         .from("categorias")
-        .insert([{ nombre }]);
+        .insert([{ nombre, nombre_normalizado }]);
 
       if (errorInsert) {
         toast.error("Error al aprobar la categoría");
+        setProcesando(null);
         return;
       }
     }
@@ -61,17 +68,20 @@ const CategoriasPendientes: React.FC = () => {
       .update({ revisada: true })
       .eq("id", cat.id);
 
-    toast.success("✅ Categoría aprobada");
+    toast.success("✅ Categoría aprobada y añadida");
+    setProcesando(null);
     cargarCategorias();
   };
 
   const rechazarCategoria = async (cat: CategoriaPendiente) => {
+    setProcesando(cat.id);
     await supabase
       .from("categorias_pendientes")
       .update({ revisada: true })
       .eq("id", cat.id);
 
-    toast("🚫 Categoría rechazada");
+    toast("🚫 Categoría rechazada", { icon: "❌" });
+    setProcesando(null);
     cargarCategorias();
   };
 
@@ -93,6 +103,8 @@ const CategoriasPendientes: React.FC = () => {
                 padding: "1rem",
                 marginBottom: "1rem",
                 borderRadius: "6px",
+                background: procesando === cat.id ? "#f6f6f6" : "white",
+                opacity: procesando === cat.id ? 0.6 : 1,
               }}
             >
               <strong>{cat.nombre}</strong>
@@ -111,8 +123,9 @@ const CategoriasPendientes: React.FC = () => {
                     padding: "0.4rem 0.8rem",
                     border: "none",
                     borderRadius: "4px",
-                    cursor: "pointer",
+                    cursor: procesando ? "not-allowed" : "pointer",
                   }}
+                  disabled={!!procesando}
                 >
                   ✅ Aprobar
                 </button>
@@ -124,8 +137,9 @@ const CategoriasPendientes: React.FC = () => {
                     padding: "0.4rem 0.8rem",
                     border: "none",
                     borderRadius: "4px",
-                    cursor: "pointer",
+                    cursor: procesando ? "not-allowed" : "pointer",
                   }}
+                  disabled={!!procesando}
                 >
                   ❌ Rechazar
                 </button>
