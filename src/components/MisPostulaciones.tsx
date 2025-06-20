@@ -34,18 +34,18 @@ const MisPostulaciones: React.FC<Props> = ({ usuarioId }) => {
         .from("postulaciones")
         .select(
           `
-          id,
-          mensaje,
-          estado,
-          created_at,
-          solicitud:solicitud_id (
-            id,
-            descripcion,
-            categoria,
-            ubicacion,
-            requiere_profesional
-          )
-        `
+  id,
+  mensaje,
+  estado,
+  created_at,
+  solicitud (
+    id,
+    descripcion,
+    categoria,
+    ubicacion,
+    requiere_profesional
+  )
+`
         )
         .eq("oferente_id", usuarioId)
         .order("created_at", { ascending: false });
