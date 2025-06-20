@@ -14,6 +14,7 @@ const CategoriasPendientes: React.FC = () => {
   const [categorias, setCategorias] = useState<CategoriaPendiente[]>([]);
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
 
   const cargarCategorias = async () => {
     setCargando(true);
@@ -34,13 +35,15 @@ const CategoriasPendientes: React.FC = () => {
   };
 
   useEffect(() => {
-    cargarCategorias();
-  }, []);
+    if (visible) {
+      cargarCategorias();
+    }
+    // Solo carga al abrir la lista
+    // eslint-disable-next-line
+  }, [visible]);
 
   const aprobarCategoria = async (cat: CategoriaPendiente) => {
     setProcesando(cat.id);
-
-    // 1. Normaliza y busca por nombre_normalizado
     const nombre = cat.nombre.trim();
     const nombre_normalizado = normalizarTextoCategoria(nombre);
 
@@ -54,15 +57,12 @@ const CategoriasPendientes: React.FC = () => {
       const { error: errorInsert } = await supabase
         .from("categorias")
         .insert([{ nombre, nombre_normalizado }]);
-
       if (errorInsert) {
         toast.error("Error al aprobar la categoría");
         setProcesando(null);
         return;
       }
     }
-
-    // 2. Marcar como revisada
     await supabase
       .from("categorias_pendientes")
       .update({ revisada: true })
@@ -86,69 +86,66 @@ const CategoriasPendientes: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h2>🧾 Categorías pendientes</h2>
-
-      {cargando ? (
-        <p>Cargando...</p>
-      ) : categorias.length === 0 ? (
-        <p>No hay categorías pendientes.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {categorias.map((cat) => (
-            <li
-              key={cat.id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "1rem",
-                marginBottom: "1rem",
-                borderRadius: "6px",
-                background: procesando === cat.id ? "#f6f6f6" : "white",
-                opacity: procesando === cat.id ? 0.6 : 1,
-              }}
-            >
-              <strong>{cat.nombre}</strong>
-              <br />
-              Propuesta por: <code>{cat.usuario_id}</code>
-              <br />
-              Fecha: {new Date(cat.creada_en).toLocaleString()}
-              <br />
-              <div style={{ marginTop: "0.5rem" }}>
-                <button
-                  onClick={() => aprobarCategoria(cat)}
-                  style={{
-                    marginRight: "1rem",
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    padding: "0.4rem 0.8rem",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: procesando ? "not-allowed" : "pointer",
-                  }}
-                  disabled={!!procesando}
+    <section className="dashboard-section">
+      <button
+        className="zonas-boton-secundario"
+        style={{ marginBottom: "1rem" }}
+        onClick={() => setVisible((v) => !v)}
+      >
+        {visible
+          ? "Ocultar categorías pendientes"
+          : "Mostrar categorías pendientes"}
+      </button>
+      {visible && (
+        <div>
+          <h3 style={{ marginBottom: "1.2rem" }}>🧾 Categorías pendientes</h3>
+          {cargando ? (
+            <p>Cargando...</p>
+          ) : categorias.length === 0 ? (
+            <p>No hay categorías pendientes.</p>
+          ) : (
+            <ul className="categorias-pendientes-lista">
+              {categorias.map((cat) => (
+                <li
+                  key={cat.id}
+                  className={`categorias-pendientes-item${
+                    procesando === cat.id ? " procesando" : ""
+                  }`}
                 >
-                  ✅ Aprobar
-                </button>
-                <button
-                  onClick={() => rechazarCategoria(cat)}
-                  style={{
-                    backgroundColor: "#dc3545",
-                    color: "white",
-                    padding: "0.4rem 0.8rem",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: procesando ? "not-allowed" : "pointer",
-                  }}
-                  disabled={!!procesando}
-                >
-                  ❌ Rechazar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  <strong>{cat.nombre}</strong>
+                  <br />
+                  <span className="cat-propuesta">
+                    Propuesta por: <code>{cat.usuario_id}</code>
+                  </span>
+                  <br />
+                  <span className="cat-fecha">
+                    Fecha: {new Date(cat.creada_en).toLocaleString()}
+                  </span>
+                  <div style={{ marginTop: "0.7rem" }}>
+                    <button
+                      onClick={() => aprobarCategoria(cat)}
+                      className="zonas-boton"
+                      style={{ marginRight: "0.8rem" }}
+                      disabled={!!procesando}
+                    >
+                      ✅ Aprobar
+                    </button>
+                    <button
+                      onClick={() => rechazarCategoria(cat)}
+                      className="zonas-boton-secundario"
+                      style={{ backgroundColor: "#dc3545" }}
+                      disabled={!!procesando}
+                    >
+                      ❌ Rechazar
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
-    </div>
+    </section>
   );
 };
 

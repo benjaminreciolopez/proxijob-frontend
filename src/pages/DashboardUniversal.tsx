@@ -10,7 +10,7 @@ import PostulacionesCliente from "../components/PostulacionesCliente";
 import SolicitudesDisponibles from "../components/SolicitudesDisponibles";
 import MisPostulaciones from "../components/MisPostulaciones";
 import MisSolicitudesAceptadas from "../components/MisSolicitudesAceptadas";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import "../styles/dashboard.css";
 
 const SECTIONS = [
@@ -28,7 +28,7 @@ const SECTIONS = [
 const Dashboard = () => {
   const [notificacion, setNotificacion] = useState<string | null>(null);
   const [actualizarHistorial, setActualizarHistorial] = useState(0);
-  const [openTab, setOpenTab] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(null);
 
   const usuarioGuardado = localStorage.getItem("usuario");
   const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
@@ -39,56 +39,85 @@ const Dashboard = () => {
     return null;
   }
 
-  // Función para alternar pestañas
-  const handleTabClick = (key: string) => {
-    setOpenTab((prev) => (prev === key ? null : key));
+  // Alternar acordeón
+  const handleSectionClick = (key: string) => {
+    setOpenSection((prev) => (prev === key ? null : key));
   };
 
-  return (
-    <main className="dashboard">
-      <h2 style={{ textAlign: "center" }}>👤 {usuario.nombre}</h2>
-      <div className="dashboard-tabs">
-        {SECTIONS.map((s) => (
-          <button
-            key={s.key}
-            className={openTab === s.key ? "active" : ""}
-            onClick={() => handleTabClick(s.key)}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="dashboard-content">
-        {openTab === "perfil" && <EditarPerfil usuario={usuario} />}
-        {openTab === "documentos" && <Documentos usuarioId={usuario.id} />}
-        {openTab === "zonas" && <ZonasTrabajo usuarioId={usuario.id} />}
-        {openTab === "nueva" && (
+  // Asocia cada sección con su componente
+  const renderSectionContent = (key: string) => {
+    switch (key) {
+      case "perfil":
+        return <EditarPerfil usuario={usuario} />;
+      case "documentos":
+        return <Documentos usuarioId={usuario.id} />;
+      case "zonas":
+        return <ZonasTrabajo usuarioId={usuario.id} />;
+      case "nueva":
+        return (
           <NuevaSolicitud
             usuarioId={usuario.id}
             nombre={usuario.nombre}
             setNotificacion={setNotificacion}
             setActualizarHistorial={setActualizarHistorial}
           />
-        )}
-        {openTab === "historial" && (
+        );
+      case "historial":
+        return (
           <HistorialSolicitudes
             usuarioId={usuario.id}
             actualizar={actualizarHistorial}
           />
-        )}
-        {openTab === "postulaciones" && (
-          <PostulacionesCliente usuarioId={usuario.id} />
-        )}
-        {openTab === "disponibles" && (
-          <SolicitudesDisponibles usuarioId={usuario.id} />
-        )}
-        {openTab === "mispostulaciones" && (
-          <MisPostulaciones usuarioId={usuario.id} />
-        )}
-        {openTab === "aceptadas" && (
-          <MisSolicitudesAceptadas usuarioId={usuario.id} />
-        )}
+        );
+      case "postulaciones":
+        return <PostulacionesCliente usuarioId={usuario.id} />;
+      case "disponibles":
+        return <SolicitudesDisponibles usuarioId={usuario.id} />;
+      case "mispostulaciones":
+        return <MisPostulaciones usuarioId={usuario.id} />;
+      case "aceptadas":
+        return <MisSolicitudesAceptadas usuarioId={usuario.id} />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <main className="dashboard">
+      <h2 style={{ textAlign: "center" }}>👤 {usuario.nombre}</h2>
+      <div className="dashboard-accordion">
+        {SECTIONS.map((section) => (
+          <div key={section.key} className="accordion-item">
+            <button
+              className={`accordion-header${
+                openSection === section.key ? " open" : ""
+              }`}
+              onClick={() => handleSectionClick(section.key)}
+              aria-expanded={openSection === section.key}
+            >
+              {section.label}
+              <span className="accordion-arrow">
+                {openSection === section.key ? "▲" : "▼"}
+              </span>
+            </button>
+            <AnimatePresence initial={false}>
+              {openSection === section.key && (
+                <motion.div
+                  key="content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.26, ease: [0.39, 0.575, 0.565, 1] }}
+                  className="accordion-content"
+                >
+                  <div style={{ padding: "0.6rem 0.3rem" }}>
+                    {renderSectionContent(section.key)}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
       </div>
 
       <AnimatePresence>
