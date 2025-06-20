@@ -999,4 +999,55 @@ select[multiple],
   .leaflet-control-ubicacion:hover {
     background: #0059b3;
   }
+  /* --- Pestañas Toggle Dashboard --- */
+  .dashboard-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.2rem 0 1.7rem 0;
+    justify-content: center;
+  }
+  .dashboard-tabs button {
+    background: #ececec;
+    color: #333;
+    border: none;
+    border-radius: 7px 7px 0 0;
+    font-weight: 600;
+    padding: 0.72rem 1.45rem;
+    font-size: 1.06rem;
+    margin: 0;
+    box-shadow: 0 1px 2px #0001;
+    cursor: pointer;
+    transition: background 0.16s, color 0.14s;
+    outline: none;
+    border-bottom: 2px solid transparent;
+  }
+  .dashboard-tabs button.active,
+  .dashboard-tabs button:focus-visible {
+    background: var(--color-primary, #007bff);
+    color: #fff;
+    border-bottom: 2px solid var(--color-primary, #007bff);
+    z-index: 2;
+  }
+  .dashboard-tabs button:hover:not(.active) {
+    background: #dde7fc;
+    color: #1969a5;
+  }
+  .dashboard-content {
+    min-height: 160px;
+    /* Puedes añadir padding si quieres un efecto tarjeta */
+  }
+  @media (max-width: 600px) {
+    .dashboard-tabs {
+      gap: 0.15rem;
+      margin: 1rem 0 1.1rem 0;
+      flex-wrap: wrap;
+    }
+    .dashboard-tabs button {
+      font-size: 0.97rem;
+      padding: 0.6rem 0.6rem;
+      border-radius: 5px 5px 0 0;
+      min-width: 85px;
+    }
+  }
 }

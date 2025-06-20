@@ -1,97 +1,96 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NotificacionFlotante from "../components/NotificacionFlotante";
+import EditarPerfil from "../components/EditarPerfil";
+import Documentos from "../components/Documentos";
+import ZonasTrabajo from "../components/ZonasTrabajo";
 import NuevaSolicitud from "../components/NuevaSolicitud";
 import HistorialSolicitudes from "../components/HistorialSolicitudes";
 import PostulacionesCliente from "../components/PostulacionesCliente";
-import SolicitudesDisponibles from "../components/SolicitudesDisponibles"; // Nuevo: muestra solicitudes cercanas
-import MisPostulaciones from "../components/MisPostulaciones"; // Nuevo: tus postulaciones a solicitudes de otros
-import MisSolicitudesAceptadas from "../components/MisSolicitudesAceptadas"; // Nuevo: solicitudes que te han aceptado
-import Documentos from "../components/Documentos";
-import ZonasTrabajo from "../components/ZonasTrabajo";
-import EditarPerfil from "../components/EditarPerfil";
+import SolicitudesDisponibles from "../components/SolicitudesDisponibles";
+import MisPostulaciones from "../components/MisPostulaciones";
+import MisSolicitudesAceptadas from "../components/MisSolicitudesAceptadas";
 import { AnimatePresence } from "framer-motion";
 import "../styles/dashboard.css";
 
-interface Usuario {
-  id: string;
-  nombre: string;
-  tratamiento: string;
-}
+const SECTIONS = [
+  { key: "perfil", label: "Perfil" },
+  { key: "documentos", label: "Documentos" },
+  { key: "zonas", label: "Zonas de trabajo" },
+  { key: "nueva", label: "Nueva Solicitud" },
+  { key: "historial", label: "Mis Solicitudes" },
+  { key: "postulaciones", label: "Postulaciones Recibidas" },
+  { key: "disponibles", label: "Solicitudes Disponibles" },
+  { key: "mispostulaciones", label: "Mis Postulaciones" },
+  { key: "aceptadas", label: "Aceptadas" },
+];
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   const [notificacion, setNotificacion] = useState<string | null>(null);
   const [actualizarHistorial, setActualizarHistorial] = useState(0);
+  const [openTab, setOpenTab] = useState<string | null>(null);
 
   const usuarioGuardado = localStorage.getItem("usuario");
-  const usuario: Usuario | null = usuarioGuardado
-    ? JSON.parse(usuarioGuardado)
-    : null;
+  const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
 
+  const navigate = useNavigate();
   if (!usuario) {
-    return (
-      <div className="dashboard">❌ No se ha podido cargar tu usuario.</div>
-    );
+    navigate("/login");
+    return null;
   }
 
+  // Función para alternar pestañas
+  const handleTabClick = (key: string) => {
+    setOpenTab((prev) => (prev === key ? null : key));
+  };
+
   return (
-    <div
-      className="dashboard"
-      style={{ width: "100%", boxSizing: "border-box" }}
-    >
+    <main className="dashboard">
       <h2 style={{ textAlign: "center" }}>👤 {usuario.nombre}</h2>
-      <p style={{ textAlign: "center" }}>
-        {usuario.tratamiento === "Sra" ? "Bienvenida" : "Bienvenido"}. Desde
-        aquí puedes publicar solicitudes, postularte a trabajos, gestionar tus
-        zonas y ver tu actividad.
-      </p>
-
-      {/* Sección de edición de perfil */}
-      <EditarPerfil usuario={usuario} />
-
-      {/* Documentos y zonas de trabajo */}
-      <Documentos usuarioId={usuario.id} />
-      <ZonasTrabajo usuarioId={usuario.id} />
-
-      {/* Publicar nueva solicitud */}
-      <div className="dashboard-section">
-        <NuevaSolicitud
-          usuarioId={usuario.id}
-          nombre={usuario.nombre}
-          setNotificacion={setNotificacion}
-          setActualizarHistorial={setActualizarHistorial}
-        />
+      <div className="dashboard-tabs">
+        {SECTIONS.map((s) => (
+          <button
+            key={s.key}
+            className={openTab === s.key ? "active" : ""}
+            onClick={() => handleTabClick(s.key)}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
-      {/* Historial de solicitudes publicadas */}
-      <div className="dashboard-section">
-        <HistorialSolicitudes
-          usuarioId={usuario.id}
-          actualizar={actualizarHistorial}
-        />
+      <div className="dashboard-content">
+        {openTab === "perfil" && <EditarPerfil usuario={usuario} />}
+        {openTab === "documentos" && <Documentos usuarioId={usuario.id} />}
+        {openTab === "zonas" && <ZonasTrabajo usuarioId={usuario.id} />}
+        {openTab === "nueva" && (
+          <NuevaSolicitud
+            usuarioId={usuario.id}
+            nombre={usuario.nombre}
+            setNotificacion={setNotificacion}
+            setActualizarHistorial={setActualizarHistorial}
+          />
+        )}
+        {openTab === "historial" && (
+          <HistorialSolicitudes
+            usuarioId={usuario.id}
+            actualizar={actualizarHistorial}
+          />
+        )}
+        {openTab === "postulaciones" && (
+          <PostulacionesCliente usuarioId={usuario.id} />
+        )}
+        {openTab === "disponibles" && (
+          <SolicitudesDisponibles usuarioId={usuario.id} />
+        )}
+        {openTab === "mispostulaciones" && (
+          <MisPostulaciones usuarioId={usuario.id} />
+        )}
+        {openTab === "aceptadas" && (
+          <MisSolicitudesAceptadas usuarioId={usuario.id} />
+        )}
       </div>
 
-      {/* Postulaciones recibidas a mis solicitudes */}
-      <div className="dashboard-section">
-        <PostulacionesCliente usuarioId={usuario.id} />
-      </div>
-
-      {/* Solicitudes disponibles para postularme */}
-      <div className="dashboard-section">
-        <SolicitudesDisponibles usuarioId={usuario.id} />
-      </div>
-
-      {/* Mis postulaciones a solicitudes de otros */}
-      <div className="dashboard-section">
-        <MisPostulaciones usuarioId={usuario.id} />
-      </div>
-
-      {/* Solicitudes en las que fui aceptado */}
-      <div className="dashboard-section">
-        <MisSolicitudesAceptadas usuarioId={usuario.id} />
-      </div>
-
-      {/* Notificación flotante */}
       <AnimatePresence>
         {notificacion && (
           <NotificacionFlotante
@@ -100,7 +99,7 @@ const Dashboard: React.FC = () => {
           />
         )}
       </AnimatePresence>
-    </div>
+    </main>
   );
 };
 
