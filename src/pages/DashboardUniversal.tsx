@@ -83,51 +83,79 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="dashboard">
-      <h2 style={{ textAlign: "center" }}>👤 {usuario.nombre}</h2>
-      <div className="dashboard-accordion">
-        {SECTIONS.map((section) => (
-          <div key={section.key} className="accordion-item">
-            <button
-              className={`accordion-header${
-                openSection === section.key ? " open" : ""
-              }`}
-              onClick={() => handleSectionClick(section.key)}
-              aria-expanded={openSection === section.key}
-            >
-              {section.label}
-              <span className="accordion-arrow">
-                {openSection === section.key ? "▲" : "▼"}
-              </span>
-            </button>
-            <AnimatePresence initial={false}>
-              {openSection === section.key && (
-                <motion.div
-                  key="content"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.26, ease: [0.39, 0.575, 0.565, 1] }}
-                  className="accordion-content"
-                >
-                  <div style={{ padding: "0.6rem 0.3rem" }}>
-                    {renderSectionContent(section.key)}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ))}
-      </div>
-
-      <AnimatePresence>
-        {notificacion && (
-          <NotificacionFlotante
-            mensaje={notificacion}
-            onClose={() => setNotificacion(null)}
+    <main className="dashboard-bg">
+      <div className="dashboard-card">
+        <div className="dashboard-header">
+          <img
+            src="/avatar.svg"
+            alt="avatar"
+            className="dashboard-avatar"
+            style={{ width: 54, height: 54 }}
           />
-        )}
-      </AnimatePresence>
+          <div>
+            <h2 className="dashboard-title">
+              👋 ¡Bienvenido,{" "}
+              <span style={{ color: "#2d3987" }}>
+                {usuario.nombre.split(" ")[0]}
+              </span>
+              !
+            </h2>
+            <p className="dashboard-desc">
+              ¿Qué necesitas hoy? Publica, postula o consulta tu actividad.
+            </p>
+          </div>
+        </div>
+
+        <button className="cta-btn" onClick={() => setOpenSection("nueva")}>
+          📢 Publicar nueva solicitud
+        </button>
+
+        <div className="dashboard-accordion">
+          {SECTIONS.map((section) => (
+            <div key={section.key} className="accordion-item">
+              <button
+                className={`accordion-header${
+                  openSection === section.key ? " open" : ""
+                }`}
+                onClick={() => handleSectionClick(section.key)}
+                aria-expanded={openSection === section.key}
+              >
+                {section.label}
+                <span className="accordion-arrow">
+                  {openSection === section.key ? "▲" : "▼"}
+                </span>
+              </button>
+              <AnimatePresence initial={false}>
+                {openSection === section.key && (
+                  <motion.div
+                    key="content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{
+                      duration: 0.26,
+                      ease: [0.39, 0.575, 0.565, 1],
+                    }}
+                    className="accordion-content"
+                  >
+                    <div style={{ padding: "0.6rem 0.3rem" }}>
+                      {renderSectionContent(section.key)}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+        <AnimatePresence>
+          {notificacion && (
+            <NotificacionFlotante
+              mensaje={notificacion}
+              onClose={() => setNotificacion(null)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </main>
   );
 };
