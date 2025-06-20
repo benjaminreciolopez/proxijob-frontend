@@ -1,4 +1,3 @@
-// src/components/MisPostulaciones.tsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
@@ -23,78 +22,63 @@ interface Props {
   usuarioId: string;
 }
 
-const RELACIONES = [
-  "solicitud",
-  "solicitudes",
-  "postulaciones_solicitud_id_fkey1",
-];
-
 const MisPostulaciones: React.FC<Props> = ({ usuarioId }) => {
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [nombreRelacion, setNombreRelacion] = useState<string | null>(null);
 
   useEffect(() => {
     const cargar = async () => {
       setCargando(true);
 
-      let ultimaErrorMsg = "";
-      for (const relacion of RELACIONES) {
-        const { data, error } = await supabase
-          .from("postulaciones")
-          .select(
-            `
-              id,
-              mensaje,
-              estado,
-              created_at,
-              ${relacion} (
-                id,
-                descripcion,
-                categoria,
-                ubicacion,
-                requiere_profesional
-              )
-            `
-          )
-          .eq("usuario_id", usuarioId)
-          .order("created_at", { ascending: false });
+      // 1. Obtener las postulaciones
+      const { data: posts, error } = await supabase
+        .from("postulaciones")
+        .select("id, mensaje, estado, created_at, solicitud_id")
+        .eq("usuario_id", usuarioId)
+        .order("created_at", { ascending: false });
 
-        if (!error) {
-          setNombreRelacion(relacion);
-
-          const normalizadas: Postulacion[] = (data ?? [])
-            .map((raw: any) => {
-              const solicitud = Array.isArray(raw[relacion])
-                ? raw[relacion][0]
-                : raw[relacion];
-              if (!solicitud || !solicitud.id) return null;
-              return {
-                id: raw.id,
-                mensaje: raw.mensaje,
-                estado: raw.estado,
-                created_at: raw.created_at,
-                solicitud,
-              } as Postulacion;
-            })
-            .filter((p): p is Postulacion => p !== null);
-
-          setPostulaciones(normalizadas);
-          setCargando(false);
-          return;
-        } else {
-          ultimaErrorMsg = error.message;
-          // Debug info para ti:
-          // eslint-disable-next-line
-          console.log(`Relación "${relacion}" → Error: ${error.message}`);
-        }
+      if (error) {
+        toast.error("Error cargando postulaciones");
+        setPostulaciones([]);
+        setCargando(false);
+        return;
       }
-      // Si ninguna relación funciona
-      toast.error(
-        "No se ha podido cargar postulaciones (revisa relaciones en Supabase)"
+      if (!posts || posts.length === 0) {
+        setPostulaciones([]);
+        setCargando(false);
+        return;
+      }
+
+      // 2. Obtener todas las solicitudes relacionadas
+      const solicitudIds = posts
+        .map((p: any) => p.solicitud_id)
+        .filter((id, idx, arr) => id && arr.indexOf(id) === idx); // Sin duplicados ni nulls
+
+      const { data: solicitudes, error: error2 } = await supabase
+        .from("solicitudes")
+        .select("id, descripcion, categoria, ubicacion, requiere_profesional")
+        .in("id", solicitudIds);
+
+      if (error2) {
+        toast.error("Error cargando datos de solicitudes");
+        setPostulaciones([]);
+        setCargando(false);
+        return;
+      }
+
+      // 3. Juntar datos
+      const solicitudesMap = new Map(
+        (solicitudes ?? []).map((s: any) => [s.id, s])
       );
-      setPostulaciones([]);
-      setNombreRelacion(null);
+      const normalizadas: Postulacion[] = posts.map((raw: any) => ({
+        id: raw.id,
+        mensaje: raw.mensaje,
+        estado: raw.estado,
+        created_at: raw.created_at,
+        solicitud: solicitudesMap.get(raw.solicitud_id),
+      }));
+
+      setPostulaciones(normalizadas.filter((p) => !!p.solicitud));
       setCargando(false);
     };
     cargar();
@@ -105,13 +89,6 @@ const MisPostulaciones: React.FC<Props> = ({ usuarioId }) => {
   return (
     <div>
       <h3>📨 Mis postulaciones</h3>
-      {nombreRelacion && (
-        <div style={{ fontSize: "0.95em", color: "#888", marginBottom: 8 }}>
-          <span>
-            Relación usada: <b>{nombreRelacion}</b>
-          </span>
-        </div>
-      )}
       {postulaciones.length === 0 ? (
         <p>No has postulado a ninguna solicitud todavía.</p>
       ) : (
@@ -138,11 +115,6 @@ const MisPostulaciones: React.FC<Props> = ({ usuarioId }) => {
             </li>
           ))}
         </ul>
-      )}
-      {!nombreRelacion && (
-        <div style={{ color: "#b02d2d", marginTop: 12 }}>
-          ⚠️ No se pudo detectar relación válida para expandir solicitudes.
-        </div>
       )}
     </div>
   );
