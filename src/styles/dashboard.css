@@ -205,6 +205,24 @@
   flex: 1;
   min-width: 0;
 }
+
+.mapa-principal {
+  height: 320px;
+  width: 100%;
+  min-width: 260px;
+  max-width: 650px;
+  margin: auto;
+  border-radius: 14px;
+  box-shadow: 0 3px 14px #0002;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .mapa-principal {
+    max-width: 99vw;
+    height: 220px;
+  }
+}
+
 @keyframes aparecer-notificacion {
   from {
     opacity: 0;

@@ -237,23 +237,19 @@ const MapaZona: React.FC<Props> = ({
 
       {ubicacion && (
         <MapContainer
+          className="mapa-principal"
+          style={{ marginTop: 14 }}
           center={centro}
           zoom={13}
           scrollWheelZoom={true}
           dragging={editable}
-          style={{
-            height: 300,
-            width: "100%",
-            marginTop: 14,
-            borderRadius: 12,
-            boxShadow: "0 2px 10px #0001",
-          }}
           ref={(mapInstance) => {
             if (mapInstance && !mapRef.current) {
               mapRef.current = mapInstance;
             }
           }}
         >
+          {" "}
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <Circle
             center={centro}
@@ -266,7 +262,6 @@ const MapaZona: React.FC<Props> = ({
           />
           <ClickHandler />
           <FlyToUbicacion />
-
           {/* Botón para centrar en tu ubicación actual */}
           <CustomControl position="topright">
             <button
