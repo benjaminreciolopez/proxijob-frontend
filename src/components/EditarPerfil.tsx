@@ -18,6 +18,7 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
   const [cargando, setCargando] = useState(true);
   const [nuevaCategoria, setNuevaCategoria] = useState("");
   const [mostrarCampoNueva, setMostrarCampoNueva] = useState(false);
+  const [categoriasAbierto, setCategoriasAbierto] = useState(false);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -159,79 +160,70 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
       <h2>✏️ Editar perfil profesional</h2>
 
       <div className="dashboard-section">
-        <label>Categorías seleccionadas:</label>
-        <div className="lista-categorias" style={{ marginBottom: "1rem" }}>
-          {[
-            ...todasCategorias,
-            { id: "otras", nombre: "🆕 Otra (especificar)" },
-          ].map((cat) => (
-            <label
-              key={cat.id}
-              style={{
-                display: "block",
-                marginBottom: "0.3rem",
-                cursor: "pointer",
-              }}
-            >
-              <input
-                type="checkbox"
-                value={cat.id}
-                checked={seleccionadas.includes(cat.id)}
-                onChange={(e) => {
-                  const id = e.target.value;
-                  const yaSeleccionadas = seleccionadas.filter(
-                    (x) => x !== "otras"
-                  );
-                  const seleccionando = e.target.checked;
+        <div style={{ marginBottom: "1.5rem", marginTop: "1rem" }}>
+          <div
+            onClick={() => setCategoriasAbierto((a) => !a)}
+            style={{
+              fontWeight: 600,
+              fontSize: "1.08rem",
+              cursor: "pointer",
+              userSelect: "none",
+              display: "flex",
+              alignItems: "center",
+              color: "#4f46e5",
+              marginBottom: categoriasAbierto ? 10 : 0,
+            }}
+          >
+            <span style={{ marginRight: 8 }}>
+              {categoriasAbierto ? "▼" : "▶"}
+            </span>
+            Categorías seleccionadas
+          </div>
+          {categoriasAbierto && (
+            <div className="lista-categorias" style={{ marginBottom: "1rem" }}>
+              {[
+                ...todasCategorias,
+                { id: "otras", nombre: "🆕 Otra (especificar)" },
+              ].map((cat) => (
+                <label
+                  key={cat.id}
+                  style={{
+                    display: "block",
+                    marginBottom: "0.3rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    value={cat.id}
+                    checked={seleccionadas.includes(cat.id)}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      const yaSeleccionadas = seleccionadas.filter(
+                        (x) => x !== "otras"
+                      );
+                      const seleccionando = e.target.checked;
 
-                  if (seleccionando) {
-                    if (yaSeleccionadas.length >= 3 && id !== "otras") {
-                      toast.error("Máximo 3 categorías.");
-                      return;
-                    }
-                    setSeleccionadas([...seleccionadas, id]);
-                    if (id === "otras") setMostrarCampoNueva(true);
-                  } else {
-                    setSeleccionadas(seleccionadas.filter((x) => x !== id));
-                    if (id === "otras") setMostrarCampoNueva(false);
-                  }
-                }}
-                style={{ marginRight: "0.5rem" }}
-              />
-              {cat.nombre}
-            </label>
-          ))}
+                      if (seleccionando) {
+                        if (yaSeleccionadas.length >= 3 && id !== "otras") {
+                          toast.error("Máximo 3 categorías.");
+                          return;
+                        }
+                        setSeleccionadas([...seleccionadas, id]);
+                        if (id === "otras") setMostrarCampoNueva(true);
+                      } else {
+                        setSeleccionadas(seleccionadas.filter((x) => x !== id));
+                        if (id === "otras") setMostrarCampoNueva(false);
+                      }
+                    }}
+                    style={{ marginRight: "0.5rem" }}
+                  />
+                  {cat.nombre}
+                </label>
+              ))}
+            </div>
+          )}
         </div>
-
-        {/* Chips visuales */}
-        <div
-          style={{
-            marginBottom: "1rem",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "0.5rem",
-          }}
-        >
-          {seleccionadas
-            .filter((id) => id !== "otras")
-            .map((id) => todasCategorias.find((c) => c.id === id))
-            .filter(Boolean)
-            .sort((a, b) => a!.nombre.localeCompare(b!.nombre, "es"))
-            .map((cat) => (
-              <span
-                key={cat!.id}
-                style={{
-                  background: "#e0e0e0",
-                  borderRadius: "12px",
-                  padding: "0.4rem 0.8rem",
-                  fontSize: "0.9rem",
-                }}
-              >
-                {cat!.nombre}
-              </span>
-            ))}
-        </div>
-
         {mostrarCampoNueva && (
           <input
             type="text"
