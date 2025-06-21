@@ -6,403 +6,125 @@
   --color-bg: #fff;
 }
 
-.dashboard {
-  font-family: sans-serif;
-  padding: 1rem;
-  max-width: 900px;
+/* Fondo general */
+.dashboard-bg {
+  background: linear-gradient(120deg, #f3f7fa 0%, #e6e6fa 100%);
+  min-height: 100vh;
+  padding: 44px 0;
+}
+
+/* Tarjeta central */
+.dashboard-card {
+  max-width: 420px;
   margin: 0 auto;
-  background: var(--color-bg);
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 40px #2222;
+  padding: 34px 16px 24px 16px;
 }
 
-.dashboard-section {
-  margin-top: 2rem;
-  border-top: 1px solid #ddd;
-  padding-top: 1.5rem;
+/* Cabecera bonita */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.dashboard-avatar {
+  background: #e4e4e4;
+  border-radius: 100%;
+}
+.dashboard-title {
+  font-size: 1.3rem;
+  margin: 0;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: #1e2337;
+}
+.dashboard-desc {
+  margin: 2px 0 0 0;
+  color: #686d80;
+  font-size: 1.06rem;
 }
 
-.dashboard h2,
-.dashboard h3,
-.dashboard h4,
-.dashboard h5 {
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-bottom: 0.7rem;
-  color: #222;
-}
-/* Botón principal */
-.zonas-boton {
-  margin-top: 1rem;
-  background: var(--color-success);
+/* Botón CTA */
+.cta-btn {
+  background: #2d3987;
   color: #fff;
-  padding: 0.5rem 1.1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 15px;
+  padding: 0.82rem 1.15rem;
+  margin: 16px 0 22px 0;
+  font-size: 1.13rem;
+  font-weight: bold;
+  width: 100%;
+  box-shadow: 0 2px 10px #6663;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.cta-btn:hover {
+  background: #4b48a3;
+}
+
+/* Accordion */
+.dashboard-accordion {
+  margin-top: 12px;
+  width: 100%;
+}
+.accordion-item {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #e2e5ec;
+}
+.accordion-header {
+  width: 100%;
+  background: #f3f6fc;
+  color: #232c3d;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.08rem;
   font-weight: 600;
+  text-align: left;
+  padding: 0.7rem 1.2rem 0.7rem 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.14s;
   cursor: pointer;
-  transition: background 0.2s;
+  box-shadow: 0 1px 3px #0001;
 }
-.zonas-boton:hover {
-  background: #0a7a0a;
+.accordion-header.open,
+.accordion-header:hover {
+  background: #e6eaff;
+  color: #1a1c47;
 }
-
-/* Botón secundario */
-.zonas-boton-secundario {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-left: 0.4rem;
-  transition: background 0.2s;
+.accordion-arrow {
+  margin-left: 14px;
+  font-size: 1.15em;
 }
-.zonas-boton-secundario:hover {
-  background: #004996;
-}
-
-/* Chips visuales */
-.dashboard .lista-categorias span,
-.chip-categoria {
-  background: #e0e0e0;
-  border-radius: 12px;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.96rem;
-  display: inline-block;
-  margin-right: 0.4rem;
-  margin-bottom: 0.3rem;
-  font-weight: 500;
+.accordion-content {
+  overflow: hidden;
+  border-radius: 0 0 8px 8px;
+  background: #fafaff;
+  box-shadow: 0 1px 8px #b9bed733;
+  margin-top: -2px;
+  margin-bottom: 8px;
 }
 
-/* Listas limpias */
+/* Listas y tarjetas */
 .dashboard ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 .dashboard li {
-  margin-bottom: 0.85rem;
   background: #fff;
   border-radius: 8px;
-}
-/* Inputs de texto y campos grandes */
-.campo-texto,
-.dashboard input[type="text"],
-.dashboard textarea {
-  width: 100%;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  box-sizing: border-box;
-  background: #fff;
-  transition: border-color 0.2s;
-}
-.campo-texto:focus,
-.dashboard input[type="text"]:focus,
-.dashboard textarea:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-/* Textarea grande */
-.dashboard textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-/* Responsive general para móvil */
-@media (max-width: 600px) {
-  .dashboard {
-    padding: 0.5rem;
-    max-width: 100vw;
-  }
-  .dashboard-section {
-    padding-top: 1rem;
-    border-top: none;
-  }
-  .dashboard h2 {
-    font-size: 1.3rem;
-    text-align: center;
-  }
-  .dashboard p,
-  .dashboard h3,
-  .dashboard h4 {
-    font-size: 1rem;
-    text-align: center;
-  }
-  .dashboard ul {
-    padding: 0;
-  }
-  .dashboard li {
-    font-size: 0.97rem;
-    line-height: 1.5;
-    padding: 0.8rem;
-  }
-  /* Botones en listas ocupan todo el ancho */
-  .dashboard li button {
-    width: 100%;
-    font-size: 1rem;
-    margin-top: 0.3rem;
-    padding: 0.6rem;
-  }
-  /* Chips de categorías */
-  .dashboard .lista-categorias span {
-    font-size: 0.98rem;
-    padding: 0.32rem 0.7rem;
-    max-width: 160px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-/* Lista de categorías: estilo vertical y ajustado */
-.lista-categorias {
-  margin-bottom: 1rem;
-  padding-left: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.lista-categorias label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-bottom: 0.3rem;
-  width: 100%;
-  line-height: 1.2;
-  word-break: break-word;
-}
-
-.lista-categorias input[type="checkbox"] {
-  flex-shrink: 0;
-  width: 1.1em;
-  height: 1.1em;
-  accent-color: #007bff;
-  margin-right: 0.6rem;
-}
-
-.lista-categorias span {
-  flex: 1 1 auto;
-  font-size: 1rem;
-  word-break: break-all;
-}
-
-/* Responsive: lista de categorías y chips en móvil */
-@media (max-width: 600px) {
-  .lista-categorias {
-    gap: 0.2rem;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  .lista-categorias label {
-    font-size: 0.99rem;
-    width: 100%;
-    margin-bottom: 0.18rem;
-    line-height: 1.28;
-    gap: 0.45rem;
-  }
-  .lista-categorias span {
-    font-size: 0.97rem;
-    padding: 0.3rem 0.65rem;
-    max-width: 135px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-/* Botones principales */
-.dashboard button,
-.zonas-boton,
-.zonas-boton-secundario {
-  padding: 0.5rem 1.1rem;
-  font-size: 1.05rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  margin-bottom: 0.6rem;
-  transition: background 0.14s;
-}
-
-.zonas-boton {
-  background: green;
-  color: white;
-}
-.zonas-boton:hover {
-  background: #109710;
-}
-
-.zonas-boton-secundario {
-  background: #007bff;
-  color: white;
-}
-.zonas-boton-secundario:hover {
-  background: #0256ac;
-}
-
-.dashboard-section button {
-  width: auto;
-  min-width: 110px;
-  margin-right: 0.5rem;
-}
-
-.dashboard li button {
-  margin-top: 0.4rem;
-  min-width: 110px;
-}
-
-/* Chips visuales para categorías seleccionadas */
-.dashboard .chips-categorias,
-.chips-categorias {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 1rem;
-}
-
-.dashboard .chips-categorias span,
-.chips-categorias span {
-  background: #e0e0e0;
-  border-radius: 12px;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.96rem;
-  margin-bottom: 0.2rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Responsive: botones y chips en móvil */
-@media (max-width: 600px) {
-  .dashboard-section button,
-  .zonas-boton,
-  .zonas-boton-secundario {
-    width: 100%;
-    min-width: 0;
-    font-size: 1rem;
-    box-sizing: border-box;
-    margin-right: 0;
-    margin-bottom: 0.7rem;
-  }
-  .dashboard li button {
-    width: 100%;
-    min-width: 0;
-  }
-  .dashboard .chips-categorias span,
-  .chips-categorias span {
-    font-size: 0.93rem;
-    padding: 0.32rem 0.7rem;
-    max-width: 145px;
-  }
-}
-/* Inputs generales y campo de texto personalizado */
-.dashboard input[type="text"],
-.dashboard textarea,
-.dashboard .campo-texto {
-  width: 100%;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-bottom: 1.2rem;
-  box-sizing: border-box;
-}
-
-/* Área de texto autoajustable */
-.dashboard textarea,
-.campo-texto textarea {
-  min-height: 100px;
-  resize: vertical; /* Permite redimensionar solo verticalmente */
-}
-
-/* Selectores múltiples */
-select[multiple],
-.campo-multiple {
-  min-height: 120px;
-  padding: 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: white;
-  cursor: pointer;
-  font-size: 1rem;
-  box-sizing: border-box;
-  display: block;
-  width: 100%;
-  margin-bottom: 1rem;
-}
-
-/* Listas de categorías y checkboxes */
-.lista-categorias {
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.18rem;
-}
-.lista-categorias label {
-  display: block;
-  margin-bottom: 0.3rem;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1.3;
-  word-break: break-word;
-}
-.lista-categorias input[type="checkbox"] {
-  margin-right: 0.5rem;
-}
-
-/* Responsive: inputs, listas y selectores en móvil */
-@media (max-width: 600px) {
-  .dashboard input[type="text"],
-  .dashboard textarea,
-  .dashboard .campo-texto,
-  select[multiple],
-  .campo-multiple {
-    font-size: 1rem;
-    padding: 0.6rem;
-    min-width: 0;
-    margin-bottom: 1rem;
-  }
-  .lista-categorias label {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
-    margin-bottom: 0.18rem;
-  }
-  .lista-categorias input[type="checkbox"] {
-    flex-shrink: 0;
-  }
-  .lista-categorias span {
-    flex: 1 1 auto;
-  }
-  .dashboard .lista-categorias {
-    padding-left: 0;
-  }
-}
-/* Secciones principales del dashboard */
-.dashboard-section {
-  margin-top: 2rem;
-  border-top: 1px solid #ddd;
-  padding-top: 1.5rem;
-}
-
-/* Listas (ul) y elementos de lista (li) */
-.dashboard ul {
-  padding: 0;
-  margin: 0;
-}
-.dashboard li {
+  margin-bottom: 0.85rem;
   font-size: 0.98rem;
   line-height: 1.5;
   list-style: none;
   padding: 0.8rem 0;
   border-bottom: 1px solid #e0e0e0;
-  background: #fff;
 }
 .dashboard li:last-child {
   border-bottom: none;
@@ -417,184 +139,42 @@ select[multiple],
   border-radius: 6px;
 }
 
-/* Tarjetas de postulaciones o bloques individuales */
-.postulacion-card {
-  border: 1px solid #ddd;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  background: #fff;
-}
-
-/* Cabecera de la tarjeta de postulación */
-.postulacion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.categoria {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: bold;
-}
-.descripcion {
-  margin: 0.2rem 0 0;
-  color: #666;
-}
-
-/* Estados visuales de postulaciones */
-.estado {
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.95rem;
-  text-transform: capitalize;
-  margin-top: 0.2rem;
+/* Chips */
+.chip-categoria,
+.dashboard .chips-categorias span,
+.dashboard .lista-categorias span {
+  background: #e0e0e0;
+  border-radius: 12px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.97rem;
+  margin-bottom: 0.3rem;
+  word-break: break-all;
   display: inline-block;
 }
-.estado-pendiente {
-  background: #ffeeba;
-  color: #856404;
-}
-.estado-preseleccionado {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-.estado-aceptado {
-  background: #c3e6cb;
-  color: #155724;
-}
-.estado-rechazado {
-  background: #f8d7da;
-  color: #721c24;
-}
 
-/* Detalles dentro de una postulación */
-.postulacion-detalles p {
-  margin: 0.2rem 0;
-}
-
-/* Acciones y botones en las tarjetas */
-.postulacion-acciones {
-  margin-top: 1rem;
-}
-.postulacion-acciones select,
-.postulacion-acciones button {
+/* Inputs, textarea */
+.dashboard input[type="text"],
+.dashboard textarea,
+.campo-texto {
   width: 100%;
   padding: 0.6rem;
   font-size: 1rem;
-  border-radius: 6px;
   border: 1px solid #ccc;
-  cursor: pointer;
-  margin-bottom: 0.4rem;
-}
-.postulacion-acciones button {
-  background: #28a745;
-  color: white;
-  border: none;
-}
-.postulacion-docs summary {
-  margin-top: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* Responsive: Ajustes para listas y tarjetas en móvil */
-@media (max-width: 600px) {
-  .dashboard-section {
-    padding-top: 1rem;
-    margin-top: 1rem;
-    border-top: none;
-  }
-  .dashboard h2,
-  .dashboard p {
-    text-align: center;
-  }
-  .dashboard ul {
-    padding: 0;
-  }
-  .dashboard li {
-    font-size: 0.97rem;
-    padding: 0.8rem;
-  }
-  .dashboard li button {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    display: block;
-    font-size: 1rem;
-  }
-  .postulacion-card {
-    padding: 0.85rem;
-    border-radius: 7px;
-    margin-bottom: 1.1rem;
-  }
-}
-/* ✍️ Modal de reseña */
-.modal-reseña-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-reseña {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
-}
-
-.modal-reseña h3 {
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-  text-align: center;
-}
-
-.modal-reseña select,
-.modal-reseña textarea {
-  width: 100%;
-  padding: 0.6rem;
-  margin-bottom: 1rem;
-  font-size: 1rem;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  margin-bottom: 1.2rem;
   box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.2s;
 }
-
-.modal-reseña-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+.dashboard input[type="text"]:focus,
+.dashboard textarea:focus,
+.campo-texto:focus {
+  border-color: #007bff;
+  outline: none;
 }
-
-.modal-reseña button {
-  flex: 1;
-  padding: 0.7rem 1.2rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.modal-reseña button.enviar {
-  background-color: #28a745;
-  color: white;
-}
-
-.modal-reseña button.cancelar {
-  background-color: #ccc;
-  color: black;
+.dashboard textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
 /* Notificación flotante */
@@ -612,53 +192,6 @@ select[multiple],
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   animation: aparecer-notificacion 0.3s;
 }
-.navButton,
-.loginButton {
-  margin: 0 0.5rem;
-  padding: 0.6rem 1.5rem;
-  border-radius: 8px;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  background: #f4f4f4;
-  color: #333;
-  transition: background 0.15s;
-}
-.navButton:hover,
-.loginButton:hover {
-  background: #ececec;
-}
-
-.roleButton {
-  margin: 0 0.5rem;
-  padding: 0.8rem 1.8rem;
-  border-radius: 8px;
-  font-weight: bold;
-  border: none;
-  background: #4f46e5;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.roleButton:hover {
-  background: #3730a3;
-}
-
-.volverButton {
-  margin-left: 1rem;
-  background: transparent;
-  border: none;
-  color: #4f46e5;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 1.05rem;
-  text-decoration: underline;
-  padding: 0.5rem 0.8rem;
-}
-.volverButton:hover {
-  color: #3730a3;
-}
-
 @keyframes aparecer-notificacion {
   from {
     opacity: 0;
@@ -670,570 +203,24 @@ select[multiple],
   }
 }
 
-/* Chips visuales para categorías */
-.dashboard .lista-categorias span {
-  background: #e0e0e0;
-  border-radius: 12px;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.97rem;
-  margin-bottom: 0.3rem;
-  word-break: break-all;
-  display: inline-block;
-}
-
-/* Responsive: chips y checkbox en móvil */
+/* Responsive */
 @media (max-width: 600px) {
-  .lista-categorias label {
-    font-size: 1rem;
-    line-height: 1.3;
-    word-break: break-word;
-    width: 100%;
-    display: flex;
-    align-items: center;
-  }
-  .lista-categorias {
-    gap: 0.2rem;
-    padding-left: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem 0.7rem;
-  }
-  .dashboard .lista-categorias input[type="checkbox"] {
-    flex-shrink: 0;
-  }
-  .dashboard .lista-categorias input[type="checkbox"] + span {
-    flex: 1 1 auto;
-  }
-  .dashboard .lista-categorias span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 150px;
-    font-size: 0.96rem;
-  }
-}
-
-/* Mejoras para checkbox visuales */
-.campoCheckbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1.2rem 0;
-  font-size: 1rem;
-  line-height: 1.4;
-}
-.campoCheckbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #007bff;
-}
-.campoCheckbox span {
-  cursor: pointer;
-  color: #333;
-}
-/* Responsive checkboxes en móvil */
-@media (max-width: 480px) {
-  .campoCheckbox {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: flex-start;
-  }
-  .campoCheckbox input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
-  }
-  .campoCheckbox span {
-    margin-top: 0.3rem;
-  }
-  .dashboard input:focus,
-  .dashboard textarea:focus {
-    box-shadow: 0 0 0 2px #007bff33;
-  }
-  /* postulación-card */
-  .postulaciones-lista {
-    padding: 0;
-    margin: 0;
-  }
-
-  .postulacion-card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    margin-bottom: 1.5rem;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
-    padding: 1rem 1.2rem;
-    transition: box-shadow 0.2s;
-    list-style: none;
-  }
-
-  .postulacion-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
-  }
-
-  .postulacion-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #eaeaea;
-    padding-bottom: 0.4rem;
-    margin-bottom: 0.7rem;
-  }
-
-  .postulacion-header .categoria {
-    font-weight: bold;
-    color: #007bff;
-    margin-bottom: 0.2em;
-  }
-  .postulacion-header .descripcion {
-    font-size: 0.97em;
-    color: #333;
-  }
-
-  .estado {
-    font-size: 0.93em;
-    font-weight: 500;
-    padding: 0.2em 0.85em;
-    border-radius: 999px;
-    text-transform: capitalize;
-  }
-  .estado-pendiente {
-    background: #f5f5f5;
-    color: #666;
-  }
-  .estado-preseleccionado {
-    background: #fffbe6;
-    color: #b29a00;
-  }
-  .estado-aceptado {
-    background: #e0ffe0;
-    color: #238a26;
-  }
-  .estado-rechazado {
-    background: #ffeaea;
-    color: #c22;
-  }
-
-  .postulacion-detalles p {
-    margin: 0.2em 0;
-    font-size: 0.99em;
-  }
-
-  .postulacion-acciones {
-    margin-top: 0.7em;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.7em;
-  }
-
-  .postulacion-acciones button,
-  .postulacion-acciones select {
-    border-radius: 5px;
-    border: 1px solid #e3e3e3;
-    padding: 0.55em 1.1em;
-    font-size: 1em;
-    background: #f8f9fa;
-    cursor: pointer;
-  }
-
-  .postulacion-acciones button:hover {
-    background: #e6f3ff;
-    color: #1969a5;
-  }
-
-  /* Modal reseña overlay y caja */
-  .modal-reseña-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.25);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-  }
-
-  .modal-reseña {
-    background: #fff;
-    border-radius: 14px;
-    padding: 2.2em 1.1em 1.1em 1.1em;
-    min-width: 270px;
-    max-width: 95vw;
-    width: 100%;
-    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .modal-reseña h3 {
-    font-size: 1.2em;
-    margin-bottom: 1em;
-  }
-  .modal-reseña select,
-  .modal-reseña textarea {
-    margin-bottom: 1em;
-    font-size: 1em;
-    border-radius: 6px;
-    border: 1px solid #e0e0e0;
-    padding: 0.5em;
-    width: 100%;
-  }
-  .modal-reseña textarea {
-    resize: vertical;
-    min-height: 90px;
-    max-height: 210px;
-  }
-
-  .modal-reseña-buttons {
-    display: flex;
-    gap: 1.2em;
-    justify-content: flex-end;
-  }
-  .modal-reseña-buttons button.enviar {
-    background: #27ad3b;
-    color: #fff;
-    border: none;
-    font-weight: bold;
-    padding: 0.6em 1.7em;
-  }
-  .modal-reseña-buttons button.cancelar {
-    background: #eee;
-    color: #111;
-    border: none;
-    padding: 0.6em 1.7em;
-  }
-
-  /* Documentos */
-  .postulacion-docs summary {
-    cursor: pointer;
-    font-weight: 500;
-    color: #3676e8;
-    margin-top: 0.7em;
-    outline: none;
-  }
-  .documento-enlace {
-    color: #1969a5;
-    text-decoration: underline;
-  }
-
-  /* Responsive para móviles */
-  @media (max-width: 640px) {
-    .postulacion-card {
-      padding: 0.6em 0.5em;
-      border-radius: 7px;
-      margin-bottom: 1em;
-    }
-    .modal-reseña {
-      padding: 1em 0.6em 0.8em 0.6em;
-      min-width: unset;
-    }
-    .postulacion-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.1em;
-      padding-bottom: 0.2em;
-    }
-  }
-  .autocomplete-zonas {
-    list-style: none;
-    margin: 0;
-    padding: 0.5rem 0;
-    background: #fff;
-    border: 2px solid var(--color-primary, #007bff);
-    border-top: none;
-    max-height: 190px;
-    overflow-y: auto;
-    position: absolute;
-    z-index: 1400;
-    width: 100%;
-    left: 0;
-    top: 100%;
-    border-radius: 0 0 10px 10px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
-  }
-
-  .autocomplete-zonas li {
-    padding: 0.55rem 1rem;
-    cursor: pointer;
-    font-size: 1rem;
-    color: #234;
-    border-bottom: 1px solid #f2f3fa;
-    background: #f7fbff;
-    transition: background 0.16s;
-    outline: none;
-  }
-  .autocomplete-zonas li:last-child {
-    border-bottom: none;
-  }
-  .autocomplete-zonas li:hover,
-  .autocomplete-zonas li:focus {
-    background: #d8ebff;
-    color: #007bff;
-  }
-  @media (max-width: 600px) {
-    .autocomplete-zonas {
-      max-height: 140px;
-      font-size: 0.98rem;
-      border-radius: 0 0 7px 7px;
-    }
-    .autocomplete-zonas li {
-      padding: 0.45rem 0.7rem;
-      font-size: 0.98rem;
-    }
-  }
-  .leaflet-control-ubicacion {
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 7px;
-    padding: 0.4rem 1rem;
-    font-weight: 600;
-    box-shadow: 0 2px 6px #007be544;
-    cursor: pointer;
-    margin: 0.5rem;
-    font-size: 1.04rem;
-    transition: background 0.18s;
-  }
-  .leaflet-control-ubicacion:hover {
-    background: #0059b3;
-  }
-  /* --- Pestañas Toggle Dashboard --- */
-  .dashboard-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 1.2rem 0 1.7rem 0;
-    justify-content: center;
-  }
-  .dashboard-tabs button {
-    background: #ececec;
-    color: #333;
-    border: none;
-    border-radius: 7px 7px 0 0;
-    font-weight: 600;
-    padding: 0.72rem 1.45rem;
-    font-size: 1.06rem;
-    margin: 0;
-    box-shadow: 0 1px 2px #0001;
-    cursor: pointer;
-    transition: background 0.16s, color 0.14s;
-    outline: none;
-    border-bottom: 2px solid transparent;
-  }
-  .dashboard-tabs button.active,
-  .dashboard-tabs button:focus-visible {
-    background: var(--color-primary, #007bff);
-    color: #fff;
-    border-bottom: 2px solid var(--color-primary, #007bff);
-    z-index: 2;
-  }
-  .dashboard-tabs button:hover:not(.active) {
-    background: #dde7fc;
-    color: #1969a5;
-  }
-  .dashboard-content {
-    min-height: 160px;
-    /* Puedes añadir padding si quieres un efecto tarjeta */
-  }
-  @media (max-width: 600px) {
-    .dashboard-tabs {
-      gap: 0.15rem;
-      margin: 1rem 0 1.1rem 0;
-      flex-wrap: wrap;
-    }
-    .dashboard-tabs button {
-      font-size: 0.97rem;
-      padding: 0.6rem 0.6rem;
-      border-radius: 5px 5px 0 0;
-      min-width: 85px;
-    }
-  }
-  .dashboard-accordion {
-    width: 100%;
-    margin: 2rem 0 0 0;
-  }
-  .accordion-item {
-    border-bottom: 1px solid #e2e5ec;
-  }
-  .accordion-header {
-    width: 100%;
-    text-align: left;
-    background: #f3f6fc;
-    color: #232c3d;
-    padding: 1.02rem 1rem 1rem 1.3rem;
-    border: none;
-    font-size: 1.12rem;
-    font-weight: 600;
-    border-radius: 7px 7px 0 0;
-    cursor: pointer;
-    transition: background 0.14s;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .accordion-header.open,
-  .accordion-header:hover {
-    background: #d8e7fc;
-  }
-  .accordion-arrow {
-    font-size: 1.13em;
-    margin-left: 0.9em;
-    color: #666;
-    user-select: none;
-  }
-  .accordion-content {
-    overflow: hidden;
-    background: #fff;
-    border-radius: 0 0 9px 9px;
-    box-shadow: 0 2px 8px #7ba1e610;
-  }
-  @media (max-width: 600px) {
-    .dashboard-accordion {
-      margin-top: 0.4rem;
-    }
-    .accordion-header {
-      font-size: 1.01rem;
-      padding: 0.82rem 0.7rem 0.72rem 0.8rem;
-    }
-  }
-  .categorias-pendientes-lista {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 2rem 0;
-  }
-  .categorias-pendientes-item {
-    border: 1px solid #d2d8e5;
-    border-radius: 8px;
-    background: #fff;
-    padding: 1rem 1.1rem 0.7rem 1.1rem;
-    margin-bottom: 1.2rem;
-    box-shadow: 0 1px 4px #0a265109;
-    transition: background 0.2s, opacity 0.16s;
-  }
-  .categorias-pendientes-item.procesando {
-    background: #f6f6f6;
-    opacity: 0.6;
-  }
-  .cat-propuesta,
-  .cat-fecha {
-    font-size: 0.98em;
-    color: #565f6e;
-  }
-  @media (max-width: 600px) {
-    .categorias-pendientes-item {
-      padding: 0.7rem 0.55rem 0.5rem 0.55rem;
-      font-size: 0.98em;
-    }
-  }
-  .dashboard-bg {
-    background: linear-gradient(120deg, #f3f7fa 0%, #e6e6fa 100%);
-    min-height: 100vh;
-    padding: 44px 0;
-  }
-
   .dashboard-card {
-    max-width: 420px;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 8px 40px #2222;
-    padding: 34px 16px 24px 16px;
+    max-width: 98vw;
+    padding: 11px 2vw;
   }
-
   .dashboard-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 10px;
-  }
-  .dashboard-avatar {
-    background: #e4e4e4;
-    border-radius: 100%;
+    flex-direction: column;
+    gap: 6px;
   }
   .dashboard-title {
-    font-size: 1.3rem;
-    margin: 0;
-    font-weight: 900;
-    letter-spacing: 0.5px;
-    color: #1e2337;
-  }
-  .dashboard-desc {
-    margin: 2px 0 0 0;
-    color: #686d80;
-    font-size: 1.06rem;
+    font-size: 1.09rem;
   }
   .cta-btn {
-    background: #2d3987;
-    color: #fff;
-    border: none;
-    border-radius: 15px;
-    padding: 0.82rem 1.15rem;
-    margin: 16px 0 22px 0;
-    font-size: 1.13rem;
-    font-weight: bold;
-    width: 100%;
-    box-shadow: 0 2px 10px #6663;
-    cursor: pointer;
-    transition: background 0.18s;
-  }
-  .cta-btn:hover {
-    background: #4b48a3;
-  }
-  .dashboard-accordion {
-    margin-top: 12px;
-  }
-  .accordion-item {
-    margin-bottom: 10px;
+    font-size: 1.01rem;
   }
   .accordion-header {
-    width: 100%;
-    background: #f5f5fa;
-    color: #2d3987;
-    border: none;
-    border-radius: 10px;
-    font-size: 1.08rem;
-    font-weight: 600;
-    text-align: left;
-    padding: 0.7rem 1.2rem 0.7rem 0.9rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background 0.14s;
-    cursor: pointer;
-    box-shadow: 0 1px 3px #0001;
-  }
-  .accordion-header.open {
-    background: #e6eaff;
-    color: #1a1c47;
-  }
-  .accordion-arrow {
-    margin-left: 14px;
-    font-size: 1.15em;
-  }
-  .accordion-content {
-    overflow: hidden;
-    border-radius: 0 0 8px 8px;
-    background: #fafaff;
-    box-shadow: 0 1px 8px #b9bed733;
-    margin-top: -2px;
-    margin-bottom: 8px;
-  }
-  @media (max-width: 600px) {
-    .dashboard-card {
-      max-width: 98vw;
-      padding: 11px 2vw;
-    }
-    .dashboard-header {
-      flex-direction: column;
-      gap: 6px;
-    }
-    .dashboard-title {
-      font-size: 1.09rem;
-    }
-    .cta-btn {
-      font-size: 1.01rem;
-    }
+    font-size: 1.01rem;
+    padding: 0.82rem 0.7rem 0.72rem 0.8rem;
   }
 }
