@@ -14,15 +14,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import "../styles/dashboard.css";
 
 const SECTIONS = [
-  { key: "perfil", label: "Perfil" },
-  { key: "documentos", label: "Documentos" },
-  { key: "zonas", label: "Zonas de trabajo" },
-  { key: "nueva", label: "Nueva Solicitud" },
-  { key: "historial", label: "Mis Solicitudes" },
-  { key: "postulaciones", label: "Postulaciones Recibidas" },
-  { key: "disponibles", label: "Solicitudes Disponibles" },
-  { key: "mispostulaciones", label: "Mis Postulaciones" },
-  { key: "aceptadas", label: "Aceptadas" },
+  { key: "perfil", label: "👤 Perfil" },
+  { key: "documentos", label: "📄 Documentos" },
+  { key: "zonas", label: "🗺️ Zonas de trabajo" },
+  { key: "nueva", label: "📝 Nueva Solicitud" },
+  { key: "historial", label: "📚 Mis Solicitudes" },
+  { key: "postulaciones", label: "💬 Postulaciones Recibidas" },
+  { key: "disponibles", label: "🔍 Solicitudes Disponibles" },
+  { key: "mispostulaciones", label: "📨 Mis Postulaciones" },
+  { key: "aceptadas", label: "✅ Aceptadas" },
 ];
 
 const Dashboard = () => {
@@ -87,10 +87,15 @@ const Dashboard = () => {
       <div className="dashboard-card">
         <div className="dashboard-header">
           <img
-            src="/avatar.svg"
+            src={
+              usuario.avatarUrl ||
+              `https://api.dicebear.com/7.x/bottts/svg?seed=${
+                usuario.id || usuario.nombre
+              }`
+            }
             alt="avatar"
             className="dashboard-avatar"
-            style={{ width: 54, height: 54 }}
+            style={{ width: 54, height: 54, border: "2px solid #ececec" }}
           />
           <div>
             <h2 className="dashboard-title">
@@ -103,6 +108,18 @@ const Dashboard = () => {
             <p className="dashboard-desc">
               ¿Qué necesitas hoy? Publica, postula o consulta tu actividad.
             </p>
+            {/* Resumen rápido opcional */}
+            <div
+              style={{
+                marginTop: "8px",
+                fontWeight: 600,
+                color: "#4f46e5",
+                fontSize: "1.07rem",
+              }}
+            >
+              {/* Puedes cambiar esto por props/datos reales */}
+              📊 <span>Tienes 3 solicitudes pendientes y 2 aceptadas</span>
+            </div>
           </div>
         </div>
 
