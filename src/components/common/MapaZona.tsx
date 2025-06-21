@@ -238,11 +238,20 @@ const MapaZona: React.FC<Props> = ({
       {ubicacion && (
         <MapContainer
           className="mapa-principal"
-          style={{ marginTop: 14 }}
           center={centro}
           zoom={13}
           scrollWheelZoom={true}
           dragging={editable}
+          style={{
+            height: 300, // Puedes ajustar a 350 si lo quieres aún más grande
+            width: "100%", // O un valor fijo, por ejemplo: 400
+            maxWidth: 420, // Así no se sale en móvil/escritorio
+            minWidth: 320, // Opcional para asegurar un tamaño mínimo
+            marginTop: 14,
+            borderRadius: 12,
+            boxShadow: "0 2px 10px #0001",
+            background: "#eaf4fa", // Por si tarda en cargar
+          }}
           ref={(mapInstance) => {
             if (mapInstance && !mapRef.current) {
               mapRef.current = mapInstance;
