@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NotificacionFlotante from "../components/NotificacionFlotante";
 import EditarPerfil from "../components/EditarPerfil";
@@ -12,15 +12,6 @@ import MisPostulaciones from "../components/MisPostulaciones";
 import MisSolicitudesAceptadas from "../components/MisSolicitudesAceptadas";
 import { AnimatePresence, motion } from "framer-motion";
 import "../styles/dashboard.css";
-import { supabase } from "../supabaseClient";
-interface EditarPerfilProps {
-  usuario: any; // Cambia esto por tu tipo real si lo tienes
-}
-
-  const EditarPerfil: React.FC<EditarPerfilProps> = ({ usuario }) => {
-  const [categoriasAbierto, setCategoriasAbierto] = useState(false);
-  const [listaCategorias, setListaCategorias] = useState<string[]>([]);
-  const [categoriasSeleccionadas, setCategoriasSeleccionadas] = useState<string[]>([]);
 
 // Define los bloques
 const SECTIONS = [
@@ -70,45 +61,19 @@ const Dashboard = () => {
   const [notificacion, setNotificacion] = useState<string | null>(null);
   const [actualizarHistorial, setActualizarHistorial] = useState(0);
   const [solicitudes, setSolicitudes] = useState<any[]>([]); // Cambia any por tu tipo si lo tienes
+  const [categoriasAbierto, setCategoriasAbierto] = useState(false);
   const usuarioGuardado = localStorage.getItem("usuario");
   const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
   const pendientes = solicitudes.filter((s) => s.estado === "pendiente").length;
   const aceptadas = solicitudes.filter((s) => s.estado === "aceptada").length;
   const rechazada = solicitudes.filter((s) => s.estado === "rechazada").length;
   const [postulaciones, setPostulaciones] = useState<any[]>([]);
- 
 
   const navigate = useNavigate();
   if (!usuario) {
     navigate("/login");
     return null;
   }
-useEffect(() => {
-    const cargarCategorias = async () => {
-      const { data, error } = await supabase
-        .from("categorias")
-        .select("nombre")
-        .order("nombre", { ascending: true });
-
-      if (!error && data) {
-        setListaCategorias(data.map((c: any) => c.nombre));
-      }
-    };
-    cargarCategorias();
-  }, []);
-
-   useEffect(() => {
-    // Ejemplo: usuario.categoriasSeleccionadas
-    if (usuario?.categoriasSeleccionadas) {
-      setCategoriasSeleccionadas(usuario.categoriasSeleccionadas);
-    }
-  }, [usuario]);
-  
-  const handleCategoria = (cat: string) => {
-    setCategoriasSeleccionadas((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
 
   const renderSectionContent = (key: string) => {
     switch (key) {
@@ -177,44 +142,7 @@ useEffect(() => {
               </span>
               !
             </h2>
-            <div style={{ marginTop: 24 }}>
-              <div
-                onClick={() => setCategoriasAbierto((abierto) => !abierto)}
-                style={{
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  cursor: "pointer",
-                  userSelect: "none",
-                  marginBottom: categoriasAbierto ? 8 : 0,
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ marginRight: 6 }}>
-                  {categoriasAbierto ? "▼" : "▶"}
-                </span>
-                Categorías seleccionadas
-              </div>
-              {categoriasAbierto && (
-                <div
-                  style={{ maxHeight: 340, overflowY: "auto", paddingLeft: 6 }}
-                >
-                  {/* aquí va el listado de tus categorías con checkboxes */}
-                  {listaCategorias.map((cat) => (
-                    <div key={cat}>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={categoriasSeleccionadas.includes(cat)}
-                          onChange={() => handleCategoria(cat)}
-                        />
-                        {cat}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
             <p className="dashboard-desc">
               ¿Qué necesitas hoy? Publica, postula o consulta tu actividad.
             </p>
