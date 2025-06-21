@@ -206,17 +206,25 @@ const Dashboard = () => {
           {renderGroup(PERFIL_KEYS, renderSectionContent)}
         </div>
 
-        {/* Layout columnas para escritorio */}
+        {/* ---- NUEVA SOLICITUD FUERA DEL GRID ---- */}
+        <div
+          id="solicitud-nueva-panel"
+          style={{ maxWidth: 530, margin: "30px auto 0 auto", width: "100%" }}
+        >
+          {renderSectionContent("nueva")}
+        </div>
+
+        {/* ---- COLUMNA GRID SIN 'nueva' ---- */}
         <div className="dashboard-columns">
           <div className="dashboard-col">
-            {/* POSTULACIONES */}
             {renderGroup(POSTULACIONES_KEYS, renderSectionContent)}
           </div>
           <div className="dashboard-col">
-            {/* SOLICITUDES */}
-            <div id="solicitud-nueva-panel">
-              {renderGroup(SOLICITUDES_KEYS, renderSectionContent)}
-            </div>
+            {/* SOLICITUDES (pero SIN la sección "nueva") */}
+            {renderGroup(
+              SOLICITUDES_KEYS.filter((k) => k !== "nueva"),
+              renderSectionContent
+            )}
           </div>
         </div>
 
