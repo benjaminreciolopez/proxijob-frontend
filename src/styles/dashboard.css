@@ -10,17 +10,20 @@
 .dashboard-bg {
   background: linear-gradient(120deg, #f3f7fa 0%, #e6e6fa 100%);
   min-height: 100vh;
-  padding: 44px 0;
+  padding: 20px 0;
 }
 
 /* Tarjeta central */
 .dashboard-card {
-  max-width: 420px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 600px; /* Sube el máximo */
+  min-width: 340px;
+  margin: 40px auto;
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 8px 40px #2222;
   padding: 34px 16px 24px 16px;
+  transition: max-width 0.2s;
 }
 
 /* Cabecera bonita */
@@ -139,7 +142,7 @@
   border-radius: 6px;
 }
 
-/* Chips */
+.chip,
 .chip-categoria,
 .dashboard .chips-categorias span,
 .dashboard .lista-categorias span {
@@ -192,6 +195,16 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   animation: aparecer-notificacion 0.3s;
 }
+.dashboard-columns {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.dashboard-col {
+  flex: 1;
+  min-width: 0;
+}
 @keyframes aparecer-notificacion {
   from {
     opacity: 0;
@@ -204,9 +217,10 @@
 }
 
 /* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 650px) {
   .dashboard-card {
     max-width: 98vw;
+    min-width: unset;
     padding: 11px 2vw;
   }
   .dashboard-header {
@@ -222,5 +236,22 @@
   .accordion-header {
     font-size: 1.01rem;
     padding: 0.82rem 0.7rem 0.72rem 0.8rem;
+  }
+  @media (min-width: 900px) {
+    .dashboard-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      max-width: 1100px;
+      margin: 2.5rem auto 0 auto;
+      align-items: start;
+    }
+    .dashboard-col {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 3px 18px #23223c0d;
+      padding: 2.1rem 2.4rem 2.1rem 2.4rem;
+      min-height: 330px;
+    }
   }
 }

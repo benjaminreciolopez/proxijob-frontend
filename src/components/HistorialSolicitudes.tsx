@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 interface Props {
   usuarioId: string;
   actualizar: number;
+  onData?: (solicitudes: any[]) => void; // Añade esto
 }
 
 interface Solicitud {
@@ -17,7 +18,11 @@ interface Solicitud {
   estado: string;
 }
 
-const HistorialSolicitudes: React.FC<Props> = ({ usuarioId, actualizar }) => {
+const HistorialSolicitudes: React.FC<Props> = ({
+  usuarioId,
+  actualizar,
+  onData,
+}) => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
@@ -42,6 +47,7 @@ const HistorialSolicitudes: React.FC<Props> = ({ usuarioId, actualizar }) => {
       console.error(error.message);
     } else {
       setSolicitudes(data || []);
+      if (onData) onData(data || []); // <-- ¡AQUÍ!
     }
   };
 

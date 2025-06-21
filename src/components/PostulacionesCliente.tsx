@@ -34,9 +34,10 @@ interface Postulacion {
 
 interface Props {
   usuarioId: string; // usuario que publica las solicitudes
+  onData?: (postulaciones: Postulacion[]) => void;
 }
 
-const PostulacionesUsuario: React.FC<Props> = ({ usuarioId }) => {
+const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [mostrarReseñas, setMostrarReseñas] = useState(false);
   const [postulacionSeleccionada, setPostulacionSeleccionada] =
@@ -81,16 +82,17 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId }) => {
       }
 
       // Solo postulaciones a solicitudes donde el usuario actual es el autor (usuario_id)
-      setPostulaciones(
-        (data as any[]).filter(
-          (p) => p.solicitud && p.solicitud.usuario_id === usuarioId
-        )
+      const filtered = (data as any[]).filter(
+        (p) => p.solicitud && p.solicitud.usuario_id === usuarioId
       );
+      setPostulaciones(filtered);
+
+      // <----- ESTA LÍNEA ES LA CLAVE -----
+      if (onData) onData(filtered);
     };
 
     cargarPostulaciones();
   }, [usuarioId]);
-
   // FUNC: Actualiza estado de postulación
   const actualizarEstado = async (
     postulacionId: string,
