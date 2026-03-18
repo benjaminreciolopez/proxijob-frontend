@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import MapaZona from "./common/MapaZona";
 import { supabase } from "./../supabaseClient";
 import toast from "react-hot-toast";
+import Button from "./ui/Button";
+import EmptyState from "./ui/EmptyState";
 
 interface Props {
   usuarioId: string;
@@ -95,7 +97,7 @@ const ZonasTrabajo: React.FC<Props> = ({ usuarioId }) => {
     });
 
     if (yaExiste) {
-      toast.error("⚠️ Esta zona ya ha sido registrada.");
+      toast.error("Esta zona ya ha sido registrada.");
       return;
     }
 
@@ -118,8 +120,8 @@ const ZonasTrabajo: React.FC<Props> = ({ usuarioId }) => {
   };
 
   return (
-    <div className="zonas-container">
-      <h3>📍 Mis zonas de trabajo</h3>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-grey-800">Mis zonas de trabajo</h3>
 
       <MapaZona
         onChange={setZonaSeleccionada}
@@ -135,29 +137,40 @@ const ZonasTrabajo: React.FC<Props> = ({ usuarioId }) => {
         editable={modoEdicion}
       />
 
-      {modoEdicion && zonaSeleccionada && (
-        <button className="zonas-boton" type="button" onClick={guardarZona}>
-          💾 Guardar esta zona
-        </button>
-      )}
+      <div className="flex items-center gap-3">
+        {modoEdicion && zonaSeleccionada && (
+          <Button variant="success" type="button" onClick={guardarZona}>
+            Guardar esta zona
+          </Button>
+        )}
 
-      <div style={{ marginTop: "1rem" }}>
-        <button
-          className="zonas-boton-secundario"
+        <Button
+          variant="outline"
           type="button"
           onClick={() => {
             setZonaActivaId(null);
             setModoEdicion(true);
           }}
         >
-          ➕ Crear nueva zona
-        </button>
+          Crear nueva zona
+        </Button>
       </div>
 
-      {zonas.length > 0 && (
-        <ul className="zonas-lista">
+      {zonas.length === 0 ? (
+        <EmptyState
+          icon="📍"
+          title="Sin zonas de trabajo"
+          description="No has registrado ninguna zona de trabajo todavia."
+        />
+      ) : (
+        <ul className="space-y-2">
           {zonas.map((zona, i) => (
-            <li key={zona.id} className="zonas-item">
+            <li
+              key={zona.id}
+              className={`flex items-center justify-between gap-3 bg-white rounded-lg border border-grey-200 shadow-sm p-3 transition-all ${
+                zonaActivaId === zona.id ? "ring-2 ring-primary/20" : ""
+              }`}
+            >
               <button
                 type="button"
                 aria-label={`Ver zona ${i + 1}`}
@@ -165,17 +178,19 @@ const ZonasTrabajo: React.FC<Props> = ({ usuarioId }) => {
                   setZonaActivaId(zona.id);
                   setModoEdicion(false);
                 }}
+                className="flex-1 text-left text-sm text-grey-700 hover:text-primary transition-colors cursor-pointer"
               >
-                📍 Zona {i + 1} ({zona.ciudad}) — {zona.radio_km} km
+                📍 Zona {i + 1} ({zona.ciudad}) - {zona.radio_km} km
               </button>
-              <button
+              <Button
+                variant="danger"
+                size="sm"
                 type="button"
                 aria-label={`Eliminar zona ${i + 1}`}
                 onClick={() => eliminarZona(zona.id)}
-                style={{ color: "red" }}
               >
-                ❌ Eliminar
-              </button>
+                Eliminar
+              </Button>
             </li>
           ))}
         </ul>

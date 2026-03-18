@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
+import EmptyState from "./ui/EmptyState";
+import { SkeletonList } from "./ui/Skeleton";
+import Card from "./ui/Card";
+import Badge from "./ui/Badge";
 
 interface Solicitud {
   id: string;
@@ -84,37 +88,52 @@ const MisPostulaciones: React.FC<Props> = ({ usuarioId }) => {
     cargar();
   }, [usuarioId]);
 
-  if (cargando) return <p>Cargando postulaciones...</p>;
+  const estadoBadge = (estado: string) => {
+    switch (estado) {
+      case "pendiente":
+        return <Badge variant="warning">Pendiente</Badge>;
+      case "preseleccionado":
+        return <Badge variant="info">Preseleccionado</Badge>;
+      case "aceptado":
+        return <Badge variant="success">Aceptado</Badge>;
+      case "rechazado":
+        return <Badge variant="error">Rechazado</Badge>;
+      case "descartado":
+        return <Badge>Descartado</Badge>;
+      default:
+        return <Badge>{estado}</Badge>;
+    }
+  };
+
+  if (cargando) return <SkeletonList count={3} />;
 
   return (
     <div>
-      <h3>📨 Mis postulaciones</h3>
+      <h3 className="text-lg font-semibold text-grey-800 mb-4">Mis postulaciones</h3>
       {postulaciones.length === 0 ? (
-        <p>No has postulado a ninguna solicitud todavía.</p>
+        <EmptyState
+          icon="📨"
+          title="Sin postulaciones"
+          description="No has postulado a ninguna solicitud todavia."
+        />
       ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <div className="space-y-3">
           {postulaciones.map((p) => (
-            <li
-              key={p.id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 16,
-                marginBottom: 12,
-                background: "#f8f8fa",
-              }}
-            >
-              <strong>{p.solicitud?.categoria}</strong> —{" "}
-              {p.solicitud?.descripcion}
-              <br />
-              Estado: <b>{p.estado}</b>
-              <br />
-              Mensaje: {p.mensaje}
-              <br />
-              🕓 {new Date(p.created_at).toLocaleString()}
-            </li>
+            <Card key={p.id}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-grey-800">{p.solicitud?.categoria}</p>
+                  <p className="text-sm text-grey-600 mt-0.5">{p.solicitud?.descripcion}</p>
+                </div>
+                {estadoBadge(p.estado)}
+              </div>
+              <div className="mt-3 space-y-1 text-sm text-grey-500">
+                <p>Mensaje: <span className="text-grey-700">{p.mensaje}</span></p>
+                <p className="text-xs">🕓 {new Date(p.created_at).toLocaleString()}</p>
+              </div>
+            </Card>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

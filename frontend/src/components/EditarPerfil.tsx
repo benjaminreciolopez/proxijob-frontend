@@ -3,6 +3,7 @@ import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { normalizarTextoCategoria } from "../utils/normalizarTextoCategoria";
+import Button from "./ui/Button";
 
 interface Props {
   usuario: { id: string };
@@ -46,7 +47,6 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
         )
       );
 
-      // 👉 Relación unificada: categorias_usuario
       const { data: asociadas } = await supabase
         .from("categorias_usuario")
         .select("categoria_id")
@@ -72,7 +72,7 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
     let nuevaId: string | null = null;
     let idsFinal = [...seleccionadas.filter((id) => id !== "otras")];
 
-    // 1. Si hay una categoría nueva, añádela
+    // 1. Si hay una categoria nueva, anadela
     if (mostrarCampoNueva && nuevaCategoria.trim().length > 1) {
       const nombreNormalizado = normalizarTextoCategoria(nuevaCategoria);
       const { data: existente } = await supabase
@@ -95,11 +95,11 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
           .select()
           .single();
         if (errorInsert || !nueva) {
-          toast.error("No se pudo crear la nueva categoría.");
+          toast.error("No se pudo crear la nueva categoria.");
           return;
         }
         nuevaId = nueva.id;
-        toast.success("¡Categoría creada y añadida a tu perfil!");
+        toast.success("Categoria creada y anadida a tu perfil!");
       }
       if (nuevaId) {
         idsFinal.push(nuevaId);
@@ -109,7 +109,7 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
     // Elimina duplicados
     idsFinal = Array.from(new Set(idsFinal));
     if (idsFinal.length > 3) {
-      toast.error("Solo puedes seleccionar un máximo de 3 categorías.");
+      toast.error("Solo puedes seleccionar un maximo de 3 categorias.");
       return;
     }
 
@@ -146,7 +146,7 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
         .insert(inserts);
 
       if (errorInsert) {
-        toast.error("❌ Error al guardar las categorías.");
+        toast.error("Error al guardar las categorias.");
         return;
       }
     }
@@ -156,42 +156,28 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
   };
 
   return (
-    <div className="dashboard">
-      <h2>✏️ Editar perfil profesional</h2>
+    <div className="max-w-2xl mx-auto">
+      <h2 className="text-xl font-bold text-grey-800 mb-6">Editar perfil profesional</h2>
 
-      <div className="dashboard-section">
-        <div style={{ marginBottom: "1.5rem", marginTop: "1rem" }}>
+      <div className="bg-white rounded-lg border border-grey-200 shadow-sm p-6 space-y-6">
+        {/* Categorias */}
+        <div>
           <div
             onClick={() => setCategoriasAbierto((a) => !a)}
-            style={{
-              fontWeight: 600,
-              fontSize: "1.08rem",
-              cursor: "pointer",
-              userSelect: "none",
-              display: "flex",
-              alignItems: "center",
-              color: "#4f46e5",
-              marginBottom: categoriasAbierto ? 10 : 0,
-            }}
+            className="flex items-center gap-2 font-semibold text-primary cursor-pointer select-none hover:text-primary-dark transition-colors"
           >
-            <span style={{ marginRight: 8 }}>
-              {categoriasAbierto ? "▼" : "▶"}
-            </span>
-            Categorías seleccionadas
+            <span className="text-xs">{categoriasAbierto ? "▼" : "▶"}</span>
+            Categorias seleccionadas
           </div>
           {categoriasAbierto && (
-            <div className="lista-categorias" style={{ marginBottom: "1rem" }}>
+            <div className="mt-3 space-y-1.5 max-h-64 overflow-y-auto border border-grey-200 rounded-md p-3">
               {[
                 ...todasCategorias,
-                { id: "otras", nombre: "🆕 Otra (especificar)" },
+                { id: "otras", nombre: "Otra (especificar)" },
               ].map((cat) => (
                 <label
                   key={cat.id}
-                  style={{
-                    display: "block",
-                    marginBottom: "0.3rem",
-                    cursor: "pointer",
-                  }}
+                  className="flex items-center gap-2 cursor-pointer py-0.5 hover:bg-grey-50 px-1 rounded"
                 >
                   <input
                     type="checkbox"
@@ -206,7 +192,7 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
 
                       if (seleccionando) {
                         if (yaSeleccionadas.length >= 3 && id !== "otras") {
-                          toast.error("Máximo 3 categorías.");
+                          toast.error("Maximo 3 categorias.");
                           return;
                         }
                         setSeleccionadas([...seleccionadas, id]);
@@ -216,44 +202,45 @@ const EditarPerfil: React.FC<Props> = ({ usuario }) => {
                         if (id === "otras") setMostrarCampoNueva(false);
                       }
                     }}
-                    style={{ marginRight: "0.5rem" }}
+                    className="rounded border-grey-300 text-primary focus:ring-primary"
                   />
-                  {cat.nombre}
+                  <span className="text-sm text-grey-700">{cat.nombre}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
+
         {mostrarCampoNueva && (
           <input
             type="text"
             value={nuevaCategoria}
             onChange={(e) => setNuevaCategoria(e.target.value)}
-            placeholder="Escribe tu categoría personalizada"
-            className="campo-texto"
+            placeholder="Escribe tu categoria personalizada"
+            className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
         )}
 
-        <label>Descripción:</label>
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Describe tu experiencia, habilidades o proyectos destacados."
-          rows={5}
-          className="campo-texto"
-        />
+        {/* Descripcion */}
+        <div>
+          <label className="block text-sm font-medium text-grey-700 mb-1">Descripcion:</label>
+          <textarea
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Describe tu experiencia, habilidades o proyectos destacados."
+            rows={5}
+            className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          />
+        </div>
 
-        <div style={{ marginTop: "1rem" }}>
-          <button className="zonas-boton" onClick={guardarPerfil}>
-            💾 Guardar
-          </button>
-          <button
-            className="zonas-boton-secundario"
-            onClick={() => navigate("/dashboard")}
-            style={{ marginLeft: "0.5rem" }}
-          >
-            ⬅️ Cancelar
-          </button>
+        {/* Buttons */}
+        <div className="flex items-center gap-3 pt-2">
+          <Button variant="primary" onClick={guardarPerfil}>
+            Guardar
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/dashboard")}>
+            Cancelar
+          </Button>
         </div>
       </div>
     </div>

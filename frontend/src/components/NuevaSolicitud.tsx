@@ -3,6 +3,7 @@ import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
 import MapaZona from "./common/MapaZona";
 import { normalizarTextoCategoria } from "../utils/normalizarTextoCategoria";
+import Button from "./ui/Button";
 
 interface Props {
   usuarioId: string;
@@ -39,7 +40,7 @@ const NuevaSolicitud: React.FC<Props> = ({
         .from("categorias")
         .select("id, nombre");
       if (error) {
-        toast.error("No se pudieron cargar las categorías");
+        toast.error("No se pudieron cargar las categorias");
         return;
       }
       setCategorias(data || []);
@@ -77,19 +78,19 @@ const NuevaSolicitud: React.FC<Props> = ({
   // Enviar solicitud
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validación básica
+    // Validacion basica
     if (!formData.descripcion.trim()) {
-      toast.error("La descripción es obligatoria.");
+      toast.error("La descripcion es obligatoria.");
       return;
     }
     if (!formData.categoriaId && formData.nuevaCategoria.trim().length < 3) {
-      toast.error("Selecciona o escribe una categoría válida.");
+      toast.error("Selecciona o escribe una categoria valida.");
       return;
     }
 
     let categoriaFinalId = formData.categoriaId;
 
-    // Si es una nueva categoría (sin id), busca o crea en categorías_pendientes
+    // Si es una nueva categoria (sin id), busca o crea en categorias_pendientes
     if (!categoriaFinalId && formData.nuevaCategoria.trim().length > 1) {
       const nombreNormalizado = normalizarTextoCategoria(
         formData.nuevaCategoria
@@ -110,7 +111,7 @@ const NuevaSolicitud: React.FC<Props> = ({
             sugerida_por: usuarioId,
           },
         ]);
-        toast("Tu categoría será revisada.");
+        toast("Tu categoria sera revisada.");
       }
     }
 
@@ -130,7 +131,7 @@ const NuevaSolicitud: React.FC<Props> = ({
     if (error) {
       toast.error("Error al guardar la solicitud.");
     } else {
-      setNotificacion("✅ Solicitud publicada con éxito.");
+      setNotificacion("Solicitud publicada con exito.");
       setTimeout(() => setNotificacion(""), 4000);
       setActualizarHistorial((prev: number) => prev + 1);
       setFormData({
@@ -150,96 +151,103 @@ const NuevaSolicitud: React.FC<Props> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="formulario-nueva-solicitud"
+      className="space-y-4"
       autoComplete="off"
     >
-      <h3>📢 Publicar nueva necesidad</h3>
+      <h3 className="text-lg font-semibold text-grey-800">Publicar nueva necesidad</h3>
+
       <input
         type="text"
         name="descripcion"
-        placeholder="Descripción del trabajo"
+        placeholder="Descripcion del trabajo"
         value={formData.descripcion}
         onChange={handleChange}
         required
+        className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
       />
 
-      <label>Categoría:</label>
-      <div ref={contenedorRef} style={{ position: "relative" }}>
-        <input
-          type="text"
-          name="nuevaCategoria"
-          placeholder="Escribe o selecciona una categoría"
-          value={formData.nuevaCategoria}
-          onChange={(e) => {
-            setFormData((prev) => ({
-              ...prev,
-              nuevaCategoria: e.target.value,
-              categoriaId: "", // limpia id si está escribiendo
-            }));
-            setMostrarCampoNueva(true);
-          }}
-          autoComplete="off"
-          required
-        />
-        {mostrarCampoNueva && formData.nuevaCategoria.length > 1 && (
-          <ul className="autocompletar-categorias">
-            {categorias
-              .filter(
-                (cat) =>
-                  cat.nombre
-                    .toLowerCase()
-                    .includes(formData.nuevaCategoria.toLowerCase()) &&
-                  cat.nombre.toLowerCase() !==
-                    formData.nuevaCategoria.toLowerCase()
-              )
-              .slice(0, 5)
-              .map((cat) => (
-                <li
-                  key={cat.id}
-                  tabIndex={0}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      categoriaId: cat.id,
-                      nuevaCategoria: cat.nombre,
-                    }));
-                    setMostrarCampoNueva(false);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+      <div>
+        <label className="block text-sm font-medium text-grey-700 mb-1">Categoria:</label>
+        <div ref={contenedorRef} className="relative">
+          <input
+            type="text"
+            name="nuevaCategoria"
+            placeholder="Escribe o selecciona una categoria"
+            value={formData.nuevaCategoria}
+            onChange={(e) => {
+              setFormData((prev) => ({
+                ...prev,
+                nuevaCategoria: e.target.value,
+                categoriaId: "", // limpia id si esta escribiendo
+              }));
+              setMostrarCampoNueva(true);
+            }}
+            autoComplete="off"
+            required
+            className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          />
+          {mostrarCampoNueva && formData.nuevaCategoria.length > 1 && (
+            <ul className="absolute z-20 left-0 right-0 mt-1 bg-white border border-grey-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+              {categorias
+                .filter(
+                  (cat) =>
+                    cat.nombre
+                      .toLowerCase()
+                      .includes(formData.nuevaCategoria.toLowerCase()) &&
+                    cat.nombre.toLowerCase() !==
+                      formData.nuevaCategoria.toLowerCase()
+                )
+                .slice(0, 5)
+                .map((cat) => (
+                  <li
+                    key={cat.id}
+                    tabIndex={0}
+                    className="px-3 py-2 text-sm text-grey-700 hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors"
+                    onClick={() => {
                       setFormData((prev) => ({
                         ...prev,
                         categoriaId: cat.id,
                         nuevaCategoria: cat.nombre,
                       }));
                       setMostrarCampoNueva(false);
-                    }
-                  }}
-                >
-                  {cat.nombre}
-                </li>
-              ))}
-          </ul>
-        )}
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setFormData((prev) => ({
+                          ...prev,
+                          categoriaId: cat.id,
+                          nuevaCategoria: cat.nombre,
+                        }));
+                        setMostrarCampoNueva(false);
+                      }
+                    }}
+                  >
+                    {cat.nombre}
+                  </li>
+                ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <input
         type="text"
         name="ubicacion"
-        placeholder="Ubicación o zona"
+        placeholder="Ubicacion o zona"
         value={formData.ubicacion}
         onChange={handleChange}
+        className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
       />
 
-      <label className="campoCheckbox">
+      <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="checkbox"
           name="requiereProfesional"
           checked={formData.requiereProfesional}
           onChange={handleChange}
+          className="rounded border-grey-300 text-primary focus:ring-primary"
         />
-        <span>¿Requiere titulación o acreditación?</span>
+        <span className="text-sm text-grey-700">Requiere titulacion o acreditacion?</span>
       </label>
 
       <MapaZona
@@ -262,14 +270,18 @@ const NuevaSolicitud: React.FC<Props> = ({
               ubicacion: ciudad,
             }));
           } catch (error) {
-            console.error("Error al obtener ubicación:", error);
+            console.error("Error al obtener ubicacion:", error);
           }
         }}
       />
 
-      <button type="submit" disabled={!formData.descripcion.trim()}>
-        📍 Publicar solicitud
-      </button>
+      <Button
+        type="submit"
+        variant="primary"
+        disabled={!formData.descripcion.trim()}
+      >
+        Publicar solicitud
+      </Button>
     </form>
   );
 };

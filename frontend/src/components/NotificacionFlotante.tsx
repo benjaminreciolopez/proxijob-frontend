@@ -1,6 +1,7 @@
 // src/components/NotificacionFlotante.tsx
 import React from "react";
 import { motion } from "framer-motion";
+import Button from "./ui/Button";
 
 interface Props {
   mensaje: string;
@@ -14,16 +15,18 @@ const NotificacionFlotante: React.FC<Props> = ({ mensaje, onClose }) => {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: -80, opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-primary text-white px-6 py-3 rounded-lg shadow-lg"
     >
       <div className="flex items-center gap-3">
-        <span>📬 {mensaje}</span>
-        <button
+        <span className="text-sm">{mensaje}</span>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onClose}
-          className="ml-4 bg-white text-blue-600 px-2 py-1 rounded"
+          className="!bg-white !text-primary !border-white hover:!bg-grey-100"
         >
           Cerrar
-        </button>
+        </Button>
       </div>
     </motion.div>
   );

@@ -11,7 +11,8 @@ import SolicitudesDisponibles from "../components/SolicitudesDisponibles";
 import MisPostulaciones from "../components/MisPostulaciones";
 import MisSolicitudesAceptadas from "../components/MisSolicitudesAceptadas";
 import { AnimatePresence, motion } from "framer-motion";
-import "../styles/dashboard.css";
+import Card, { CardHeader, CardTitle, CardContent } from "../components/ui/Card";
+import Button from "../components/ui/Button";
 
 // Define los bloques
 const SECTIONS = [
@@ -39,16 +40,8 @@ function renderGroup(
     const section = SECTIONS.find((sec) => sec.key === key);
     if (!section) return null;
     return (
-      <section key={key} style={{ marginBottom: 18 }}>
-        <h4
-          style={{
-            fontSize: "1.07rem",
-            margin: "0 0 0.45rem 0",
-            color: "#4f46e5",
-            fontWeight: 700,
-            letterSpacing: ".01em",
-          }}
-        >
+      <section key={key} className="mb-4">
+        <h4 className="text-[1.07rem] mb-2 text-indigo font-bold tracking-tight">
           {section.label}
         </h4>
         {renderSectionContent(key)}
@@ -119,10 +112,11 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="dashboard-bg">
-      <div className="dashboard-card dashboard-card-wide">
+    <main className="min-h-screen bg-gradient-to-br from-grey-50 to-[#e6e6fa] py-5">
+      <Card className="w-full max-w-[600px] min-w-[340px] mx-auto mt-10 rounded-2xl shadow-lg px-4 pt-8 pb-6 transition-[max-width] duration-200
+        max-sm:max-w-[98vw] max-sm:min-w-0 max-sm:px-[2vw] max-sm:py-3">
         {/* Panel usuario */}
-        <div className="dashboard-header">
+        <div className="flex items-center gap-4 mb-2.5 max-sm:flex-col max-sm:gap-1.5">
           <img
             src={
               usuario.avatarUrl ||
@@ -131,30 +125,22 @@ const Dashboard = () => {
               }`
             }
             alt="avatar"
-            className="dashboard-avatar"
-            style={{ width: 54, height: 54, border: "2px solid #ececec" }}
+            className="w-[54px] h-[54px] rounded-full bg-grey-200 border-2 border-grey-200"
           />
           <div>
-            <h2 className="dashboard-title">
+            <h2 className="text-xl font-black tracking-wide text-dark m-0 max-sm:text-lg">
               👋 ¡Bienvenido,{" "}
-              <span style={{ color: "#2d3987" }}>
+              <span className="text-navy">
                 {usuario.nombre.split(" ")[0]}
               </span>
               !
             </h2>
 
-            <p className="dashboard-desc">
+            <p className="mt-0.5 text-grey-500 text-[1.06rem]">
               ¿Qué necesitas hoy? Publica, postula o consulta tu actividad.
             </p>
             {/* Resumen de solicitudes */}
-            <div
-              style={{
-                marginTop: "8px",
-                fontWeight: 600,
-                color: "#4f46e5",
-                fontSize: "1.07rem",
-              }}
-            >
+            <div className="mt-2 font-semibold text-indigo text-[1.07rem]">
               📊{" "}
               <span>
                 Tienes <b>{pendientes}</b> solicitudes pendientes y{" "}
@@ -162,14 +148,7 @@ const Dashboard = () => {
               </span>
             </div>
             {/* Resumen de postulaciones recibidas */}
-            <div
-              style={{
-                fontWeight: 500,
-                color: "#2d3987",
-                fontSize: "1.01rem",
-                marginTop: "2px",
-              }}
-            >
+            <div className="font-medium text-navy text-[1.01rem] mt-0.5">
               💬{" "}
               <span>
                 Postulaciones recibidas:&nbsp;
@@ -191,41 +170,45 @@ const Dashboard = () => {
         </div>
 
         {/* CTA rápida */}
-        <button
-          className="cta-btn"
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          className="bg-navy hover:bg-[#4b48a3] rounded-2xl py-3 px-4 my-4 text-lg font-bold shadow-md"
           onClick={() => {
             const el = document.getElementById("solicitud-nueva-panel");
             if (el) el.scrollIntoView({ behavior: "smooth" });
           }}
         >
           📢 Publicar nueva solicitud
-        </button>
+        </Button>
 
         {/* Panel perfil */}
-        <div className="dashboard-perfil-panel">
+        <div className="mt-3">
           {renderGroup(PERFIL_KEYS, renderSectionContent)}
         </div>
 
         {/* ---- NUEVA SOLICITUD FUERA DEL GRID ---- */}
         <div
           id="solicitud-nueva-panel"
-          style={{ maxWidth: 530, margin: "30px auto 0 auto", width: "100%" }}
+          className="max-w-[530px] mx-auto mt-8 w-full"
         >
           {renderSectionContent("nueva")}
         </div>
 
         {/* ---- COLUMNA GRID SIN 'nueva' ---- */}
-        <div className="dashboard-columns">
-          <div className="dashboard-col">
+        <div className="flex gap-8 mt-10 max-sm:flex-col max-sm:gap-4
+          min-[900px]:grid min-[900px]:grid-cols-2 min-[900px]:gap-10 min-[900px]:max-w-[1100px] min-[900px]:mx-auto min-[900px]:items-start">
+          <Card className="flex-1 min-w-0 min-[900px]:min-h-[330px] min-[900px]:p-6 rounded-xl">
             {renderGroup(POSTULACIONES_KEYS, renderSectionContent)}
-          </div>
-          <div className="dashboard-col">
+          </Card>
+          <Card className="flex-1 min-w-0 min-[900px]:min-h-[330px] min-[900px]:p-6 rounded-xl">
             {/* SOLICITUDES (pero SIN la sección "nueva") */}
             {renderGroup(
               SOLICITUDES_KEYS.filter((k) => k !== "nueva"),
               renderSectionContent
             )}
-          </div>
+          </Card>
         </div>
 
         <AnimatePresence>
@@ -236,7 +219,7 @@ const Dashboard = () => {
             />
           )}
         </AnimatePresence>
-      </div>
+      </Card>
     </main>
   );
 };

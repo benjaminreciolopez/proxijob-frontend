@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
+import EmptyState from "./ui/EmptyState";
+import { SkeletonList } from "./ui/Skeleton";
+import Card from "./ui/Card";
 
 interface Solicitud {
   id: string;
@@ -76,36 +79,35 @@ const MisSolicitudesAceptadas: React.FC<Props> = ({ usuarioId }) => {
     cargar();
   }, [usuarioId]);
 
-  if (cargando) return <p>Cargando aceptadas...</p>;
+  if (cargando) return <SkeletonList count={3} />;
 
   return (
     <div>
-      <h3>✅ Solicitudes con profesional aceptado</h3>
+      <h3 className="text-lg font-semibold text-grey-800 mb-4">Solicitudes con profesional aceptado</h3>
       {aceptadas.length === 0 ? (
-        <p>No tienes solicitudes con profesional aceptado.</p>
+        <EmptyState
+          icon="✅"
+          title="Sin solicitudes aceptadas"
+          description="No tienes solicitudes con profesional aceptado."
+        />
       ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <div className="space-y-3">
           {aceptadas.map((p) => (
-            <li
-              key={p.id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 16,
-                marginBottom: 12,
-                background: "#f8f8fa",
-              }}
-            >
-              <strong>{p.solicitud?.categoria}</strong> —{" "}
-              {p.solicitud?.descripcion}
-              <br />
-              Profesional: <b>{p.usuario?.nombre || "Sin nombre"}</b>
-              <br />
-              📍 {p.solicitud?.ubicacion} | 🕓{" "}
-              {new Date(p.solicitud?.created_at || "").toLocaleString()}
-            </li>
+            <Card key={p.id}>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-grey-800">{p.solicitud?.categoria}</p>
+                <p className="text-sm text-grey-600 mt-0.5">{p.solicitud?.descripcion}</p>
+              </div>
+              <div className="mt-3 space-y-1 text-sm text-grey-500">
+                <p>Profesional: <span className="font-medium text-grey-800">{p.usuario?.nombre || "Sin nombre"}</span></p>
+                <div className="flex items-center gap-4 text-xs">
+                  <span>📍 {p.solicitud?.ubicacion}</span>
+                  <span>🕓 {new Date(p.solicitud?.created_at || "").toLocaleString()}</span>
+                </div>
+              </div>
+            </Card>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

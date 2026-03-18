@@ -2,6 +2,11 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
+import Button from "./ui/Button";
+import EmptyState from "./ui/EmptyState";
+import { SkeletonList } from "./ui/Skeleton";
+import Card from "./ui/Card";
+import Badge from "./ui/Badge";
 
 interface Solicitud {
   id: string;
@@ -69,78 +74,86 @@ const SolicitudesDisponibles: React.FC<Props> = ({ usuarioId }) => {
     if (error) {
       toast.error("Error al postularte");
     } else {
-      toast.success("¡Postulación enviada!");
+      toast.success("Postulacion enviada!");
       setPostulandoId(null);
       setMensaje("");
     }
   };
 
-  if (cargando) return <p>Cargando solicitudes...</p>;
+  if (cargando) return <SkeletonList count={3} />;
 
   return (
     <div>
-      <h3>🔎 Solicitudes disponibles</h3>
+      <h3 className="text-lg font-semibold text-grey-800 mb-4">Solicitudes disponibles</h3>
       {solicitudes.length === 0 ? (
-        <p>No hay solicitudes públicas disponibles.</p>
+        <EmptyState
+          icon="🔎"
+          title="No hay solicitudes disponibles"
+          description="No hay solicitudes publicas disponibles en este momento."
+        />
       ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <div className="space-y-3">
           {solicitudes.map((s) => (
-            <li
-              key={s.id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                padding: 16,
-                marginBottom: 12,
-                background: "#f8f8fa",
-              }}
-            >
-              <strong>{s.categoria}</strong> — {s.descripcion}
-              <br />
-              📍 {s.ubicacion} | 🕓 {new Date(s.created_at).toLocaleString()}
-              <br />
-              {s.requiere_profesional && (
-                <span style={{ color: "blue" }}>
-                  ⚠️ Requiere titulación/acreditación
-                </span>
-              )}
-              <br />
+            <Card key={s.id} hover>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-grey-800">{s.categoria}</p>
+                  <p className="text-sm text-grey-600 mt-1">{s.descripcion}</p>
+                </div>
+                {s.requiere_profesional && (
+                  <Badge variant="warning">Requiere titulo</Badge>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4 mt-3 text-xs text-grey-500">
+                <span>📍 {s.ubicacion}</span>
+                <span>🕓 {new Date(s.created_at).toLocaleString()}</span>
+              </div>
+
               {postulandoId === s.id ? (
-                <div style={{ marginTop: 8 }}>
+                <div className="mt-4 space-y-3">
                   <textarea
                     value={mensaje}
                     onChange={(e) => setMensaje(e.target.value)}
                     placeholder="Mensaje para el cliente"
                     rows={2}
-                    style={{ width: "100%", marginBottom: 8 }}
+                    className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                   />
-                  <button
-                    onClick={() => postularse(s)}
-                    style={{ marginRight: 8 }}
-                    disabled={!mensaje.trim()}
-                  >
-                    ✅ Enviar postulación
-                  </button>
-                  <button
-                    onClick={() => {
-                      setPostulandoId(null);
-                      setMensaje("");
-                    }}
-                  >
-                    Cancelar
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="success"
+                      size="sm"
+                      onClick={() => postularse(s)}
+                      disabled={!mensaje.trim()}
+                    >
+                      Enviar postulacion
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setPostulandoId(null);
+                        setMensaje("");
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <button
-                  style={{ marginTop: 8 }}
-                  onClick={() => setPostulandoId(s.id)}
-                >
-                  Postularse
-                </button>
+                <div className="mt-3">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setPostulandoId(s.id)}
+                  >
+                    Postularse
+                  </Button>
+                </div>
               )}
-            </li>
+            </Card>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

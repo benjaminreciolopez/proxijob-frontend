@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../../supabaseClient";
 import toast from "react-hot-toast";
 import { normalizarTextoCategoria } from "../../../utils/normalizarTextoCategoria";
+import Button from "../../ui/Button";
+import EmptyState from "../../ui/EmptyState";
+import { SkeletonList } from "../../ui/Skeleton";
+import Card from "../../ui/Card";
 
 interface CategoriaPendiente {
   id: string;
@@ -25,7 +29,7 @@ const CategoriasPendientes: React.FC = () => {
       .order("creada_en", { ascending: false });
 
     if (error) {
-      toast.error("Error al cargar categorías");
+      toast.error("Error al cargar categorias");
       setCargando(false);
       return;
     }
@@ -58,7 +62,7 @@ const CategoriasPendientes: React.FC = () => {
         .from("categorias")
         .insert([{ nombre, nombre_normalizado }]);
       if (errorInsert) {
-        toast.error("Error al aprobar la categoría");
+        toast.error("Error al aprobar la categoria");
         setProcesando(null);
         return;
       }
@@ -68,7 +72,7 @@ const CategoriasPendientes: React.FC = () => {
       .update({ revisada: true })
       .eq("id", cat.id);
 
-    toast.success("✅ Categoría aprobada y añadida");
+    toast.success("Categoria aprobada y anadida");
     setProcesando(null);
     cargarCategorias();
   };
@@ -80,68 +84,71 @@ const CategoriasPendientes: React.FC = () => {
       .update({ revisada: true })
       .eq("id", cat.id);
 
-    toast("🚫 Categoría rechazada", { icon: "❌" });
+    toast("Categoria rechazada");
     setProcesando(null);
     cargarCategorias();
   };
 
   return (
-    <section className="dashboard-section">
-      <button
-        className="zonas-boton-secundario"
-        style={{ marginBottom: "1rem" }}
+    <section>
+      <Button
+        variant="outline"
+        className="mb-4"
         onClick={() => setVisible((v) => !v)}
       >
         {visible
-          ? "Ocultar categorías pendientes"
-          : "Mostrar categorías pendientes"}
-      </button>
+          ? "Ocultar categorias pendientes"
+          : "Mostrar categorias pendientes"}
+      </Button>
+
       {visible && (
         <div>
-          <h3 style={{ marginBottom: "1.2rem" }}>🧾 Categorías pendientes</h3>
+          <h3 className="text-lg font-semibold text-grey-800 mb-4">Categorias pendientes</h3>
           {cargando ? (
-            <p>Cargando...</p>
+            <SkeletonList count={3} />
           ) : categorias.length === 0 ? (
-            <p>No hay categorías pendientes.</p>
+            <EmptyState
+              icon="🧾"
+              title="Sin categorias pendientes"
+              description="No hay categorias pendientes de revision."
+            />
           ) : (
-            <ul className="categorias-pendientes-lista">
+            <div className="space-y-3">
               {categorias.map((cat) => (
-                <li
+                <Card
                   key={cat.id}
-                  className={`categorias-pendientes-item${
-                    procesando === cat.id ? " procesando" : ""
+                  className={`transition-opacity ${
+                    procesando === cat.id ? "opacity-60" : ""
                   }`}
                 >
-                  <strong>{cat.nombre}</strong>
-                  <br />
-                  <span className="cat-propuesta">
-                    Propuesta por: <code>{cat.usuario_id}</code>
-                  </span>
-                  <br />
-                  <span className="cat-fecha">
+                  <p className="font-semibold text-grey-800">{cat.nombre}</p>
+                  <p className="text-xs text-grey-500 mt-1">
+                    Propuesta por: <code className="bg-grey-100 px-1 py-0.5 rounded text-xs">{cat.usuario_id}</code>
+                  </p>
+                  <p className="text-xs text-grey-400 mt-0.5">
                     Fecha: {new Date(cat.creada_en).toLocaleString()}
-                  </span>
-                  <div style={{ marginTop: "0.7rem" }}>
-                    <button
+                  </p>
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-grey-200">
+                    <Button
+                      variant="success"
+                      size="sm"
                       onClick={() => aprobarCategoria(cat)}
-                      className="zonas-boton"
-                      style={{ marginRight: "0.8rem" }}
                       disabled={!!procesando}
                     >
-                      ✅ Aprobar
-                    </button>
-                    <button
+                      Aprobar
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => rechazarCategoria(cat)}
-                      className="zonas-boton-secundario"
-                      style={{ backgroundColor: "#dc3545" }}
                       disabled={!!procesando}
                     >
-                      ❌ Rechazar
-                    </button>
+                      Rechazar
+                    </Button>
                   </div>
-                </li>
+                </Card>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       )}

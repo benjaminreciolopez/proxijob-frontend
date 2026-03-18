@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
-import "./styles/dashboard.css";
+import Button from "./components/ui/Button";
+import Card from "./components/ui/Card";
 
 interface Mensaje {
   id: string;
@@ -128,66 +129,84 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div className="dashboard">
-      <button
-        onClick={() => navigate("/")}
-        style={{
-          marginBottom: "1rem",
-          backgroundColor: "#ccc",
-          color: "#000",
-          border: "none",
-          padding: "0.4rem 1rem",
-          borderRadius: "6px",
-          cursor: "pointer",
-        }}
-      >
-        🔙 Volver al dashboard
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-grey-50 to-[#e6e6fa] py-6 px-4">
+      <Card className="max-w-2xl mx-auto rounded-2xl shadow-lg p-0 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-grey-200 bg-white">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/")}
+            className="shrink-0"
+          >
+            🔙 Volver al dashboard
+          </Button>
+          <h2 className="text-base font-bold text-dark ml-2">Chat</h2>
+        </div>
 
-      <div
-        ref={chatContainerRef}
-        style={{
-          border: "1px solid #ccc",
-          padding: "1rem",
-          maxHeight: "400px",
-          overflowY: "auto",
-        }}
-      >
-        {mensajes.map((msg) => {
-          const esMio = msg.emisor_id === usuarioActualId;
-          return (
-            <div
-              key={msg.id}
-              className={`mensaje-burbuja ${esMio ? "mio" : "otro"}`}
-            >
-              <div className="mensaje-contenido">
-                <div className="mensaje-emisor">
-                  {esMio ? "Tú" : msg.nombre_emisor || "Usuario"}
+        {/* Messages area */}
+        <div
+          ref={chatContainerRef}
+          className="px-5 py-4 max-h-[500px] overflow-y-auto bg-grey-50 space-y-3"
+        >
+          {mensajes.length === 0 && (
+            <p className="text-center text-grey-400 text-sm py-10">
+              No hay mensajes aun. Envia el primero.
+            </p>
+          )}
+          {mensajes.map((msg) => {
+            const esMio = msg.emisor_id === usuarioActualId;
+            return (
+              <div
+                key={msg.id}
+                className={`flex ${esMio ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm ${
+                    esMio
+                      ? "bg-navy text-white rounded-br-sm"
+                      : "bg-white text-grey-800 border border-grey-200 rounded-bl-sm"
+                  }`}
+                >
+                  <div
+                    className={`text-xs font-semibold mb-1 ${
+                      esMio ? "text-primary-light" : "text-indigo"
+                    }`}
+                  >
+                    {esMio ? "Tu" : msg.nombre_emisor || "Usuario"}
+                  </div>
+                  <div className="text-sm leading-relaxed">{msg.contenido}</div>
                 </div>
-                <div>{msg.contenido}</div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="chat-input-container">
-        <input
-          type="text"
-          value={nuevoMensaje}
-          onChange={(e) => setNuevoMensaje(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              enviarMensaje();
-            }
-          }}
-          placeholder="Escribe tu mensaje..."
-          style={{ flex: 1, padding: "0.5rem" }}
-        />
-        <button onClick={enviarMensaje} style={{ padding: "0.5rem 1rem" }}>
-          Enviar
-        </button>
-      </div>
+            );
+          })}
+        </div>
+
+        {/* Input area */}
+        <div className="flex items-center gap-2 px-4 py-3 border-t border-grey-200 bg-white">
+          <input
+            type="text"
+            value={nuevoMensaje}
+            onChange={(e) => setNuevoMensaje(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                enviarMensaje();
+              }
+            }}
+            placeholder="Escribe tu mensaje..."
+            className="flex-1 px-4 py-2.5 text-sm border border-grey-300 rounded-xl bg-grey-50 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors placeholder:text-grey-400"
+          />
+          <Button
+            variant="primary"
+            size="md"
+            onClick={enviarMensaje}
+            className="bg-navy hover:bg-[#4b48a3] rounded-xl px-5"
+          >
+            Enviar
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 };

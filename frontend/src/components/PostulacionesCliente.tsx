@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
+import Button from "./ui/Button";
+import EmptyState from "./ui/EmptyState";
+import Card from "./ui/Card";
+import Badge from "./ui/Badge";
 
 interface Documento {
   id: string;
@@ -87,13 +91,13 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
       );
       setPostulaciones(filtered);
 
-      // <----- ESTA LÍNEA ES LA CLAVE -----
       if (onData) onData(filtered);
     };
 
     cargarPostulaciones();
   }, [usuarioId]);
-  // FUNC: Actualiza estado de postulación
+
+  // FUNC: Actualiza estado de postulacion
   const actualizarEstado = async (
     postulacionId: string,
     nuevoEstado: string
@@ -124,7 +128,7 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
       .eq("id", postulacionId);
 
     if (error) {
-      toast.error("❌ Error al actualizar estado");
+      toast.error("Error al actualizar estado");
       return;
     }
 
@@ -149,23 +153,23 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
     );
   };
 
-  // FUNC: Enviar reseña al postulante aceptado
+  // FUNC: Enviar resena al postulante aceptado
   const enviarReseñaDesdeModal = async () => {
     if (!postulacionSeleccionada) return;
 
     const solicitud_id = postulacionSeleccionada.solicitud.id;
-    const autor_id = usuarioId; // el cliente publica la solicitud
+    const autor_id = usuarioId;
     const autor_nombre = postulacionSeleccionada.solicitud.usuario.nombre;
-    const destinatario_id = postulacionSeleccionada.usuario_id; // el postulante
+    const destinatario_id = postulacionSeleccionada.usuario_id;
     const destinatario_n =
       postulacionSeleccionada.usuario?.nombre || "Sin nombre";
 
     if (!puntuacion || !autor_id || !solicitud_id || !destinatario_id) {
-      toast.error("Faltan datos para enviar la reseña.");
+      toast.error("Faltan datos para enviar la resena.");
       return;
     }
     if (puntuacion >= 4 && comentario.trim() === "") {
-      toast.error("Por favor, añade un comentario si la puntuación es alta.");
+      toast.error("Por favor, anade un comentario si la puntuacion es alta.");
       return;
     }
 
@@ -177,11 +181,11 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
       .maybeSingle();
 
     if (errorExistente && errorExistente.code !== "PGRST116") {
-      toast.error("Error al comprobar reseñas previas.");
+      toast.error("Error al comprobar resenas previas.");
       return;
     }
     if (existente) {
-      toast.error("Ya has dejado una reseña para esta solicitud.");
+      toast.error("Ya has dejado una resena para esta solicitud.");
       setMostrarReseñas(false);
       return;
     }
@@ -199,10 +203,10 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
 
     const { error } = await supabase.from("reseñas").insert([reseñaData]);
     if (error) {
-      toast.error("Error al guardar la reseña.");
+      toast.error("Error al guardar la resena.");
       console.error(error);
     } else {
-      toast.success("¡Gracias por tu reseña!");
+      toast.success("Gracias por tu resena!");
       setMostrarReseñas(false);
       setSolicitudesReseñadas((prev) => [...prev, solicitud_id]);
       setPuntuacion(0);
@@ -219,84 +223,104 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
     rechazado: postulaciones.filter((p) => p.estado === "rechazado").length,
   };
 
+  const estadoBadge = (estado: string) => {
+    switch (estado) {
+      case "pendiente":
+        return <Badge variant="warning">Pendiente</Badge>;
+      case "preseleccionado":
+        return <Badge variant="info">Preseleccionado</Badge>;
+      case "aceptado":
+        return <Badge variant="success">Aceptado</Badge>;
+      case "rechazado":
+        return <Badge variant="error">Rechazado</Badge>;
+      case "descartado":
+        return <Badge>Descartado</Badge>;
+      default:
+        return <Badge>{estado}</Badge>;
+    }
+  };
+
   return (
     <>
-      <div className="dashboard-section">
-        <h3>📨 Postulaciones recibidas</h3>
-        <div style={{ marginBottom: "1rem" }}>
-          <strong>Resumen:</strong>
-          <br />
-          🕓 Pendientes: {contadores.pendiente} | 👁️‍🗨️ Preseleccionadas:{" "}
-          {contadores.preseleccionado} | ✅ Aceptadas: {contadores.aceptado} |
-          ❌ Rechazadas: {contadores.rechazado}
+      <div>
+        <h3 className="text-lg font-semibold text-grey-800 mb-4">Postulaciones recibidas</h3>
+
+        {/* Resumen de contadores */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div className="bg-warning/10 rounded-lg p-3 text-center">
+            <p className="text-2xl font-bold text-warning">{contadores.pendiente}</p>
+            <p className="text-xs text-grey-600">Pendientes</p>
+          </div>
+          <div className="bg-primary/10 rounded-lg p-3 text-center">
+            <p className="text-2xl font-bold text-primary">{contadores.preseleccionado}</p>
+            <p className="text-xs text-grey-600">Preseleccionadas</p>
+          </div>
+          <div className="bg-success/10 rounded-lg p-3 text-center">
+            <p className="text-2xl font-bold text-success">{contadores.aceptado}</p>
+            <p className="text-xs text-grey-600">Aceptadas</p>
+          </div>
+          <div className="bg-error/10 rounded-lg p-3 text-center">
+            <p className="text-2xl font-bold text-error">{contadores.rechazado}</p>
+            <p className="text-xs text-grey-600">Rechazadas</p>
+          </div>
         </div>
+
         {postulaciones.length === 0 ? (
-          <p>No hay postulaciones aún.</p>
+          <EmptyState
+            icon="📨"
+            title="Sin postulaciones"
+            description="No hay postulaciones aun."
+          />
         ) : (
-          <ul className="postulaciones-lista">
+          <div className="space-y-3">
             {postulaciones.map((p) => (
-              <li key={p.id} className="postulacion-card">
-                <div className="postulacion-header">
-                  <div>
-                    <p className="categoria">{p.solicitud.categoria}</p>
-                    <p className="descripcion">{p.solicitud.descripcion}</p>
+              <Card key={p.id}>
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-grey-800">{p.solicitud.categoria}</p>
+                    <p className="text-sm text-grey-600 mt-0.5">{p.solicitud.descripcion}</p>
                   </div>
-                  <span className={`estado estado-${p.estado}`}>
-                    {(() => {
-                      switch (p.estado) {
-                        case "pendiente":
-                          return "🕓 Pendiente";
-                        case "preseleccionado":
-                          return "👁️‍🗨️ Preseleccionado";
-                        case "aceptado":
-                          return "✅ Aceptado";
-                        case "rechazado":
-                          return "❌ Rechazado";
-                        case "descartado":
-                          return "🚫 Descartado";
-                        default:
-                          return p.estado;
-                      }
-                    })()}
-                  </span>
+                  {estadoBadge(p.estado)}
                 </div>
-                <div className="postulacion-detalles">
+
+                {/* Details */}
+                <div className="mt-3 space-y-1 text-sm text-grey-600">
                   <p>📍 {p.solicitud.ubicacion}</p>
-                  <p>🧑‍💼 Postulante: {p.usuario?.nombre || "Desconocido"}</p>
-                  <p>✉️ Mensaje: {p.mensaje || "Sin mensaje"}</p>
-                  <p>🕓 Fecha: {new Date(p.created_at).toLocaleString()}</p>
+                  <p>Postulante: <span className="font-medium text-grey-800">{p.usuario?.nombre || "Desconocido"}</span></p>
+                  <p>Mensaje: {p.mensaje || "Sin mensaje"}</p>
+                  <p className="text-xs text-grey-400">🕓 {new Date(p.created_at).toLocaleString()}</p>
                 </div>
-                <div className="postulacion-acciones">
+
+                {/* Actions */}
+                <div className="mt-4 pt-3 border-t border-grey-200">
                   {p.estado !== "aceptado" ? (
                     <select
                       value={p.estado}
                       onChange={(e) => actualizarEstado(p.id, e.target.value)}
+                      className="rounded-md border border-grey-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                     >
-                      <option value="pendiente">🕓 Pendiente</option>
-                      <option value="preseleccionado">
-                        👁️‍🗨️ Preseleccionado
-                      </option>
-                      <option value="aceptado">✅ Aceptado</option>
-                      <option value="rechazado">❌ Rechazado</option>
+                      <option value="pendiente">Pendiente</option>
+                      <option value="preseleccionado">Preseleccionado</option>
+                      <option value="aceptado">Aceptado</option>
+                      <option value="rechazado">Rechazado</option>
                     </select>
                   ) : (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.5rem",
-                      }}
-                    >
-                      <button
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
                         type="button"
                         onClick={() => {
                           window.location.href = `/chat?usuario_id=${usuarioId}&postulante_id=${p.usuario_id}&solicitud_id=${p.solicitud.id}`;
                         }}
                       >
-                        💬 Iniciar chat con el postulante
-                      </button>
+                        Iniciar chat con el postulante
+                      </Button>
                       {!solicitudesReseñadas.includes(p.solicitud.id) && (
-                        <button
+                        <Button
+                          variant="outline"
+                          size="sm"
                           type="button"
                           onClick={() => {
                             setPostulacionSeleccionada(p);
@@ -305,24 +329,27 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
                             setComentario("");
                           }}
                         >
-                          ✍️ Dejar reseña
-                        </button>
+                          Dejar resena
+                        </Button>
                       )}
                     </div>
                   )}
                 </div>
+
+                {/* Documents */}
                 {Array.isArray(p.documentos) && p.documentos.length > 0 && (
-                  <details className="postulacion-docs">
-                    <summary>
-                      📎 Ver documentos adjuntos ({p.documentos.length})
+                  <details className="mt-4 pt-3 border-t border-grey-200">
+                    <summary className="cursor-pointer text-sm font-medium text-primary hover:text-primary-dark transition-colors">
+                      Ver documentos adjuntos ({p.documentos.length})
                     </summary>
-                    <ul>
+                    <ul className="mt-3 space-y-3">
                       {p.documentos.map((doc) => {
                         const ext = doc.url.split(".").pop()?.toLowerCase();
                         return (
-                          <li key={doc.id} style={{ marginTop: "0.5rem" }}>
-                            <p>
-                              <strong>{doc.tipo}</strong> — {doc.titulo}
+                          <li key={doc.id}>
+                            <p className="text-sm">
+                              <span className="font-medium text-grey-800">{doc.tipo}</span>{" "}
+                              <span className="text-grey-500">- {doc.titulo}</span>
                             </p>
                             {["jpg", "jpeg", "png", "webp"].includes(
                               ext || ""
@@ -330,10 +357,7 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
                               <img
                                 src={doc.url}
                                 alt={doc.titulo}
-                                style={{
-                                  maxWidth: "100%",
-                                  maxHeight: "300px",
-                                }}
+                                className="max-w-full max-h-[300px] rounded-md mt-2"
                                 loading="lazy"
                               />
                             ) : ext === "pdf" ? (
@@ -342,17 +366,18 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
                                 type="application/pdf"
                                 width="100%"
                                 height="300px"
+                                className="mt-2 rounded-md"
                               />
                             ) : (
                               <a
                                 href={doc.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="documento-enlace"
+                                className="inline-block mt-2 text-sm text-primary hover:text-primary-dark underline"
                                 role="button"
                                 tabIndex={0}
                               >
-                                📄 Ver / Descargar archivo
+                                Ver / Descargar archivo
                               </a>
                             )}
                           </li>
@@ -361,27 +386,29 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
                     </ul>
                   </details>
                 )}
-              </li>
+              </Card>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-      {/* Modal de reseña FUERA del contenido principal */}
+
+      {/* Modal de resena */}
       {mostrarReseñas && postulacionSeleccionada && (
-        <div className="modal-reseña-overlay">
-          <div className="modal-reseña">
-            <h3>
-              ✍️ Deja una reseña para{" "}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-grey-800">
+              Deja una resena para{" "}
               {postulacionSeleccionada.usuario?.nombre || "el postulante"}
             </h3>
             <select
               value={puntuacion}
               onChange={(e) => setPuntuacion(Number(e.target.value))}
+              className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
             >
-              <option value={0}>Selecciona una puntuación</option>
+              <option value={0}>Selecciona una puntuacion</option>
               {[1, 2, 3, 4, 5].map((n) => (
                 <option key={n} value={n}>
-                  {n} ⭐
+                  {n} estrella{n > 1 ? "s" : ""}
                 </option>
               ))}
             </select>
@@ -390,18 +417,19 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
               value={comentario}
               onChange={(e) => setComentario(e.target.value)}
               rows={4}
+              className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
             />
-            <div className="modal-reseña-buttons">
-              <button
-                className="enviar"
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                variant="success"
                 onClick={enviarReseñaDesdeModal}
                 disabled={!puntuacion}
                 type="button"
               >
-                Enviar reseña
-              </button>
-              <button
-                className="cancelar"
+                Enviar resena
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setMostrarReseñas(false);
                   setPuntuacion(0);
@@ -411,7 +439,7 @@ const PostulacionesUsuario: React.FC<Props> = ({ usuarioId, onData }) => {
                 type="button"
               >
                 Cancelar
-              </button>
+              </Button>
             </div>
           </div>
         </div>

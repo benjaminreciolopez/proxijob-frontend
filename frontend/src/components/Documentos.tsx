@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import Button from "./ui/Button";
+import EmptyState from "./ui/EmptyState";
 
 interface Documento {
   id: string;
@@ -77,7 +79,7 @@ const Documentos: React.FC<Props> = ({ usuarioId }) => {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      toast.error("No estás autenticado.");
+      toast.error("No estas autenticado.");
       return;
     }
 
@@ -99,7 +101,7 @@ const Documentos: React.FC<Props> = ({ usuarioId }) => {
     } else {
       toast.success(
         <>
-          📎 <strong>{formData.titulo}</strong>
+          <strong>{formData.titulo}</strong>
           <br />
           Tipo: {formData.tipo}
         </>,
@@ -116,9 +118,8 @@ const Documentos: React.FC<Props> = ({ usuarioId }) => {
   };
 
   const eliminarDocumento = async (id: string, url: string) => {
-    const confirmar = confirm("¿Eliminar este documento?");
+    const confirmar = confirm("Eliminar este documento?");
     if (!confirmar) return;
-    // Sacar el nombre real del archivo desde la url pública:
     const parts = url.split("/");
     const nombreArchivo = decodeURIComponent(parts.slice(-2).join("/"));
 
@@ -171,22 +172,16 @@ const Documentos: React.FC<Props> = ({ usuarioId }) => {
     }
   };
 
-  const estiloDoc = {
-    border: "1px solid #ccc",
-    padding: "1rem",
-    borderRadius: "8px",
-    marginBottom: "1rem",
-  };
-
   const renderDoc = (doc: Documento) =>
     editandoId === doc.id ? (
-      <>
+      <div className="space-y-3">
         <select
           value={formData.tipo}
           onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+          className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         >
           <option value="">Selecciona tipo</option>
-          <option value="título">Título</option>
+          <option value="titulo">Titulo</option>
           <option value="certificado">Certificado</option>
           <option value="licencia">Licencia</option>
           <option value="curso">Curso</option>
@@ -198,76 +193,107 @@ const Documentos: React.FC<Props> = ({ usuarioId }) => {
           type="text"
           value={formData.titulo}
           onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+          className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         />
         <input
           type="url"
           value={formData.url}
           onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+          className="w-full rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         />
-        <br />
-        <button onClick={guardarCambios}>💾 Guardar</button>
-        <button onClick={cancelarEdicion}>❌ Cancelar</button>
-      </>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="success" onClick={guardarCambios}>Guardar</Button>
+          <Button size="sm" variant="ghost" onClick={cancelarEdicion}>Cancelar</Button>
+        </div>
+      </div>
     ) : (
       <>
-        <strong>{doc.tipo}</strong> — {doc.titulo}
-        <br />
-        <a href={doc.url} target="_blank" rel="noopener noreferrer">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <span className="font-medium text-grey-800 capitalize">{doc.tipo}</span>
+            <span className="text-grey-400 mx-1.5">-</span>
+            <span className="text-sm text-grey-600">{doc.titulo}</span>
+          </div>
+        </div>
+        <a
+          href={doc.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block mt-1 text-sm text-primary hover:text-primary-dark underline"
+        >
           Ver documento
         </a>
         {seleccionado === doc.id && (
-          <>
-            <br />
-            <button onClick={() => iniciarEdicion(doc)}>✏️ Editar</button>
-            <button onClick={() => eliminarDocumento(doc.id, doc.url)}>
-              🗑️ Eliminar
-            </button>
-          </>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-grey-200">
+            <Button size="sm" variant="outline" onClick={() => iniciarEdicion(doc)}>Editar</Button>
+            <Button size="sm" variant="danger" onClick={() => eliminarDocumento(doc.id, doc.url)}>Eliminar</Button>
+          </div>
         )}
       </>
     );
 
-  return (
-    <div style={{ marginTop: "2rem" }}>
-      <h3>📎 Mis Documentos</h3>
+  const filtrarDocs = (tipos: string[]) =>
+    documentos
+      .filter((d) => tipos.includes(d.tipo))
+      .filter((d) =>
+        tipoFiltro === "todos"
+          ? true
+          : d.tipo === tipoFiltro.trim().toLowerCase()
+      );
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: "1.5rem" }}>
-        <select
-          value={formData.tipo}
-          onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-          required
-        >
-          <option value="">Selecciona tipo</option>
-          <option value="título">Título</option>
-          <option value="certificado">Certificado</option>
-          <option value="licencia">Licencia</option>
-          <option value="curso">Curso</option>
-          <option value="experiencia">Experiencia</option>
-          <option value="proyecto">Proyecto</option>
-          <option value="otro">Otro</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Título o descripción"
-          value={formData.titulo}
-          onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-          required
-        />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,application/pdf"
-          onChange={(e) => setArchivo(e.target.files?.[0] || null)}
-          required
-        />
-        <button type="submit">Añadir</button>
+  return (
+    <div className="mt-8">
+      <h3 className="text-lg font-semibold text-grey-800 mb-4">Mis Documentos</h3>
+
+      {/* Upload form */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-grey-200 shadow-sm p-5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <select
+            value={formData.tipo}
+            onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+            required
+            className="rounded-md border border-grey-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          >
+            <option value="">Selecciona tipo</option>
+            <option value="titulo">Titulo</option>
+            <option value="certificado">Certificado</option>
+            <option value="licencia">Licencia</option>
+            <option value="curso">Curso</option>
+            <option value="experiencia">Experiencia</option>
+            <option value="proyecto">Proyecto</option>
+            <option value="otro">Otro</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Titulo o descripcion"
+            value={formData.titulo}
+            onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+            required
+            className="rounded-md border border-grey-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+          />
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+            required
+            className="text-sm text-grey-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
+          />
+          <Button type="submit" variant="primary" size="sm">
+            Anadir
+          </Button>
+        </div>
       </form>
 
-      <div style={{ marginBottom: "1rem" }}>
-        <label>🔽 Filtrar por tipo: </label>
+      {/* Filter */}
+      <div className="flex items-center gap-2 mb-4">
+        <label className="text-sm text-grey-600">Filtrar por tipo:</label>
         <select
           value={tipoFiltro}
           onChange={(e) => setTipoFiltro(e.target.value)}
+          className="rounded-md border border-grey-300 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
         >
           <option value="todos">Todos</option>
           {[...new Set(documentos.map((d) => d.tipo.trim().toLowerCase()))].map(
@@ -280,103 +306,77 @@ const Documentos: React.FC<Props> = ({ usuarioId }) => {
         </select>
       </div>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {/* Titulaciones y Certificados */}
-        {documentos.some((d) =>
-          ["título", "certificado", "licencia", "curso"].includes(d.tipo)
-        ) && (
-          <>
-            <h4>📜 Titulaciones y Certificados</h4>
-            {documentos.filter(
-              (d) =>
-                ["título", "certificado", "licencia", "curso"].includes(
-                  d.tipo
-                ) &&
-                (tipoFiltro === "todos" ||
-                  d.tipo === tipoFiltro.trim().toLowerCase())
-            ).length > 0 && (
-              <ul style={{ listStyle: "none", padding: 0 }}>
-                {documentos
-                  .filter((d) =>
-                    ["título", "certificado", "licencia", "curso"].includes(
-                      d.tipo
+      {documentos.length === 0 ? (
+        <EmptyState
+          icon="📎"
+          title="Sin documentos"
+          description="No has subido ningun documento todavia."
+        />
+      ) : (
+        <div className="space-y-6">
+          {/* Titulaciones y Certificados */}
+          {documentos.some((d) =>
+            ["titulo", "certificado", "licencia", "curso"].includes(d.tipo)
+          ) &&
+            filtrarDocs(["titulo", "certificado", "licencia", "curso"]).length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-grey-700 mb-3 uppercase tracking-wide">
+                  Titulaciones y Certificados
+                </h4>
+                <div className="space-y-3">
+                  {filtrarDocs(["titulo", "certificado", "licencia", "curso"]).map(
+                    (doc) => (
+                      <motion.div
+                        key={doc.id}
+                        onClick={() =>
+                          setSeleccionado(seleccionado === doc.id ? null : doc.id)
+                        }
+                        className={`bg-white rounded-lg border border-grey-200 shadow-sm p-4 cursor-pointer transition-all hover:shadow-md ${
+                          seleccionado === doc.id ? "ring-2 ring-primary/20 bg-grey-50" : ""
+                        }`}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {renderDoc(doc)}
+                      </motion.div>
                     )
-                  )
-                  .filter((d) =>
-                    tipoFiltro === "todos"
-                      ? true
-                      : d.tipo === tipoFiltro.trim().toLowerCase()
-                  )
-                  .map((doc) => (
-                    <motion.li
-                      key={doc.id}
-                      onClick={() =>
-                        setSeleccionado(seleccionado === doc.id ? null : doc.id)
-                      }
-                      style={{
-                        ...estiloDoc,
-                        backgroundColor:
-                          seleccionado === doc.id ? "#f9f9f9" : "white",
-                        cursor: "pointer",
-                      }}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {renderDoc(doc)}
-                    </motion.li>
-                  ))}
-              </ul>
+                  )}
+                </div>
+              </div>
             )}
-          </>
-        )}
 
-        {/* Experiencia y Otros */}
-        {documentos.some((d) =>
-          ["experiencia", "proyecto", "otro"].includes(d.tipo)
-        ) && (
-          <>
-            <h4>🛠️ Experiencia y Otros</h4>
-            {documentos.filter(
-              (d) =>
-                ["experiencia", "proyecto", "otro"].includes(d.tipo) &&
-                (tipoFiltro === "todos" ||
-                  d.tipo === tipoFiltro.trim().toLowerCase())
-            ).length > 0 && (
-              <ul style={{ listStyle: "none", padding: 0 }}>
-                {documentos
-                  .filter((d) =>
-                    ["experiencia", "proyecto", "otro"].includes(d.tipo)
-                  )
-                  .filter((d) =>
-                    tipoFiltro === "todos"
-                      ? true
-                      : d.tipo === tipoFiltro.trim().toLowerCase()
-                  )
-                  .map((doc) => (
-                    <motion.li
+          {/* Experiencia y Otros */}
+          {documentos.some((d) =>
+            ["experiencia", "proyecto", "otro"].includes(d.tipo)
+          ) &&
+            filtrarDocs(["experiencia", "proyecto", "otro"]).length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-grey-700 mb-3 uppercase tracking-wide">
+                  Experiencia y Otros
+                </h4>
+                <div className="space-y-3">
+                  {filtrarDocs(["experiencia", "proyecto", "otro"]).map((doc) => (
+                    <motion.div
                       key={doc.id}
                       onClick={() =>
                         setSeleccionado(seleccionado === doc.id ? null : doc.id)
                       }
-                      style={{
-                        ...estiloDoc,
-                        backgroundColor:
-                          seleccionado === doc.id ? "#f9f9f9" : "white",
-                        cursor: "pointer",
-                      }}
+                      className={`bg-white rounded-lg border border-grey-200 shadow-sm p-4 cursor-pointer transition-all hover:shadow-md ${
+                        seleccionado === doc.id ? "ring-2 ring-primary/20 bg-grey-50" : ""
+                      }`}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
                       {renderDoc(doc)}
-                    </motion.li>
+                    </motion.div>
                   ))}
-              </ul>
+                </div>
+              </div>
             )}
-          </>
-        )}
-      </ul>
+        </div>
+      )}
     </div>
   );
 };
