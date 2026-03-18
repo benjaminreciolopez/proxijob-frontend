@@ -1,0 +1,9 @@
+{
+  "name": "proxijob",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && pnpm install && pnpm run build",
+    "dev": "cd frontend && pnpm dev",
+    "install": "cd frontend && pnpm install"
+  }
+}
