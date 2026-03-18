@@ -9,6 +9,8 @@ import { Toaster } from "react-hot-toast";
 import AdminLogin from "./pages/AdminLogin";
 import RutaProtegida from "./components/RutaProtegida";
 import CrearReseña from "./pages/CrearReseña";
+import PerfilPublico from "./pages/PerfilPublico";
+import Pagos from "./pages/Pagos";
 import { useAdminAuth } from "./context/AdminAuthContext";
 
 const modoMantenimiento = import.meta.env.VITE_MODO_MANTENIMIENTO === "true";
@@ -65,6 +67,17 @@ const App: React.FC = () => {
           element={
             <RutasProtegidas>
               <Chat />
+            </RutasProtegidas>
+          }
+        />
+        {/* Perfil público */}
+        <Route path="/perfil/:id" element={<PerfilPublico />} />
+        {/* Pagos */}
+        <Route
+          path="/pagos"
+          element={
+            <RutasProtegidas>
+              <Pagos />
             </RutasProtegidas>
           }
         />
