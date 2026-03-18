@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import toast from "react-hot-toast";
+import Button from "../components/ui/Button";
 
 const CrearReseña: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +15,7 @@ const CrearReseña: React.FC = () => {
   const autor_nombre = searchParams.get("autor_nombre") || ""; // puede venir vacío
 
   const [puntuacion, setPuntuacion] = useState<number>(0);
+  const [hoverStar, setHoverStar] = useState<number>(0);
   const [comentario, setComentario] = useState("");
   const [enviada, setEnviada] = useState(false);
   const [yaExiste, setYaExiste] = useState(false);
@@ -22,33 +24,17 @@ const CrearReseña: React.FC = () => {
   // Comprobación: ¿faltan parámetros críticos?
   if (!tipo || !autor_id || !destinatario_id) {
     return (
-      <div
-        style={{
-          padding: "2rem",
-          maxWidth: "500px",
-          margin: "0 auto",
-          textAlign: "center",
-        }}
-      >
-        <h2>Error</h2>
-        <p>
-          Faltan datos para dejar una reseña. Vuelve a intentarlo desde la
-          plataforma.
-        </p>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            marginTop: "1rem",
-            padding: "0.7rem 1.5rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Volver atrás
-        </button>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl text-error mb-2">Error</h2>
+          <p className="text-grey-600 mb-6">
+            Faltan datos para dejar una reseña. Vuelve a intentarlo desde la
+            plataforma.
+          </p>
+          <Button variant="primary" onClick={() => navigate(-1)}>
+            Volver atrás
+          </Button>
+        </div>
       </div>
     );
   }
@@ -108,89 +94,101 @@ const CrearReseña: React.FC = () => {
 
   if (yaExiste) {
     return (
-      <div
-        style={{
-          padding: "2rem",
-          maxWidth: "500px",
-          margin: "0 auto",
-          textAlign: "center",
-        }}
-      >
-        <h2>Reseña ya enviada</h2>
-        <p>Ya has dejado una reseña para {nombre_destinatario}.</p>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            marginTop: "1rem",
-            padding: "0.7rem 1.5rem",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Volver atrás
-        </button>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl text-warning mb-2">Reseña ya enviada</h2>
+          <p className="text-grey-600 mb-6">
+            Ya has dejado una reseña para {nombre_destinatario}.
+          </p>
+          <Button variant="primary" onClick={() => navigate(-1)}>
+            Volver atrás
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (enviada) {
     return (
-      <div
-        style={{
-          padding: "2rem",
-          maxWidth: "500px",
-          margin: "0 auto",
-          textAlign: "center",
-        }}
-      >
-        <h2>¡Reseña enviada!</h2>
-        <p>Gracias por tu valoración.</p>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-2xl text-success mb-2">¡Reseña enviada!</h2>
+          <p className="text-grey-600">Gracias por tu valoración.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "500px", margin: "0 auto" }}>
-      <h2>Deja tu reseña</h2>
-      <p>Para: {nombre_destinatario}</p>
-      <div style={{ margin: "1rem 0" }}>
-        <label>Puntuación:</label>
-        <select
-          value={puntuacion}
-          onChange={(e) => setPuntuacion(parseInt(e.target.value))}
+    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+        <h2 className="text-2xl text-grey-800 mb-1">Deja tu reseña</h2>
+        <p className="text-grey-500 mb-6">
+          Para: <span className="font-semibold text-grey-700">{nombre_destinatario}</span>
+        </p>
+
+        {/* Star rating */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-grey-700 mb-2">
+            Puntuación
+          </label>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setPuntuacion(n)}
+                onMouseEnter={() => setHoverStar(n)}
+                onMouseLeave={() => setHoverStar(0)}
+                className={`text-3xl transition-transform duration-150 hover:scale-110 cursor-pointer
+                  ${
+                    n <= (hoverStar || puntuacion)
+                      ? "text-warning drop-shadow-sm"
+                      : "text-grey-300"
+                  }
+                `}
+                aria-label={`${n} estrella${n > 1 ? "s" : ""}`}
+              >
+                ★
+              </button>
+            ))}
+          </div>
+          {puntuacion > 0 && (
+            <p className="text-xs text-grey-500 mt-1">
+              {puntuacion} de 5 estrellas
+            </p>
+          )}
+        </div>
+
+        {/* Comment */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-grey-700 mb-2">
+            Comentario
+            {puntuacion >= 4 && (
+              <span className="text-error ml-1">*</span>
+            )}
+          </label>
+          <textarea
+            placeholder="Comentario (obligatorio si das 4 o 5 estrellas)"
+            value={comentario}
+            onChange={(e) => setComentario(e.target.value)}
+            rows={4}
+            className="w-full px-4 py-3 text-sm border border-grey-300 rounded-md
+              bg-white text-grey-800 placeholder:text-grey-400 resize-y
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+              transition-colors"
+          />
+        </div>
+
+        <Button
+          variant="success"
+          size="lg"
+          fullWidth
+          onClick={handleEnviar}
         >
-          <option value={0}>Selecciona una puntuación</option>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={n}>
-              {n} ⭐
-            </option>
-          ))}
-        </select>
+          Enviar reseña
+        </Button>
       </div>
-      <textarea
-        placeholder="Comentario (obligatorio si das 4 o 5 estrellas)"
-        value={comentario}
-        onChange={(e) => setComentario(e.target.value)}
-        rows={4}
-        style={{ width: "100%", padding: "0.5rem" }}
-      />
-      <button
-        onClick={handleEnviar}
-        style={{
-          marginTop: "1rem",
-          padding: "0.7rem 1.5rem",
-          backgroundColor: "#28a745",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-        }}
-      >
-        Enviar reseña
-      </button>
     </div>
   );
 };

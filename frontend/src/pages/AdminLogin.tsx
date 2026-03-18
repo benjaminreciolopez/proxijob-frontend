@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAdminAuth } from "../context/AdminAuthContext";
+import Button from "../components/ui/Button";
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
@@ -27,40 +28,46 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "400px", margin: "auto" }}>
-      <h2>Acceso Administrador</h2>
-      <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: "0.5rem", fontSize: "1rem" }}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ padding: "0.5rem", fontSize: "1rem" }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: "0.6rem 1.2rem",
-            background: loading ? "#6c757d" : "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading ? "Verificando..." : "Entrar"}
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+        <h2 className="text-2xl text-grey-800 text-center mb-6">
+          Acceso Administrador
+        </h2>
+
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <input
+            type="email"
+            placeholder="Correo electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-4 py-2.5 text-base border border-grey-300 rounded-md
+              bg-white text-grey-800 placeholder:text-grey-400
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+              transition-colors"
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full px-4 py-2.5 text-base border border-grey-300 rounded-md
+              bg-white text-grey-800 placeholder:text-grey-400
+              focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+              transition-colors"
+          />
+          <Button
+            type="submit"
+            variant="success"
+            size="lg"
+            fullWidth
+            isLoading={loading}
+          >
+            {loading ? "Verificando..." : "Entrar"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };
