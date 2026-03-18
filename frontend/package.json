@@ -1,7 +1,6 @@
 {
     "name": "proxijob-frontend",
     "version": "1.0.0",
-    "packageManager": "pnpm@10.10.0",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
