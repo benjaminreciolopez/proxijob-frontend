@@ -10,7 +10,25 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import CustomControl from "react-leaflet-custom-control";
+// Custom control inline - evita conflicto de contexto con react-leaflet-custom-control
+const CustomControlInline: React.FC<{ position: string; children: React.ReactNode }> = ({ children }) => {
+  const map = useMap();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    // Disable map interactions on control hover
+    const el = containerRef.current;
+    L.DomEvent.disableClickPropagation(el);
+    L.DomEvent.disableScrollPropagation(el);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="leaflet-top leaflet-right" style={{ position: "absolute", zIndex: 1000 }}>
+      <div className="leaflet-control">{children}</div>
+    </div>
+  );
+};
 
 const iconoCentro = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -272,7 +290,7 @@ const MapaZona: React.FC<Props> = ({
           <ClickHandler />
           <FlyToUbicacion />
           {/* Botón para centrar en tu ubicación actual */}
-          <CustomControl position="topright">
+          <CustomControlInline position="topright">
             <button
               onClick={volverAMiUbicacion}
               aria-label="Centrar en mi ubicación"
@@ -291,7 +309,7 @@ const MapaZona: React.FC<Props> = ({
             >
               📍 Mi ubicación
             </button>
-          </CustomControl>
+          </CustomControlInline>
         </MapContainer>
       )}
     </div>
