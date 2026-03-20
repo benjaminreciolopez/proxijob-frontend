@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import Button from "../components/ui/Button";
+import LanguageSwitcher from "../components/common/LanguageSwitcher";
+import { MapPin } from "lucide-react";
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [verPassword, setVerPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,63 +26,61 @@ const Login: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: formData.email,
-      password: formData.password,
-    });
+    const result = await login(formData.email, formData.password);
 
-    if (error || !data.user) {
-      toast.error("Correo o contrasena incorrectos.");
+    if (!result.ok) {
+      toast.error(t(`auth.${result.error}`));
       setLoading(false);
       return;
     }
 
-    const { data: perfil } = await supabase
-      .from("usuarios")
-      .select("*")
-      .eq("id", data.user.id)
-      .single();
-
-    if (!perfil) {
-      toast.error("No se pudo cargar tu perfil.");
-      setLoading(false);
-      return;
-    }
-
+    const perfil = result.usuario!;
     const saludo =
       perfil.tratamiento === "Sra"
-        ? `!Bienvenida, ${perfil.nombre}!`
-        : `!Bienvenido, ${perfil.nombre}!`;
+        ? t("auth.welcomeFemale", { name: perfil.nombre })
+        : t("auth.welcomeMale", { name: perfil.nombre });
 
     toast.success(saludo);
-    localStorage.setItem("usuario", JSON.stringify(perfil));
-
     navigate("/dashboard");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-blue-50 via-white to-white">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-grey-800 text-center mb-6">
-          Iniciar sesion
-        </h2>
+        {/* Header */}
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher />
+        </div>
+
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2.5 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+              <MapPin className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              ProxiJob
+            </span>
+          </div>
+          <h2 className="text-2xl font-bold text-grey-800">
+            {t("auth.login")}
+          </h2>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-grey-600 mb-1"
-            >
-              Correo electronico
+            <label htmlFor="email" className="block text-sm font-medium text-grey-600 mb-1">
+              {t("auth.email")}
             </label>
             <input
               id="email"
               type="email"
               name="email"
-              placeholder="tu@correo.com"
+              placeholder={t("auth.emailPlaceholder")}
               value={formData.email}
               onChange={handleChange}
               required
+              autoComplete="email"
               className="w-full px-4 py-2.5 text-sm rounded-md border border-grey-300
                 bg-grey-50 text-grey-800 placeholder-grey-400
                 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30
@@ -86,11 +89,8 @@ const Login: React.FC = () => {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-grey-600 mb-1"
-            >
-              Contrasena
+            <label htmlFor="password" className="block text-sm font-medium text-grey-600 mb-1">
+              {t("auth.password")}
             </label>
             <div className="relative">
               <input
@@ -101,6 +101,7 @@ const Login: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                autoComplete="current-password"
                 className="w-full px-4 py-2.5 pr-11 text-sm rounded-md border border-grey-300
                   bg-grey-50 text-grey-800 placeholder-grey-400
                   focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30
@@ -113,7 +114,7 @@ const Login: React.FC = () => {
                   text-grey-400 hover:text-grey-600
                   bg-transparent border-none cursor-pointer p-0 text-lg
                   transition-colors"
-                aria-label="Mostrar u ocultar contrasena"
+                aria-label={t("auth.showPassword")}
               >
                 {verPassword ? "\u{1F648}" : "\u{1F441}\uFE0F"}
               </button>
@@ -128,14 +129,14 @@ const Login: React.FC = () => {
             isLoading={loading}
             className="mt-2"
           >
-            Entrar
+            {t("auth.loginButton")}
           </Button>
         </form>
 
         <p className="text-center text-sm text-grey-500 mt-6">
-          No tienes cuenta?{" "}
-          <a href="/register" className="text-primary hover:text-primary-dark font-medium">
-            Registrate
+          {t("auth.noAccount")}{" "}
+          <a href="/registro" className="text-primary hover:text-primary-dark font-medium">
+            {t("auth.registerLink")}
           </a>
         </p>
       </div>

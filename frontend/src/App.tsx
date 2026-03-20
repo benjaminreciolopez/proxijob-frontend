@@ -1,7 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { useAdminAuth } from "./context/AdminAuthContext";
 import { Skeleton } from "./components/ui/Skeleton";
 
 // Lazy-loaded pages
@@ -9,14 +8,12 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const Register = lazy(() => import("./pages/Register"));
 const Login = lazy(() => import("./pages/Login"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
-const DashboardUniversal = lazy(() => import("./pages/DashboardUniversal"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Chat = lazy(() => import("./Chat"));
 const CrearReseña = lazy(() => import("./pages/CrearReseña"));
 const PerfilPublico = lazy(() => import("./pages/PerfilPublico"));
 const Pagos = lazy(() => import("./pages/Pagos"));
-const RutaProtegida = lazy(() => import("./components/RutaProtegida"));
-
-const modoMantenimiento = import.meta.env.VITE_MODO_MANTENIMIENTO === "true";
+const RutaProtegidaRol = lazy(() => import("./components/RutaProtegidaRol"));
 
 const PageLoader: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center bg-grey-50">
@@ -31,74 +28,54 @@ const PageLoader: React.FC = () => (
   </div>
 );
 
-const RutasProtegidas: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated: isAdmin } = useAdminAuth();
-
-  if (modoMantenimiento && !isAdmin) {
-    return <Navigate to="/" replace />;
-  }
-  return <>{children}</>;
-};
-
 const App: React.FC = () => {
   return (
     <>
       <Toaster position="top-center" />
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* Rutas públicas */}
-          <Route path="/admin" element={<AdminLogin />} />
+          {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/registro" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={
-              modoMantenimiento ? (
-                <RutaProtegida>
-                  <LandingPage />
-                </RutaProtegida>
-              ) : (
-                <LandingPage />
-              )
-            }
-          />
-          {/* Rutas protegidas */}
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/perfil/:id" element={<PerfilPublico />} />
+
+          {/* Protected routes */}
           <Route
             path="/dashboard"
             element={
-              <RutasProtegidas>
-                <DashboardUniversal />
-              </RutasProtegidas>
+              <RutaProtegidaRol>
+                <Dashboard />
+              </RutaProtegidaRol>
             }
           />
           <Route
             path="/crear-reseña"
             element={
-              <RutasProtegidas>
+              <RutaProtegidaRol>
                 <CrearReseña />
-              </RutasProtegidas>
+              </RutaProtegidaRol>
             }
           />
           <Route
             path="/chat"
             element={
-              <RutasProtegidas>
+              <RutaProtegidaRol>
                 <Chat />
-              </RutasProtegidas>
+              </RutaProtegidaRol>
             }
           />
-          {/* Perfil público */}
-          <Route path="/perfil/:id" element={<PerfilPublico />} />
-          {/* Pagos */}
           <Route
             path="/pagos"
             element={
-              <RutasProtegidas>
+              <RutaProtegidaRol>
                 <Pagos />
-              </RutasProtegidas>
+              </RutaProtegidaRol>
             }
           />
-          {/* Redirección catch-all */}
+
+          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

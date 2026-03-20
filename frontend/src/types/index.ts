@@ -135,3 +135,10 @@ export interface Transaccion {
 export type EstadoPostulacion = "pendiente" | "preseleccionado" | "aceptado" | "rechazado";
 export type EstadoSolicitud = "pendiente" | "aceptado" | "completado" | "cancelado";
 export type EstadoPago = "pendiente" | "completado" | "fallido" | "reembolsado";
+
+// Role types
+export type UserRole = "cliente" | "profesional" | "admin";
+
+// Aliases for renamed concepts (Postulacion -> Propuesta)
+export type Propuesta = Postulacion;
+export type EstadoPropuesta = EstadoPostulacion;
